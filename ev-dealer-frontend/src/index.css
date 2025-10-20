@@ -22,12 +22,28 @@ a:hover {
   color: #535bf2;
 }
 
+html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
+  padding: 0;
   min-width: 320px;
   min-height: 100vh;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  background: transparent;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  height: 100%;
 }
 
 h1 {
@@ -52,6 +68,41 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+
+/* Fix autocomplete styling - ULTIMATE FIX */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #000000 !important;
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  background-color: #ffffff !important;
+  background-clip: content-box !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+  color: #000000 !important;
+  font-family: inherit !important;
+}
+
+/* Fix MUI TextField autocomplete - FORCE OVERRIDE */
+.MuiInputBase-root input:-webkit-autofill,
+.MuiInputBase-root input:-webkit-autofill:hover,
+.MuiInputBase-root input:-webkit-autofill:focus,
+.MuiInputBase-root input:-webkit-autofill:active,
+.MuiOutlinedInput-root input:-webkit-autofill,
+.MuiOutlinedInput-root input:-webkit-autofill:hover,
+.MuiOutlinedInput-root input:-webkit-autofill:focus,
+.MuiOutlinedInput-root input:-webkit-autofill:active {
+  -webkit-text-fill-color: rgba(0, 0, 0, 0.87) !important;
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  background-color: #ffffff !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+  color: rgba(0, 0, 0, 0.87) !important;
+  caret-color: rgba(0, 0, 0, 0.87) !important;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif !important;
+  font-size: 1rem !important;
 }
 
 @media (prefers-color-scheme: light) {

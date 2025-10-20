@@ -1,21 +1,24 @@
 /**
  * Protected Route Component
- * TODO: Implement route protection based on authentication and role
+ * Route protection based on authentication and role
  */
 
 import { Navigate } from 'react-router-dom'
+import authService from '../../services/authService'
 
 const ProtectedRoute = ({ children, requiredRole }) => {
-  // TODO: Get auth state from context/store
-  const isAuthenticated = false // Replace with actual auth check
-  const userRole = null // Replace with actual user role
+  // Check if user is authenticated
+  const isAuthenticated = authService.isAuthenticated()
+  const user = authService.getCurrentUser()
 
+  // Redirect to login if not authenticated
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }
 
-  if (requiredRole && userRole !== requiredRole) {
-    return <Navigate to="/unauthorized" replace />
+  // Check role if required
+  if (requiredRole && user?.role !== requiredRole) {
+    return <Navigate to="/dashboard" replace />
   }
 
   return children
