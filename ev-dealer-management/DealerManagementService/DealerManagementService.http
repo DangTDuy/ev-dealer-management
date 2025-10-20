@@ -1,0 +1,6 @@
+@DealerManagementService_HostAddress = http://localhost:5246
+
+GET {{DealerManagementService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

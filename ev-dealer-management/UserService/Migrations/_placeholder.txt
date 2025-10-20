@@ -1,0 +1,1 @@
+This folder will contain EF Core migrations after running `dotnet ef migrations add Initial`.

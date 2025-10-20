@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  userservice:
+    build: ./UserService
+    image: evdealer/userservice:local
+    container_name: evm_userservice
+    ports:
+      - "5001:80"
+    volumes:
+      - ./UserService/data:/app/data
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/users.db
+      - Jwt__Key=ReplaceThisWithASecretKeyForDevelopment
+      - Jwt__Issuer=evm.local
+      - Jwt__Audience=evm.local
+    restart: unless-stopped
