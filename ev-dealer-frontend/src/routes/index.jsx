@@ -9,6 +9,9 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import MainLayout from '../layouts/MainLayout'
 import AuthLayout from '../layouts/AuthLayout'
 
+// Public Pages
+import LandingPage from '../pages/Landing/LandingPage'
+
 // Auth Pages
 import Login from '../pages/Auth/Login'
 import Register from '../pages/Auth/Register'
@@ -38,6 +41,9 @@ import ProtectedRoute from '../components/common/ProtectedRoute'
 const AppRoutes = () => {
   return (
     <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={<LandingPage />} />
+
       {/* Auth Routes */}
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<Login />} />
@@ -81,8 +87,12 @@ const AppRoutes = () => {
       </Route>
 
       {/* Default Route */}
+<<<<<<< HEAD
       <Route path="/" element={<Navigate to="/vehicles" replace />} />
       <Route path="*" element={<Navigate to="/vehicles" replace />} />
+=======
+      <Route path="*" element={<Navigate to="/" replace />} />
+>>>>>>> 94f537b ( updaate)
     </Routes>
   )
 }

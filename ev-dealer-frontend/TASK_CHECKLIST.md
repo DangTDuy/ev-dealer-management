@@ -8,7 +8,7 @@
 
 ## 👤 Module 1: Authentication
 **Người phụ trách:** Nguyen Chi Trung  
-**Deadline:** 27/10/2025
+**Deadline:** 23/10/2025
 
 ### Tasks:
 - [ ] **Login Page** (`src/pages/Auth/Login.jsx`)
