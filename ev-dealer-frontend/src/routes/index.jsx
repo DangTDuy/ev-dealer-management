@@ -87,12 +87,8 @@ const AppRoutes = () => {
       </Route>
 
       {/* Default Route */}
-<<<<<<< HEAD
       <Route path="/" element={<Navigate to="/vehicles" replace />} />
       <Route path="*" element={<Navigate to="/vehicles" replace />} />
-=======
-      <Route path="*" element={<Navigate to="/" replace />} />
->>>>>>> 94f537b ( updaate)
     </Routes>
   )
 }

@@ -92,23 +92,6 @@ const AuthLayout = () => {
         </Paper>
 
         {/* Footer */}
-<<<<<<< HEAD
-        {/* Footer */}
-<Typography
-  variant="caption"
-  align="center"
-  sx={{
-    display: 'block',
-    mt: 1.5,
-    color: 'rgba(255, 255, 255, 0.9)',
-    textShadow: '0 1px 3px rgba(0,0,0,0.3)',
-    fontSize: '0.7rem',
-  }}
->
-  &copy; 2025 EV Dealer Management
-</Typography>
-
-=======
         <Typography
           variant="caption"
           align="center"
@@ -122,7 +105,6 @@ const AuthLayout = () => {
         >
           © 2025 EV Dealer Management
         </Typography>
->>>>>>> 94f537b ( updaate)
       </Container>
     </Box>
   )
