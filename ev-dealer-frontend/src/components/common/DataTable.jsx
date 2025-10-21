@@ -78,7 +78,7 @@ const DataTable = ({
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelected = paginatedData.map((row, index) => page * rowsPerPage + index);
+      const newSelected = paginatedData.map((row) => row.id);
       setSelectedRows(newSelected);
       onSelectionChange?.(newSelected);
     } else {
@@ -87,17 +87,21 @@ const DataTable = ({
     }
   };
 
-  const handleRowClick = (event, row, index) => {
-    if (selectable) {
-      const rowIndex = page * rowsPerPage + index;
-      const newSelected = selectedRows.includes(rowIndex)
-        ? selectedRows.filter(item => item !== rowIndex)
-        : [...selectedRows, rowIndex];
-      
-      setSelectedRows(newSelected);
-      onSelectionChange?.(newSelected);
+  const handleRowClick = (event, row) => {
+    // Prevent navigation when clicking on interactive elements
+    if (event.target.closest('button, a, input')) {
+      return;
     }
-    onRowClick?.(row, index);
+    onRowClick?.(row);
+  };
+
+  const handleSelectRow = (rowId) => {
+    const newSelected = selectedRows.includes(rowId)
+      ? selectedRows.filter(id => id !== rowId)
+      : [...selectedRows, rowId];
+    
+    setSelectedRows(newSelected);
+    onSelectionChange?.(newSelected);
   };
 
   const handleActionClick = (event, row) => {
@@ -110,25 +114,28 @@ const DataTable = ({
     setSelectedRow(null);
   };
 
-  const getStatusChip = (status) => {
+  const renderStatus = (status) => {
     const statusConfig = {
-      active: { color: 'success', label: 'Hoạt động' },
-      inactive: { color: 'error', label: 'Không hoạt động' },
-      pending: { color: 'warning', label: 'Chờ xử lý' },
-      completed: { color: 'success', label: 'Hoàn thành' },
-      cancelled: { color: 'error', label: 'Đã hủy' }
+      active: { color: 'success.main', label: 'Hoạt động' },
+      inactive: { color: 'error.main', label: 'Tạm ngưng' },
+      pending: { color: 'warning.main', label: 'Chờ xử lý' },
+      completed: { color: 'success.main', label: 'Hoàn thành' },
+      cancelled: { color: 'error.main', label: 'Đã hủy' }
     };
 
-    const config = statusConfig[status?.toLowerCase()] || { color: 'default', label: status };
+    const config = statusConfig[status?.toLowerCase()] || { color: 'text.secondary', label: status };
     return (
-      <Chip
-        label={config.label}
-        color={config.color}
-        size="small"
-        sx={{ fontWeight: 600 }}
-      />
+      <Typography variant="body2" sx={{ color: config.color, fontWeight: 500 }}>
+        {config.label}
+      </Typography>
     );
   };
+
+  const getAvatarChar = (name) => {
+    if (!name) return '';
+    const nameParts = name.split(' ');
+    return nameParts[nameParts.length - 1].charAt(0).toUpperCase();
+  }
 
   const renderCellContent = (column, row) => {
     const value = row[column.field];
@@ -138,19 +145,19 @@ const DataTable = ({
         return (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Avatar
-              src={value?.src}
+              src={row.avatar?.src}
               sx={{ width: 32, height: 32 }}
             >
-              {value?.alt || value?.charAt(0)?.toUpperCase()}
+              {getAvatarChar(row.name)}
             </Avatar>
             <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              {value?.name || value}
+              {row.name}
             </Typography>
           </Box>
         );
       
       case 'status':
-        return getStatusChip(value);
+        return renderStatus(value);
       
       case 'chip':
         return (
@@ -199,6 +206,13 @@ const DataTable = ({
         );
       
       default:
+        if (column.field === 'phone') {
+          return (
+            <Typography variant="body2" sx={{ color: 'text.primary' }}>
+              {String(value).replace(/-/g, '')}
+            </Typography>
+          );
+        }
         return (
           <Typography variant="body2" sx={{ color: 'text.primary' }}>
             {value}
@@ -293,55 +307,51 @@ const DataTable = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {paginatedData.map((row, index) => (
-              <TableRow
-                key={row.id || index}
-                hover
-                selected={selectedRows.includes(page * rowsPerPage + index)}
-                onClick={(e) => handleRowClick(e, row, index)}
-                sx={{
-                  cursor: 'pointer',
-                  '&:hover': {
-                    backgroundColor: 'action.hover',
-                  },
-                  '&.Mui-selected': {
-                    backgroundColor: 'primary.light',
+            {paginatedData.map((row, index) => {
+              const isSelected = selectedRows.includes(row.id);
+              return (
+                <TableRow
+                  key={row.id || index}
+                  hover
+                  selected={isSelected}
+                  onClick={(e) => handleRowClick(e, row)}
+                  sx={{
+                    cursor: 'pointer',
                     '&:hover': {
-                      backgroundColor: 'primary.main',
+                      backgroundColor: 'action.hover',
                     },
-                  },
-                }}
-              >
-                {selectable && (
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      checked={selectedRows.includes(page * rowsPerPage + index)}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        const rowIndex = page * rowsPerPage + index;
-                        const newSelected = selectedRows.includes(rowIndex)
-                          ? selectedRows.filter(item => item !== rowIndex)
-                          : [...selectedRows, rowIndex];
-                        setSelectedRows(newSelected);
-                        onSelectionChange?.(newSelected);
+                    // Remove the background color change on selection
+                    // '&.Mui-selected': {
+                    //   backgroundColor: 'primary.light',
+                    //   '&:hover': {
+                    //     backgroundColor: 'primary.main',
+                    //   },
+                    // },
+                  }}
+                >
+                  {selectable && (
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={isSelected}
+                        onChange={() => handleSelectRow(row.id)}
+                      />
+                    </TableCell>
+                  )}
+                  {columns.map((column) => (
+                    <TableCell
+                      key={column.field}
+                      sx={{
+                        borderBottom: '1px solid',
+                        borderColor: 'divider',
+                        py: 1.5
                       }}
-                    />
-                  </TableCell>
-                )}
-                {columns.map((column) => (
-                  <TableCell
-                    key={column.field}
-                    sx={{
-                      borderBottom: '1px solid',
-                      borderColor: 'divider',
-                      py: 1.5
-                    }}
-                  >
-                    {renderCellContent(column, row)}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
+                    >
+                      {renderCellContent(column, row)}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>

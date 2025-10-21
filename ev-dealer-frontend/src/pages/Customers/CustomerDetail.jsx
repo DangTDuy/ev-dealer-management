@@ -22,7 +22,8 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  CardHeader
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -35,7 +36,10 @@ import {
   History as HistoryIcon,
   Star as StarIcon,
   Add as AddIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  PhoneInTalk as PhoneInTalkIcon,
+  MarkEmailRead as MarkEmailReadIcon,
+  Event as EventIcon
 } from '@mui/icons-material';
 import { PageHeader, ModernCard, DataTable } from '../../components/common';
 
@@ -74,6 +78,12 @@ const CustomerDetail = () => {
     { id: 1, date: '2024-01-15', vehicle: 'Tesla Model Y', status: 'scheduled' },
     { id: 2, date: '2023-12-20', vehicle: 'BMW iX', status: 'completed' },
     { id: 3, date: '2023-11-25', vehicle: 'Audi Q4 e-tron', status: 'completed' }
+  ];
+
+  const recentInteractions = [
+    { id: 1, type: 'call', date: '2024-01-20', summary: 'Gọi điện hỏi về chương trình khuyến mãi' },
+    { id: 2, type: 'email', date: '2024-01-18', summary: 'Gửi email báo giá xe Model Y' },
+    { id: 3, type: 'meeting', date: '2024-01-15', summary: 'Gặp mặt tại showroom để xem xe' },
   ];
 
   const columns = [
@@ -136,6 +146,19 @@ const CustomerDetail = () => {
       color: 'info.main'
     }
   ];
+
+  const getInteractionIcon = (type) => {
+    switch (type) {
+      case 'call':
+        return <PhoneInTalkIcon color="success" />;
+      case 'email':
+        return <MarkEmailReadIcon color="info" />;
+      case 'meeting':
+        return <EventIcon color="warning" />;
+      default:
+        return <HistoryIcon />;
+    }
+  };
 
   return (
     <Container maxWidth="xl">
@@ -229,7 +252,7 @@ const CustomerDetail = () => {
         </Grid>
 
         {/* Main Content */}
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={5}>
           <Paper sx={{ borderRadius: 3 }}>
             <Tabs
               value={tabValue}
@@ -278,6 +301,28 @@ const CustomerDetail = () => {
               )}
             </Box>
           </Paper>
+        </Grid>
+
+        {/* Recent Interactions */}
+        <Grid item xs={12} md={3}>
+          <Card>
+            <CardHeader title="Lịch sử tương tác gần đây" />
+            <CardContent>
+              <List sx={{ p: 0 }}>
+                {recentInteractions.map(item => (
+                  <ListItem key={item.id} sx={{ px: 0, py: 1 }}>
+                    <ListItemIcon>
+                      {getInteractionIcon(item.type)}
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={item.summary}
+                      secondary={item.date}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </CardContent>
+          </Card>
         </Grid>
       </Grid>
 
