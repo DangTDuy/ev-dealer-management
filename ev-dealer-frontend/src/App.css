@@ -201,3 +201,8 @@ html, body, #root {
 .shadow-large {
   box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.1), 0px 4px 6px rgba(0, 0, 0, 0.05);
 }
+
+/* Override border radius for MuiBox-root to remove rounding */
+.MuiBox-root {
+  border-radius: 0 !important;
+}
