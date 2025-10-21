@@ -8,7 +8,7 @@
 
 ## 👤 Module 1: Authentication
 **Người phụ trách:** Nguyen Chi Trung  
-**Deadline:** 23/10/2025
+**Deadline:** 22/10/2025
 
 ### Tasks:
 - [ ] **Login Page** (`src/pages/Auth/Login.jsx`)
@@ -137,8 +137,9 @@
 ---
 
 ## 👥 Module 5: Customer Management
-**Người phụ trách:** _________________  
-**Deadline:** _________________
+**Người phụ trách:** Nguyen Chi Trung  
+**Deadline:** 23/10/2025
+
 
 ### Tasks:
 - [ ] **Customer List** (`src/pages/Customers/CustomerList.jsx`)
