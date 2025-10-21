@@ -42,15 +42,6 @@ const PageHeader = ({
           separator={<ChevronRightIcon fontSize="small" />} 
           sx={{ mb: 2 }}
         >
-          <Link
-            underline="hover"
-            color="inherit"
-            href="/"
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-          >
-            <HomeIcon fontSize="small" />
-            Trang chủ
-          </Link>
           {breadcrumbs.map((crumb, index) => (
             <Link
               key={index}
@@ -59,9 +50,13 @@ const PageHeader = ({
               href={crumb.href}
               sx={{ 
                 fontWeight: index === breadcrumbs.length - 1 ? 600 : 400,
-                color: index === breadcrumbs.length - 1 ? 'text.primary' : 'text.secondary'
+                color: index === breadcrumbs.length - 1 ? 'text.primary' : 'text.secondary',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5
               }}
             >
+              {index === 0 && <HomeIcon fontSize="small" />}
               {crumb.label}
             </Link>
           ))}

@@ -149,6 +149,7 @@ const CustomerList = () => {
   ];
 
   const breadcrumbs = [
+    { label: 'Trang chủ', href: '/dashboard' },
     { label: 'Quản lý khách hàng', href: '/customers' }
   ];
 

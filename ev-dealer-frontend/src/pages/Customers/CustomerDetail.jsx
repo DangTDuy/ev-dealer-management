@@ -94,6 +94,7 @@ const CustomerDetail = () => {
   };
 
   const breadcrumbs = [
+    { label: 'Trang chủ', href: '/dashboard' },
     { label: 'Khách hàng', href: '/customers' },
     { label: 'Chi tiết khách hàng', href: `/customers/${id}` }
   ];

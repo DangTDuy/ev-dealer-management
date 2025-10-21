@@ -203,35 +203,40 @@ const MainLayout = () => {
 
       {/* User Profile Section */}
       <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-        <ListItemButton
-          sx={{
-            borderRadius: 2,
-            p: 1.5,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1,
-          }}
-        >
-          <Avatar
+        <Tooltip title={miniDrawer ? 'Admin User\nadmin@evdealer.com' : ''} placement="right">
+          <ListItemButton
             sx={{
-              width: 32,
-              height: 32,
-              bgcolor: 'secondary.main',
+              borderRadius: 2,
+              p: miniDrawer ? 1 : 1.5,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: miniDrawer ? 'center' : 'flex-start',
+              gap: miniDrawer ? 0 : 1,
+              minHeight: miniDrawer ? 48 : 'auto',
             }}
           >
-            <AccountIcon />
-          </Avatar>
-          {!miniDrawer && (
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                Admin User
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                admin@evdealer.com
-              </Typography>
-            </Box>
-          )}
-        </ListItemButton>
+            <Avatar
+              sx={{
+                width: miniDrawer ? 40 : 32,
+                height: miniDrawer ? 40 : 32,
+                bgcolor: 'secondary.main',
+                fontSize: miniDrawer ? '1.1rem' : '1rem',
+              }}
+            >
+              <AccountIcon />
+            </Avatar>
+            {!miniDrawer && (
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Admin User
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  admin@evdealer.com
+                </Typography>
+              </Box>
+            )}
+          </ListItemButton>
+        </Tooltip>
       </Box>
     </Box>
   );
