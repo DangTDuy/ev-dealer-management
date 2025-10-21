@@ -21,7 +21,12 @@ import {
   DialogContent,
   DialogActions,
   CardHeader,
-  Paper
+  Paper,
+  Grid,
+  Rating,
+  LinearProgress,
+  TextField,
+  InputAdornment
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -35,7 +40,12 @@ import {
   Star as StarIcon,
   PhoneInTalk as PhoneInTalkIcon,
   MarkEmailRead as MarkEmailReadIcon,
-  Event as EventIcon
+  Event as EventIcon,
+  AttachMoney as MoneyIcon,
+  Speed as SpeedIcon,
+  Engineering as EngineeringIcon,
+  Person as PersonIcon,
+  Search as SearchIcon
 } from '@mui/icons-material';
 import { PageHeader, DataTable } from '../../components/common';
 
@@ -44,6 +54,7 @@ const CustomerDetail = () => {
   const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(0);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Mock customer data
   const customer = {
@@ -59,7 +70,8 @@ const CustomerDetail = () => {
     totalPurchases: 5,
     totalSpent: '2.5B VNĐ',
     loyaltyPoints: 1250,
-    preferredBrand: 'Tesla'
+    preferredBrand: 'Tesla',
+    satisfaction: 4.5
   };
 
   const purchaseHistory = [
@@ -82,6 +94,19 @@ const CustomerDetail = () => {
     { id: 3, type: 'meeting', date: '2024-01-15', summary: 'Gặp mặt tại showroom để xem xe' },
   ];
 
+  const customerPreferences = [
+    { category: 'Dòng xe ưa thích', value: 'SUV Điện' },
+    { category: 'Màu sắc ưa thích', value: 'Đen, Trắng' },
+    { category: 'Ngân sách', value: '1-3 tỷ VNĐ' },
+    { category: 'Tần suất thay xe', value: '6-12 tháng' }
+  ];
+
+  const serviceHistory = [
+    { id: 1, date: '2024-01-05', service: 'Bảo dưỡng định kỳ', amount: '5M VNĐ', status: 'completed' },
+    { id: 2, date: '2023-11-15', service: 'Thay lốp', amount: '12M VNĐ', status: 'completed' },
+    { id: 3, date: '2023-09-20', service: 'Sửa chữa hệ thống phanh', amount: '8M VNĐ', status: 'completed' }
+  ];
+
   const columns = [
     { field: 'date', headerName: 'Ngày', width: 120 },
     { field: 'vehicle', headerName: 'Xe', width: 200 },
@@ -92,6 +117,13 @@ const CustomerDetail = () => {
   const testDriveColumns = [
     { field: 'date', headerName: 'Ngày', width: 150 },
     { field: 'vehicle', headerName: 'Xe', width: 200 },
+    { field: 'status', headerName: 'Trạng thái', width: 120 }
+  ];
+
+  const serviceColumns = [
+    { field: 'date', headerName: 'Ngày', width: 120 },
+    { field: 'service', headerName: 'Dịch vụ', width: 200 },
+    { field: 'amount', headerName: 'Chi phí', width: 150 },
     { field: 'status', headerName: 'Trạng thái', width: 120 }
   ];
 
@@ -180,153 +212,307 @@ const CustomerDetail = () => {
           mt: 3
         }}
       >
-        {/* Customer Info Card */}
-        <Paper sx={{ p: 3, borderRadius: 3, mb: 3, backgroundColor: '#ffffff' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-            <Avatar
-              sx={{
-                width: 80,
-                height: 80,
-                bgcolor: 'primary.main',
-                fontSize: '2rem',
-                fontWeight: 'bold',
-                mr: 2
-              }}
-            >
-              {customer.avatar.alt}
-            </Avatar>
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
-                {customer.name}
-              </Typography>
-              <Chip
-                label={customer.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
-                color={customer.status === 'active' ? 'success' : 'error'}
-                size="small"
-              />
-            </Box>
-          </Box>
-
-          <List sx={{ p: 0 }}>
-            <ListItem sx={{ px: 0, py: 1 }}>
-              <ListItemIcon>
-                <EmailIcon color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary="Email"
-                secondary={customer.email}
-              />
-            </ListItem>
-            <ListItem sx={{ px: 0, py: 1 }}>
-              <ListItemIcon>
-                <PhoneIcon color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary="Số điện thoại"
-                secondary={customer.phone}
-              />
-            </ListItem>
-            <ListItem sx={{ px: 0, py: 1 }}>
-              <ListItemIcon>
-                <LocationIcon color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary="Địa chỉ"
-                secondary={customer.address}
-              />
-            </ListItem>
-            <ListItem sx={{ px: 0, py: 1 }}>
-              <ListItemIcon>
-                <CalendarIcon color="primary" />
-              </ListItemIcon>
-              <ListItemText
-                primary="Ngày tham gia"
-                secondary={customer.joinDate}
-              />
-            </ListItem>
-          </List>
-
-          <Divider sx={{ my: 2 }} />
-
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', mb: 1 }}>
-              {customer.totalSpent}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Tổng chi tiêu
-            </Typography>
-          </Box>
-        </Paper>
-
-        {/* Main Content with Tabs */}
-        <Paper sx={{ borderRadius: 3, mb: 3, backgroundColor: '#ffffff' }}>
-          <Tabs
-            value={tabValue}
-            onChange={handleTabChange}
-            sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}
-          >
-            <Tab label="Lịch sử mua hàng" icon={<HistoryIcon />} />
-            <Tab label="Test Drive" icon={<CarIcon />} />
-            <Tab label="Ghi chú" icon={<EditIcon />} />
-          </Tabs>
-
-          <Box sx={{ p: 3 }}>
-            {tabValue === 0 && (
-              <DataTable
-                columns={columns}
-                data={purchaseHistory}
-                searchable={false}
-                pagination={true}
-                selectable={false}
-                title=""
-              />
-            )}
-
-            {tabValue === 1 && (
-              <DataTable
-                columns={testDriveColumns}
-                data={testDrives}
-                searchable={false}
-                pagination={true}
-                selectable={false}
-                title=""
-              />
-            )}
-
-            {tabValue === 2 && (
-              <Box>
-                <Typography variant="h6" sx={{ mb: 2 }}>
-                  Ghi chú về khách hàng
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Khách hàng VIP, thường xuyên mua xe điện cao cấp.
-                  Ưa thích Tesla và có xu hướng mua xe mới mỗi 6 tháng.
-                  Cần chăm sóc đặc biệt và ưu đãi tốt.
-                </Typography>
+        <Grid container spacing={3}>
+          {/* Left Column - Customer Info */}
+          <Grid item xs={12} md={4}>
+            {/* Customer Info Card */}
+            <Paper sx={{ p: 3, borderRadius: 3, mb: 3, backgroundColor: '#ffffff' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                <Avatar
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    bgcolor: 'primary.main',
+                    fontSize: '2rem',
+                    fontWeight: 'bold',
+                    mr: 2
+                  }}
+                >
+                  {customer.avatar.alt}
+                </Avatar>
+                <Box>
+                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
+                    {customer.name}
+                  </Typography>
+                  <Chip
+                    label={customer.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
+                    color={customer.status === 'active' ? 'success' : 'error'}
+                    size="small"
+                  />
+                </Box>
               </Box>
-            )}
-          </Box>
-        </Paper>
 
-        {/* Recent Interactions */}
-        <Card sx={{ mb: 3, backgroundColor: '#ffffff' }}>
-          <CardHeader title="Lịch sử tương tác gần đây" />
-          <CardContent>
-            <List sx={{ p: 0 }}>
-              {recentInteractions.map(item => (
-                <ListItem key={item.id} sx={{ px: 0, py: 1 }}>
+              <List sx={{ p: 0 }}>
+                <ListItem sx={{ px: 0, py: 1 }}>
                   <ListItemIcon>
-                    {getInteractionIcon(item.type)}
+                    <EmailIcon color="primary" />
                   </ListItemIcon>
                   <ListItemText
-                    primary={item.summary}
-                    secondary={item.date}
+                    primary="Email"
+                    secondary={customer.email}
                   />
                 </ListItem>
-              ))}
-            </List>
-          </CardContent>
-        </Card>
+                <ListItem sx={{ px: 0, py: 1 }}>
+                  <ListItemIcon>
+                    <PhoneIcon color="primary" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Số điện thoại"
+                    secondary={customer.phone}
+                  />
+                </ListItem>
+                <ListItem sx={{ px: 0, py: 1 }}>
+                  <ListItemIcon>
+                    <LocationIcon color="primary" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Địa chỉ"
+                    secondary={customer.address}
+                  />
+                </ListItem>
+                <ListItem sx={{ px: 0, py: 1 }}>
+                  <ListItemIcon>
+                    <CalendarIcon color="primary" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Ngày tham gia"
+                    secondary={customer.joinDate}
+                  />
+                </ListItem>
+              </List>
+
+              <Divider sx={{ my: 2 }} />
+
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', mb: 1 }}>
+                  {customer.totalSpent}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Tổng chi tiêu
+                </Typography>
+              </Box>
+            </Paper>
+
+            {/* Customer Preferences */}
+            <Paper sx={{ p: 3, borderRadius: 3, mb: 3, backgroundColor: '#ffffff' }}>
+              <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+                <PersonIcon sx={{ mr: 1 }} />
+                Sở thích & Ưu tiên
+              </Typography>
+              <List sx={{ p: 0 }}>
+                {customerPreferences.map((pref, index) => (
+                  <ListItem key={index} sx={{ px: 0, py: 1 }}>
+                    <ListItemText
+                      primary={pref.category}
+                      secondary={pref.value}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
+
+            {/* Satisfaction Rating */}
+            <Paper sx={{ p: 3, borderRadius: 3, backgroundColor: '#ffffff' }}>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Đánh giá mức độ hài lòng
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Rating value={customer.satisfaction} precision={0.5} readOnly />
+                <Typography variant="body2" sx={{ ml: 1 }}>
+                  {customer.satisfaction}/5
+                </Typography>
+              </Box>
+              <LinearProgress 
+                variant="determinate" 
+                value={customer.satisfaction * 20} 
+                sx={{ height: 8, borderRadius: 4 }}
+                color="primary"
+              />
+            </Paper>
+          </Grid>
+
+          {/* Right Column - Main Content */}
+          <Grid item xs={12} md={8}>
+            {/* Search Bar */}
+            <Paper sx={{ p: 2, borderRadius: 3, mb: 3, backgroundColor: '#ffffff' }}>
+              <TextField
+                fullWidth
+                placeholder="Tìm kiếm trong lịch sử..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Paper>
+
+            {/* Main Content with Tabs */}
+            <Paper sx={{ borderRadius: 3, mb: 3, backgroundColor: '#ffffff' }}>
+              <Tabs
+                value={tabValue}
+                onChange={handleTabChange}
+                sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}
+              >
+                <Tab label="Lịch sử mua hàng" icon={<ShoppingIcon />} />
+                <Tab label="Test Drive" icon={<CarIcon />} />
+                <Tab label="Lịch sử dịch vụ" icon={<EngineeringIcon />} />
+                <Tab label="Ghi chú" icon={<EditIcon />} />
+              </Tabs>
+
+              <Box sx={{ p: 3 }}>
+                {tabValue === 0 && (
+                  <DataTable
+                    columns={columns}
+                    data={purchaseHistory}
+                    searchable={false}
+                    pagination={true}
+                    selectable={false}
+                    title=""
+                  />
+                )}
+
+                {tabValue === 1 && (
+                  <DataTable
+                    columns={testDriveColumns}
+                    data={testDrives}
+                    searchable={false}
+                    pagination={true}
+                    selectable={false}
+                    title=""
+                  />
+                )}
+
+                {tabValue === 2 && (
+                  <DataTable
+                    columns={serviceColumns}
+                    data={serviceHistory}
+                    searchable={false}
+                    pagination={true}
+                    selectable={false}
+                    title=""
+                  />
+                )}
+
+                {tabValue === 3 && (
+                  <Box>
+                    <Typography variant="h6" sx={{ mb: 2 }}>
+                      Ghi chú về khách hàng
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                      Khách hàng VIP, thường xuyên mua xe điện cao cấp.
+                      Ưa thích Tesla và có xu hướng mua xe mới mỗi 6 tháng.
+                      Cần chăm sóc đặc biệt và ưu đãi tốt.
+                    </Typography>
+                    
+                    <Typography variant="h6" sx={{ mb: 2 }}>
+                      Đề xuất tiếp thị
+                    </Typography>
+                    <List>
+                      <ListItem sx={{ px: 0 }}>
+                        <ListItemIcon>
+                          <StarIcon color="warning" />
+                        </ListItemIcon>
+                        <ListItemText primary="Giới thiệu các dòng xe Tesla mới nhất" />
+                      </ListItem>
+                      <ListItem sx={{ px: 0 }}>
+                        <ListItemIcon>
+                          <StarIcon color="warning" />
+                        </ListItemIcon>
+                        <ListItemText primary="Ưu đãi đặc biệt cho khách hàng thân thiết" />
+                      </ListItem>
+                      <ListItem sx={{ px: 0 }}>
+                        <ListItemIcon>
+                          <StarIcon color="warning" />
+                        </ListItemIcon>
+                        <ListItemText primary="Mời tham gia sự kiện ra mắt xe mới" />
+                      </ListItem>
+                    </List>
+                  </Box>
+                )}
+              </Box>
+            </Paper>
+
+            {/* Recent Interactions */}
+            <Card sx={{ mb: 3, backgroundColor: '#ffffff' }}>
+              <CardHeader 
+                title="Lịch sử tương tác gần đây" 
+                action={
+                  <Button variant="outlined" startIcon={<EditIcon />}>
+                    Thêm tương tác
+                  </Button>
+                }
+              />
+              <CardContent>
+                <List sx={{ p: 0 }}>
+                  {recentInteractions.map(item => (
+                    <ListItem key={item.id} sx={{ px: 0, py: 1 }}>
+                      <ListItemIcon>
+                        {getInteractionIcon(item.type)}
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item.summary}
+                        secondary={item.date}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </CardContent>
+            </Card>
+
+            {/* Quick Actions */}
+            <Paper sx={{ p: 3, borderRadius: 3, backgroundColor: '#ffffff' }}>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Hành động nhanh
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Button 
+                    fullWidth 
+                    variant="outlined" 
+                    startIcon={<PhoneIcon />}
+                    onClick={() => window.open(`tel:${customer.phone}`)}
+                  >
+                    Gọi điện
+                  </Button>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Button 
+                    fullWidth 
+                    variant="outlined" 
+                    startIcon={<EmailIcon />}
+                    onClick={() => window.open(`mailto:${customer.email}`)}
+                  >
+                    Gửi email
+                  </Button>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Button 
+                    fullWidth 
+                    variant="outlined" 
+                    startIcon={<CarIcon />}
+                    onClick={() => navigate('/customers/test-drive/new')}
+                  >
+                    Đặt test drive
+                  </Button>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Button 
+                    fullWidth 
+                    variant="outlined" 
+                    startIcon={<MoneyIcon />}
+                    onClick={() => navigate('/customers/quote/new')}
+                  >
+                    Gửi báo giá
+                  </Button>
+                </Grid>
+              </Grid>
+            </Paper>
+          </Grid>
+        </Grid>
       </Container>
 
       {/* Edit Dialog */}
