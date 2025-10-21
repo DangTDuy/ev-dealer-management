@@ -81,8 +81,8 @@ const AppRoutes = () => {
       </Route>
 
       {/* Default Route */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/" element={<Navigate to="/vehicles" replace />} />
+      <Route path="*" element={<Navigate to="/vehicles" replace />} />
     </Routes>
   )
 }
