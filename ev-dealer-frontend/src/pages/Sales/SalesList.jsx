@@ -258,12 +258,12 @@ export default function SalesList() {
     console.log('Exporting data...');
   };
 
-  const handleViewOrder = (orderId) => {
-    navigate(`/sales/order/${orderId}`);
-  };
+const handleViewOrder = (orderId) => {
+  navigate(`/sales/${orderId}`);
+};
 
   const handleCreateQuote = () => {
-    navigate('/sales/quote/create');
+    navigate('/sales/quote/new');
   };
 
   if (loading) {
@@ -718,7 +718,7 @@ export default function SalesList() {
                       </td>
                       <td style={{ padding: '16px 24px', whiteSpace: 'nowrap', textAlign: 'center' }}>
                         <button 
-                          onClick={() => handleViewOrder(order.id)}
+                          onClick={() => handleViewOrder(order.id)}  // ← Đã truyền order.id
                           style={{
                             display: 'inline-flex',
                             alignItems: 'center',
