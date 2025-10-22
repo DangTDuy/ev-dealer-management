@@ -356,11 +356,11 @@ const CustomerDetail = () => {
                 value={tabValue}
                 onChange={handleTabChange}
                 sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}
+                centered
               >
                 <Tab label="Lịch sử mua hàng" icon={<ShoppingIcon />} />
                 <Tab label="Test Drive" icon={<CarIcon />} />
                 <Tab label="Lịch sử dịch vụ" icon={<EngineeringIcon />} />
-                <Tab label="Ghi chú" icon={<EditIcon />} />
               </Tabs>
 
               <Box sx={{ p: 3 }}>
@@ -395,43 +395,6 @@ const CustomerDetail = () => {
                     selectable={false}
                     title=""
                   />
-                )}
-
-                {tabValue === 3 && (
-                  <Box>
-                    <Typography variant="h6" sx={{ mb: 2 }}>
-                      Ghi chú về khách hàng
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                      Khách hàng VIP, thường xuyên mua xe điện cao cấp.
-                      Ưa thích Tesla và có xu hướng mua xe mới mỗi 6 tháng.
-                      Cần chăm sóc đặc biệt và ưu đãi tốt.
-                    </Typography>
-                    
-                    <Typography variant="h6" sx={{ mb: 2 }}>
-                      Đề xuất tiếp thị
-                    </Typography>
-                    <List>
-                      <ListItem sx={{ px: 0 }}>
-                        <ListItemIcon>
-                          <StarIcon color="warning" />
-                        </ListItemIcon>
-                        <ListItemText primary="Giới thiệu các dòng xe Tesla mới nhất" />
-                      </ListItem>
-                      <ListItem sx={{ px: 0 }}>
-                        <ListItemIcon>
-                          <StarIcon color="warning" />
-                        </ListItemIcon>
-                        <ListItemText primary="Ưu đãi đặc biệt cho khách hàng thân thiết" />
-                      </ListItem>
-                      <ListItem sx={{ px: 0 }}>
-                        <ListItemIcon>
-                          <StarIcon color="warning" />
-                        </ListItemIcon>
-                        <ListItemText primary="Mời tham gia sự kiện ra mắt xe mới" />
-                      </ListItem>
-                    </List>
-                  </Box>
                 )}
               </Box>
             </Paper>
