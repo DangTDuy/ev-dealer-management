@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Grid,
@@ -24,10 +24,11 @@ import {
   Schedule as ScheduleIcon,
 } from "@mui/icons-material";
 import { PageHeader, ModernCard, DataTable } from "../../components/common";
+import api from "../../services/api";
 
 const Dashboard = () => {
   // Mock data for dashboard
-  const statsCards = [
+  const initialStatsCards = [
     {
       title: "Tổng doanh thu",
       subtitle: "Tháng này",
@@ -70,7 +71,10 @@ const Dashboard = () => {
     },
   ];
 
-  const recentActivities = [
+  // State (start with mock data; will try to fetch real data)
+  const [statsCards, setStatsCards] = useState(initialStatsCards);
+
+  const initialRecentActivities = [
     {
       id: 1,
       type: "sale",
@@ -105,13 +109,19 @@ const Dashboard = () => {
     },
   ];
 
-  const topVehicles = [
+  const [recentActivities, setRecentActivities] = useState(
+    initialRecentActivities
+  );
+
+  const initialTopVehicles = [
     { id: 1, name: "Tesla Model 3", sales: 45, revenue: "1.2B VNĐ" },
     { id: 2, name: "BMW i3", sales: 32, revenue: "800M VNĐ" },
     { id: 3, name: "Audi e-tron", sales: 28, revenue: "1.5B VNĐ" },
     { id: 4, name: "Mercedes EQC", sales: 25, revenue: "1.8B VNĐ" },
     { id: 5, name: "Porsche Taycan", sales: 18, revenue: "2.1B VNĐ" },
   ];
+
+  const [topVehicles, setTopVehicles] = useState(initialTopVehicles);
 
   const columns = [
     {
@@ -131,6 +141,33 @@ const Dashboard = () => {
       width: 150,
     },
   ];
+
+  const [loading, setLoading] = useState(false);
+
+  const fetchDashboard = async () => {
+    setLoading(true);
+    try {
+      const data = await api.get("/dashboard");
+      if (data) {
+        if (data.stats && Array.isArray(data.stats)) setStatsCards(data.stats);
+        if (data.recentActivities && Array.isArray(data.recentActivities))
+          setRecentActivities(data.recentActivities);
+        if (data.topVehicles && Array.isArray(data.topVehicles))
+          setTopVehicles(data.topVehicles);
+      }
+    } catch (err) {
+      // fallback to mock data; log for debugging
+      // eslint-disable-next-line no-console
+      console.warn("Dashboard fetch failed, using mock data", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Container maxWidth="xl">
@@ -155,6 +192,20 @@ const Dashboard = () => {
             value: "89",
             label: "Xe trong kho",
             color: "info.main",
+          },
+        ]}
+        showRefresh={true}
+        onRefresh={fetchDashboard}
+        actions={[
+          {
+            label: "Tạo đơn hàng",
+            icon: <SalesIcon />,
+            onClick: () => (window.location.href = "/sales"),
+          },
+          {
+            label: "Thêm xe",
+            icon: <CarIcon />,
+            onClick: () => (window.location.href = "/vehicles/new"),
           },
         ]}
       />
