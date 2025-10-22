@@ -1,5 +1,5 @@
 /**
- * Vehicle List Page - Displays all vehicles in a card grid layout
+ * Vehicle List Page - Modern Card Layout
  * Features: Search, Filter, Pagination, CRUD actions
  */
 
@@ -19,7 +19,6 @@ import {
   DialogActions,
   DialogContentText,
   Container,
-  Grid,
   TextField,
   InputAdornment,
   FormControl,
@@ -30,24 +29,19 @@ import {
   CardContent,
   CardMedia,
   CardActions,
-  Avatar,
-  Rating,
   IconButton,
-  Tooltip
+  Paper
 } from '@mui/material'
 import {
   Add as AddIcon,
   Search as SearchIcon,
-  FilterList as FilterIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   Visibility as ViewIcon,
   Refresh as RefreshIcon,
-  Favorite as FavoriteIcon,
   FavoriteBorder as FavoriteBorderIcon,
   LocalGasStation as BatteryIcon,
   Speed as SpeedIcon,
-  DirectionsCar as CarIcon,
   LocationOn as LocationIcon
 } from '@mui/icons-material'
 
@@ -153,10 +147,6 @@ const VehicleList = () => {
     setPagination(prev => ({ ...prev, page: 1 })) // Reset to first page
   }
 
-  const handlePageChange = (newPage) => {
-    setPagination(prev => ({ ...prev, page: newPage + 1 })) // DataTable uses 0-based indexing
-  }
-
   const handleView = (vehicle) => {
     navigate(`/vehicles/${vehicle.id}`)
   }
@@ -256,326 +246,324 @@ const VehicleList = () => {
         )}
 
         {/* Filters and Search */}
-        <Card sx={{ borderRadius: 3, boxShadow: 3, mb: 4 }}>
-          <CardContent sx={{ p: 3 }}>
-            <Grid container spacing={3} alignItems="center">
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  placeholder="Tìm kiếm xe..."
-                  value={searchTerm}
-                  onChange={handleSearch}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon />
-                      </InputAdornment>
-                    ),
-                  }}
-                  size="small"
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                />
-              </Grid>
+        <Paper sx={{ borderRadius: 3, p: 3, mb: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems="center">
+            <TextField
+              fullWidth
+              placeholder="Tìm kiếm xe..."
+              value={searchTerm}
+              onChange={handleSearch}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+              size="small"
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+            />
 
-              <Grid item xs={12} sm={6} md={2}>
-                <FormControl fullWidth size="small">
-                  <InputLabel>Loại xe</InputLabel>
-                  <Select
-                    value={filters.type}
-                    label="Loại xe"
-                    onChange={(e) => handleFilterChange('type', e.target.value)}
-                    sx={{ borderRadius: 2 }}
-                  >
-                    <MenuItem value="all">Tất cả loại</MenuItem>
-                    {vehicleTypes.map((type) => (
-                      <MenuItem key={type.value} value={type.value}>
-                        {type.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Loại xe</InputLabel>
+              <Select
+                value={filters.type}
+                label="Loại xe"
+                onChange={(e) => handleFilterChange('type', e.target.value)}
+                sx={{ borderRadius: 2 }}
+              >
+                <MenuItem value="all">Tất cả loại</MenuItem>
+                {vehicleTypes.map((type) => (
+                  <MenuItem key={type.value} value={type.value}>
+                    {type.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-              <Grid item xs={12} sm={6} md={2}>
-                <FormControl fullWidth size="small">
-                  <InputLabel>Đại lý</InputLabel>
-                  <Select
-                    value={filters.dealerId}
-                    label="Đại lý"
-                    onChange={(e) => handleFilterChange('dealerId', e.target.value)}
-                    sx={{ borderRadius: 2 }}
-                  >
-                    <MenuItem value="">Tất cả đại lý</MenuItem>
-                    {dealers.map((dealer) => (
-                      <MenuItem key={dealer.id} value={dealer.id}>
-                        {dealer.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Đại lý</InputLabel>
+              <Select
+                value={filters.dealerId}
+                label="Đại lý"
+                onChange={(e) => handleFilterChange('dealerId', e.target.value)}
+                sx={{ borderRadius: 2 }}
+              >
+                <MenuItem value="">Tất cả đại lý</MenuItem>
+                {dealers.map((dealer) => (
+                  <MenuItem key={dealer.id} value={dealer.id}>
+                    {dealer.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-              <Grid item xs={12} sm={6} md={2}>
-                <TextField
-                  fullWidth
-                  label="Giá tối thiểu"
-                  type="number"
-                  value={filters.minPrice}
-                  onChange={(e) => handleFilterChange('minPrice', e.target.value)}
-                  size="small"
-                  InputProps={{
-                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                  }}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                />
-              </Grid>
+            <TextField
+              label="Giá tối thiểu"
+              type="number"
+              value={filters.minPrice}
+              onChange={(e) => handleFilterChange('minPrice', e.target.value)}
+              size="small"
+              InputProps={{
+                startAdornment: <InputAdornment position="start">$</InputAdornment>,
+              }}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+            />
 
-              <Grid item xs={12} sm={6} md={2}>
-                <TextField
-                  fullWidth
-                  label="Giá tối đa"
-                  type="number"
-                  value={filters.maxPrice}
-                  onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                  size="small"
-                  InputProps={{
-                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                  }}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                />
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
+            <TextField
+              label="Giá tối đa"
+              type="number"
+              value={filters.maxPrice}
+              onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
+              size="small"
+              InputProps={{
+                startAdornment: <InputAdornment position="start">$</InputAdornment>,
+              }}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+            />
+          </Stack>
+        </Paper>
       </Box>
 
       {/* Vehicles Grid */}
-      <Grid container spacing={4}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: {
+            xs: '1fr',
+            sm: 'repeat(2, 1fr)',
+            md: 'repeat(3, 1fr)'
+          },
+          gap: 3,
+          mb: 4
+        }}
+      >
         {vehicles.map((vehicle) => (
-          <Grid item xs={12} sm={6} md={4} key={vehicle.id}>
-            <Card
-              sx={{
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                borderRadius: 4,
-                boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                '&:hover': {
-                  transform: 'translateY(-12px) scale(1.02)',
-                  boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
-                  border: '1px solid rgba(25, 118, 210, 0.3)'
-                }
-              }}
-            >
-              {/* Image */}
-              <Box sx={{ position: 'relative' }}>
-                <CardMedia
-                  component="img"
-                  height="220"
-                  image={vehicle.images?.[0] || '/placeholder-car.jpg'}
-                  alt={vehicle.model}
-                  sx={{
-                    borderRadius: '16px 16px 0 0',
-                    objectFit: 'cover',
-                    filter: 'brightness(1.05)',
-                    transition: 'filter 0.3s ease'
-                  }}
-                />
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 16,
-                    right: 16,
-                    display: 'flex',
-                    gap: 1
-                  }}
-                >
-                  <IconButton
-                    size="small"
-                    sx={{
-                      bgcolor: 'rgba(255,255,255,0.95)',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      '&:hover': {
-                        bgcolor: 'white',
-                        transform: 'scale(1.1)'
-                      },
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    <FavoriteBorderIcon fontSize="small" />
-                  </IconButton>
-                </Box>
-                <Chip
-                  label={vehicle.type === 'sedan' ? 'Sedan' : vehicle.type === 'suv' ? 'SUV' : vehicle.type === 'hatchback' ? 'Hatchback' : vehicle.type.charAt(0).toUpperCase() + vehicle.type.slice(1)}
+          <Card
+            key={vehicle.id}
+            sx={{
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              borderRadius: 4,
+              overflow: 'hidden',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+              '&:hover': {
+                transform: 'translateY(-8px) scale(1.02)',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+                border: '1px solid rgba(25, 118, 210, 0.3)'
+              }
+            }}
+          >
+            {/* Image */}
+            <Box sx={{ position: 'relative', overflow: 'hidden' }}>
+              <CardMedia
+                component="img"
+                height="240"
+                image={vehicle.images?.[0] || '/placeholder-car.jpg'}
+                alt={vehicle.model}
+                sx={{
+                  objectFit: 'cover',
+                  transition: 'transform 0.5s ease',
+                  '&:hover': {
+                    transform: 'scale(1.1)'
+                  }
+                }}
+              />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 12,
+                  right: 12,
+                  display: 'flex',
+                  gap: 1
+                }}
+              >
+                <IconButton
                   size="small"
-                  color="primary"
                   sx={{
-                    position: 'absolute',
-                    top: 16,
-                    left: 16,
                     bgcolor: 'rgba(255,255,255,0.95)',
                     backdropFilter: 'blur(10px)',
                     border: '1px solid rgba(255,255,255,0.2)',
-                    fontWeight: 'bold',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                    '&:hover': {
+                      bgcolor: 'white',
+                      transform: 'scale(1.1)'
+                    },
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <FavoriteBorderIcon fontSize="small" />
+                </IconButton>
+              </Box>
+              <Chip
+                label={vehicle.type === 'sedan' ? 'Sedan' : vehicle.type === 'suv' ? 'SUV' : vehicle.type === 'hatchback' ? 'Hatchback' : vehicle.type.charAt(0).toUpperCase() + vehicle.type.slice(1)}
+                size="small"
+                color="primary"
+                sx={{
+                  position: 'absolute',
+                  top: 12,
+                  left: 12,
+                  bgcolor: 'rgba(255,255,255,0.95)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  fontWeight: 'bold',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                }}
+              />
+            </Box>
+
+            <CardContent sx={{ flexGrow: 1, p: 3 }}>
+              <Typography
+                variant="h6"
+                component="h2"
+                sx={{
+                  fontWeight: 'bold',
+                  mb: 1.5,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  fontSize: '1.1rem'
+                }}
+              >
+                {vehicle.model}
+              </Typography>
+
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  mb: 2.5,
+                  height: 42,
+                  overflow: 'hidden',
+                  lineHeight: 1.4,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical'
+                }}
+              >
+                {vehicle.description}
+              </Typography>
+
+              <Stack direction="row" spacing={1.5} sx={{ mb: 2.5 }}>
+                <Chip
+                  icon={<BatteryIcon sx={{ fontSize: '1rem !important' }} />}
+                  label={`${vehicle.batteryCapacity} kWh`}
+                  size="small"
+                  variant="outlined"
+                  sx={{
+                    fontSize: '0.7rem',
+                    height: 28,
+                    borderRadius: 2,
+                    '& .MuiChip-icon': { marginLeft: '6px' }
                   }}
                 />
-              </Box>
+                <Chip
+                  icon={<SpeedIcon sx={{ fontSize: '1rem !important' }} />}
+                  label={`${vehicle.range} km`}
+                  size="small"
+                  variant="outlined"
+                  sx={{
+                    fontSize: '0.7rem',
+                    height: 28,
+                    borderRadius: 2,
+                    '& .MuiChip-icon': { marginLeft: '6px' }
+                  }}
+                />
+              </Stack>
 
-              <CardContent sx={{ flexGrow: 1, p: 3 }}>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                <LocationIcon fontSize="small" color="action" />
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
+                  {vehicle.dealerName}
+                </Typography>
+              </Stack>
+
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
                 <Typography
                   variant="h6"
-                  component="h2"
                   sx={{
                     fontWeight: 'bold',
-                    mb: 1.5,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    fontSize: '1.1rem'
+                    color: 'primary.main',
+                    fontSize: '1.2rem'
                   }}
                 >
-                  {vehicle.model}
+                  ${vehicle.price.toLocaleString()} VND
                 </Typography>
-
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{
-                    mb: 2.5,
-                    height: 42,
-                    overflow: 'hidden',
-                    lineHeight: 1.4,
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical'
-                  }}
-                >
-                  {vehicle.description}
-                </Typography>
-
-                <Stack direction="row" spacing={1.5} sx={{ mb: 2.5 }}>
-                  <Chip
-                    icon={<BatteryIcon sx={{ fontSize: '1rem !important' }} />}
-                    label={`${vehicle.batteryCapacity} kWh`}
-                    size="small"
-                    variant="outlined"
-                    sx={{
-                      fontSize: '0.7rem',
-                      height: 28,
-                      borderRadius: 2,
-                      '& .MuiChip-icon': { marginLeft: '6px' }
-                    }}
-                  />
-                  <Chip
-                    icon={<SpeedIcon sx={{ fontSize: '1rem !important' }} />}
-                    label={`${vehicle.range} km`}
-                    size="small"
-                    variant="outlined"
-                    sx={{
-                      fontSize: '0.7rem',
-                      height: 28,
-                      borderRadius: 2,
-                      '& .MuiChip-icon': { marginLeft: '6px' }
-                    }}
-                  />
-                </Stack>
-
-                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-                  <LocationIcon fontSize="small" color="action" />
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
-                    {vehicle.dealerName}
-                  </Typography>
-                </Stack>
-
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      fontWeight: 'bold',
-                      color: 'primary.main',
-                      fontSize: '1.2rem'
-                    }}
-                  >
-                    ${vehicle.price.toLocaleString()} VND
-                  </Typography>
-                  <Chip
-                    label={`${vehicle.stockQuantity} xe có sẵn`}
-                    size="small"
-                    color={vehicle.stockQuantity > 5 ? 'success' : vehicle.stockQuantity > 0 ? 'warning' : 'error'}
-                    variant="outlined"
-                    sx={{
-                      fontSize: '0.7rem',
-                      height: 26,
-                      borderRadius: 2
-                    }}
-                  />
-                </Stack>
-              </CardContent>
-
-              <CardActions sx={{ p: 3, pt: 0, gap: 1 }}>
-                <Button
+                <Chip
+                  label={`${vehicle.stockQuantity} xe có sẵn`}
                   size="small"
+                  color={vehicle.stockQuantity > 5 ? 'success' : vehicle.stockQuantity > 0 ? 'warning' : 'error'}
                   variant="outlined"
-                  startIcon={<ViewIcon />}
-                  onClick={() => handleView(vehicle)}
                   sx={{
-                    flex: 1,
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    border: '1px solid rgba(25, 118, 210, 0.5)',
-                    '&:hover': {
-                      border: '1px solid #1976d2',
-                      bgcolor: 'rgba(25, 118, 210, 0.04)'
-                    }
+                    fontSize: '0.7rem',
+                    height: 26,
+                    borderRadius: 2
                   }}
-                >
-                  Xem
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  startIcon={<EditIcon />}
-                  onClick={() => handleEdit(vehicle)}
-                  sx={{
-                    flex: 1,
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    border: '1px solid rgba(46, 125, 50, 0.5)',
-                    '&:hover': {
-                      border: '1px solid #2e7d32',
-                      bgcolor: 'rgba(46, 125, 50, 0.04)'
-                    }
-                  }}
-                >
-                  Sửa
-                </Button>
-                <IconButton
-                  size="small"
-                  color="error"
-                  onClick={() => handleDelete(vehicle)}
-                  sx={{
-                    borderRadius: 2,
-                    border: '1px solid rgba(211, 47, 47, 0.5)',
-                    '&:hover': {
-                      bgcolor: 'rgba(211, 47, 47, 0.04)',
-                      border: '1px solid #d32f2f'
-                    }
-                  }}
-                >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              </CardActions>
-            </Card>
-          </Grid>
+                />
+              </Stack>
+            </CardContent>
+
+            <CardActions sx={{ p: 3, pt: 0, gap: 1 }}>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<ViewIcon />}
+                onClick={() => handleView(vehicle)}
+                sx={{
+                  flex: 1,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  border: '1px solid rgba(25, 118, 210, 0.5)',
+                  '&:hover': {
+                    border: '1px solid #1976d2',
+                    bgcolor: 'rgba(25, 118, 210, 0.04)'
+                  }
+                }}
+              >
+                Xem
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<EditIcon />}
+                onClick={() => handleEdit(vehicle)}
+                sx={{
+                  flex: 1,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  border: '1px solid rgba(46, 125, 50, 0.5)',
+                  '&:hover': {
+                    border: '1px solid #2e7d32',
+                    bgcolor: 'rgba(46, 125, 50, 0.04)'
+                  }
+                }}
+              >
+                Sửa
+              </Button>
+              <IconButton
+                size="small"
+                color="error"
+                onClick={() => handleDelete(vehicle)}
+                sx={{
+                  borderRadius: 2,
+                  border: '1px solid rgba(211, 47, 47, 0.5)',
+                  '&:hover': {
+                    bgcolor: 'rgba(211, 47, 47, 0.04)',
+                    border: '1px solid #d32f2f'
+                  }
+                }}
+              >
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </CardActions>
+          </Card>
         ))}
-      </Grid>
+      </Box>
 
       {/* Load More Button */}
       {pagination.page < pagination.totalPages && (
