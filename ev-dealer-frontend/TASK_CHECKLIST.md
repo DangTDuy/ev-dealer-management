@@ -125,7 +125,7 @@
   - [ ] Print/Download quote
 
 - [ ] **Order Detail** (`src/pages/Sales/OrderDetail.jsx`)
-  - [ ] Order information display
+  - [] Order information display
   - [ ] Customer details
   - [ ] Vehicle details
   - [ ] Payment information
