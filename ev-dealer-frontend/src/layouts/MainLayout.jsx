@@ -242,7 +242,7 @@ const MainLayout = () => {
   );
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', bgcolor: 'background.default', minHeight: '100vh' }}>
       <CssBaseline />
       
       {/* App Bar */}
@@ -360,8 +360,10 @@ const MainLayout = () => {
         }}
       >
         <Toolbar />
-        <Box sx={{ p: 3 }}>
-          <Outlet />
+        <Box sx={{ p: 3, display: 'flex', justifyContent: 'center' }}>
+          <Box sx={{ maxWidth: '1200px' }}>
+            <Outlet />
+          </Box>
         </Box>
       </Box>
     </Box>
