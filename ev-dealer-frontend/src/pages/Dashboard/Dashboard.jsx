@@ -25,6 +25,7 @@ import {
 } from "@mui/icons-material";
 import { PageHeader, ModernCard, DataTable } from "../../components/common";
 import api from "../../services/api";
+import authService from "../../services/authService";
 
 const Dashboard = () => {
   // Mock data for dashboard
@@ -169,6 +170,58 @@ const Dashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // User & role-based visibility
+  const [currentUser] = useState(() => authService.getCurrentUser());
+  const role = currentUser?.role
+    ? String(currentUser.role).toLowerCase()
+    : "customer";
+
+  // Visible stats/cards based on role
+  const visibleStats =
+    role === "admin" || role === "branch"
+      ? statsCards
+      : statsCards.filter((c) => c.title === "Xe bán được");
+
+  // Actions based on role
+  const headerActions = (() => {
+    if (role === "admin") {
+      return [
+        {
+          label: "Admin Panel",
+          icon: <TrendingUpIcon />,
+          onClick: () => (window.location.href = "/admin"),
+        },
+        {
+          label: "Quản lý chi nhánh",
+          icon: <PeopleIcon />,
+          onClick: () => (window.location.href = "/branches"),
+        },
+      ];
+    }
+    if (role === "branch") {
+      return [
+        {
+          label: "Tạo đơn hàng",
+          icon: <SalesIcon />,
+          onClick: () => (window.location.href = "/sales"),
+        },
+        {
+          label: "Thêm xe",
+          icon: <CarIcon />,
+          onClick: () => (window.location.href = "/vehicles/new"),
+        },
+      ];
+    }
+    // customer
+    return [
+      {
+        label: "Mua xe",
+        icon: <CarIcon />,
+        onClick: () => (window.location.href = "/vehicles"),
+      },
+    ];
+  })();
+
   return (
     <Container maxWidth="xl">
       <PageHeader
@@ -196,23 +249,12 @@ const Dashboard = () => {
         ]}
         showRefresh={true}
         onRefresh={fetchDashboard}
-        actions={[
-          {
-            label: "Tạo đơn hàng",
-            icon: <SalesIcon />,
-            onClick: () => (window.location.href = "/sales"),
-          },
-          {
-            label: "Thêm xe",
-            icon: <CarIcon />,
-            onClick: () => (window.location.href = "/vehicles/new"),
-          },
-        ]}
+        actions={headerActions}
       />
 
       {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        {statsCards.map((card, index) => (
+        {visibleStats.map((card, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
             <ModernCard {...card} />
           </Grid>
