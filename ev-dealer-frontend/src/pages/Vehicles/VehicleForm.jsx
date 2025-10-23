@@ -14,33 +14,30 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Grid,
   Card,
   CardContent,
   Alert,
   CircularProgress,
-  Chip,
-  Stack,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  DialogContentText,
   Container,
+  Grid,
+  InputAdornment,
+  IconButton,
   Paper,
-  Divider,
-  Avatar,
-  InputAdornment
+  Chip
 } from '@mui/material'
 import {
   Save as SaveIcon,
   Cancel as CancelIcon,
-  Add as AddIcon,
-  Delete as DeleteIcon,
   PhotoCamera as PhotoCameraIcon,
-  ColorLens as ColorLensIcon,
-  ArrowBack as ArrowBackIcon
+  Delete as DeleteIcon,
+  ArrowBack as ArrowBackIcon,
+  DriveEta as CarIcon,
+  Build as BuildIcon,
+  AttachMoney as MoneyIcon,
+  Description as DescriptionIcon,
+  CheckCircle as CheckCircleIcon,
+  Error as ErrorIcon,
+  Info as InfoIcon
 } from '@mui/icons-material'
 
 import vehicleService from '../../services/vehicleService'
@@ -52,16 +49,14 @@ const VehicleForm = () => {
 
   // Form state
   const [formData, setFormData] = useState({
+    vehicleName: '',
+    brand: '',
     model: '',
-    type: '',
+    year: '',
     price: '',
-    batteryCapacity: '',
-    range: '',
-    stockQuantity: '',
-    dealerId: '',
+    status: 'Available',
     description: '',
-    images: [],
-    colorVariants: []
+    image: null
   })
 
   // UI state
@@ -69,52 +64,44 @@ const VehicleForm = () => {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
+  const [imagePreview, setImagePreview] = useState(null)
 
   // Options
-  const [vehicleTypes, setVehicleTypes] = useState([])
-  const [dealers, setDealers] = useState([])
+  const brands = [
+    'Tesla', 'Nissan', 'BMW', 'Audi', 'Mercedes-Benz',
+    'Volkswagen', 'Ford', 'Chevrolet', 'Toyota', 'Honda'
+  ]
 
-  // Dialog states
-  const [colorDialogOpen, setColorDialogOpen] = useState(false)
-  const [newColor, setNewColor] = useState({ name: '', hex: '#000000', stock: 1 })
+  const statuses = [
+    { value: 'Available', label: 'Available', color: 'success' },
+    { value: 'Sold', label: 'Sold', color: 'error' },
+    { value: 'In Maintenance', label: 'In Maintenance', color: 'warning' }
+  ]
 
   // Load data on mount
   useEffect(() => {
-    loadOptions()
     if (isEditMode) {
       loadVehicle()
     }
   }, [id])
-
-  const loadOptions = async () => {
-    try {
-      const [typesResponse, dealersResponse] = await Promise.all([
-        vehicleService.getVehicleTypes(),
-        vehicleService.getDealers()
-      ])
-      setVehicleTypes(typesResponse)
-      setDealers(dealersResponse)
-    } catch (err) {
-      console.error('Error loading options:', err)
-    }
-  }
 
   const loadVehicle = async () => {
     try {
       setLoading(true)
       const vehicle = await vehicleService.getVehicleById(id)
       setFormData({
+        vehicleName: vehicle.vehicleName || '',
+        brand: vehicle.brand || '',
         model: vehicle.model || '',
-        type: vehicle.type || '',
+        year: vehicle.year || '',
         price: vehicle.price || '',
-        batteryCapacity: vehicle.batteryCapacity || '',
-        range: vehicle.range || '',
-        stockQuantity: vehicle.stockQuantity || '',
-        dealerId: vehicle.dealerId || '',
+        status: vehicle.status || 'Available',
         description: vehicle.description || '',
-        images: vehicle.images || [],
-        colorVariants: vehicle.colorVariants || []
+        image: null
       })
+      if (vehicle.images && vehicle.images[0]) {
+        setImagePreview(vehicle.images[0])
+      }
     } catch (err) {
       setError(err.message || 'Failed to load vehicle')
       console.error('Error loading vehicle:', err)
@@ -128,44 +115,25 @@ const VehicleForm = () => {
   }
 
   const handleImageUpload = (event) => {
-    const files = Array.from(event.target.files)
-    const imageUrls = files.map(file => URL.createObjectURL(file))
-    setFormData(prev => ({
-      ...prev,
-      images: [...prev.images, ...imageUrls]
-    }))
-  }
-
-  const handleRemoveImage = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index)
-    }))
-  }
-
-  const handleAddColor = () => {
-    if (newColor.name.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        colorVariants: [...prev.colorVariants, { ...newColor, id: Date.now() }]
-      }))
-      setNewColor({ name: '', hex: '#000000', stock: 1 })
-      setColorDialogOpen(false)
+    const file = event.target.files[0]
+    if (file) {
+      setFormData(prev => ({ ...prev, image: file }))
+      const reader = new FileReader()
+      reader.onload = (e) => setImagePreview(e.target.result)
+      reader.readAsDataURL(file)
     }
   }
 
-  const handleRemoveColor = (colorId) => {
-    setFormData(prev => ({
-      ...prev,
-      colorVariants: prev.colorVariants.filter(color => color.id !== colorId)
-    }))
+  const handleRemoveImage = () => {
+    setFormData(prev => ({ ...prev, image: null }))
+    setImagePreview(null)
   }
 
   const handleSubmit = async (event) => {
     event.preventDefault()
 
     // Basic validation
-    if (!formData.model || !formData.type || !formData.price || !formData.dealerId) {
+    if (!formData.vehicleName || !formData.brand || !formData.model || !formData.price) {
       setError('Please fill in all required fields')
       return
     }
@@ -177,9 +145,7 @@ const VehicleForm = () => {
       const submitData = {
         ...formData,
         price: parseFloat(formData.price),
-        batteryCapacity: parseFloat(formData.batteryCapacity),
-        range: parseInt(formData.range),
-        stockQuantity: parseInt(formData.stockQuantity)
+        year: parseInt(formData.year)
       }
 
       if (isEditMode) {
@@ -207,7 +173,7 @@ const VehicleForm = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
           <CircularProgress size={60} />
           <Typography variant="h6" sx={{ ml: 2 }}>
@@ -219,346 +185,653 @@ const VehicleForm = () => {
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
-          <IconButton onClick={handleCancel} sx={{ mr: 1 }}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold' }}>
+      <Box sx={{ mb: 4, textAlign: 'center', position: 'relative' }}>
+        <IconButton
+          onClick={handleCancel}
+          sx={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            backgroundColor: 'rgba(255,255,255,0.9)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(0,0,0,0.1)',
+            '&:hover': {
+              backgroundColor: 'white',
+              transform: 'scale(1.1)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+            },
+            transition: 'all 0.2s ease'
+          }}
+        >
+          <ArrowBackIcon />
+        </IconButton>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+          <CarIcon sx={{ fontSize: 40, color: '#1976d2', mr: 2 }} />
+          <Typography
+            variant="h3"
+            component="h1"
+            sx={{
+              fontWeight: 'bold',
+              background: 'linear-gradient(45deg, #1976d2, #42a5f5)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
+          >
             {isEditMode ? 'Edit Vehicle' : 'Add New Vehicle'}
           </Typography>
-        </Stack>
-        <Typography variant="body1" color="text.secondary">
-          {isEditMode ? 'Update vehicle information' : 'Enter vehicle details to add to inventory'}
+        </Box>
+        <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 300 }}>
+          {isEditMode ? 'Update vehicle information with modern interface' : 'Create a new vehicle entry with rich details'}
         </Typography>
       </Box>
 
       {/* Success Message */}
       {success && (
-        <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
-          Vehicle {isEditMode ? 'updated' : 'created'} successfully! Redirecting...
+        <Alert
+          severity="success"
+          sx={{
+            mb: 3,
+            borderRadius: 3,
+            boxShadow: '0 4px 12px rgba(76, 175, 80, 0.2)',
+            border: '1px solid rgba(76, 175, 80, 0.3)'
+          }}
+          icon={<CheckCircleIcon />}
+        >
+          <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+            Vehicle {isEditMode ? 'updated' : 'created'} successfully! Redirecting to vehicle list...
+          </Typography>
         </Alert>
       )}
 
       {/* Error Message */}
       {error && (
-        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
-          {error}
+        <Alert
+          severity="error"
+          sx={{
+            mb: 3,
+            borderRadius: 3,
+            boxShadow: '0 4px 12px rgba(244, 67, 54, 0.2)',
+            border: '1px solid rgba(244, 67, 54, 0.3)'
+          }}
+          icon={<ErrorIcon />}
+        >
+          <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+            {error}
+          </Typography>
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit}>
-        <Grid container spacing={3}>
-          {/* Basic Information */}
-          <Grid item xs={12}>
-            <Card sx={{ borderRadius: 2 }}>
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" sx={{ mb: 3, fontWeight: 'bold' }}>
-                  Basic Information
-                </Typography>
-
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Model Name"
-                      value={formData.model}
-                      onChange={(e) => handleInputChange('model', e.target.value)}
-                      required
-                      variant="outlined"
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <FormControl fullWidth required>
-                      <InputLabel>Type</InputLabel>
-                      <Select
-                        value={formData.type}
-                        label="Type"
-                        onChange={(e) => handleInputChange('type', e.target.value)}
-                      >
-                        {vehicleTypes.map((type) => (
-                          <MenuItem key={type.value} value={type.value}>
-                            {type.label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Price"
-                      type="number"
-                      value={formData.price}
-                      onChange={(e) => handleInputChange('price', e.target.value)}
-                      required
-                      InputProps={{
-                        startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                      }}
-                      variant="outlined"
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <FormControl fullWidth required>
-                      <InputLabel>Dealer</InputLabel>
-                      <Select
-                        value={formData.dealerId}
-                        label="Dealer"
-                        onChange={(e) => handleInputChange('dealerId', e.target.value)}
-                      >
-                        {dealers.map((dealer) => (
-                          <MenuItem key={dealer.id} value={dealer.id}>
-                            {dealer.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Description"
-                      value={formData.description}
-                      onChange={(e) => handleInputChange('description', e.target.value)}
-                      multiline
-                      rows={3}
-                      variant="outlined"
-                    />
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Technical Specifications */}
-          <Grid item xs={12}>
-            <Card sx={{ borderRadius: 2 }}>
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" sx={{ mb: 3, fontWeight: 'bold' }}>
-                  Technical Specifications
-                </Typography>
-
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={4}>
-                    <TextField
-                      fullWidth
-                      label="Battery Capacity"
-                      type="number"
-                      value={formData.batteryCapacity}
-                      onChange={(e) => handleInputChange('batteryCapacity', e.target.value)}
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">kWh</InputAdornment>,
-                      }}
-                      variant="outlined"
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} md={4}>
-                    <TextField
-                      fullWidth
-                      label="Range"
-                      type="number"
-                      value={formData.range}
-                      onChange={(e) => handleInputChange('range', e.target.value)}
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">miles</InputAdornment>,
-                      }}
-                      variant="outlined"
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} md={4}>
-                    <TextField
-                      fullWidth
-                      label="Stock Quantity"
-                      type="number"
-                      value={formData.stockQuantity}
-                      onChange={(e) => handleInputChange('stockQuantity', e.target.value)}
-                      variant="outlined"
-                    />
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Images */}
-          <Grid item xs={12}>
-            <Card sx={{ borderRadius: 2 }}>
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" sx={{ mb: 3, fontWeight: 'bold' }}>
-                  Vehicle Images
-                </Typography>
-
-                <Box sx={{ mb: 2 }}>
-                  <input
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                    id="image-upload"
-                    multiple
-                    type="file"
-                    onChange={handleImageUpload}
+      {/* Form Card */}
+      <Card
+        sx={{
+          maxWidth: 1200,
+          mx: 'auto',
+          borderRadius: 4,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+          background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f0f7ff 100%)',
+          border: '2px solid rgba(25, 118, 210, 0.1)',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
+            transform: 'translateY(-2px)'
+          }
+        }}
+      >
+        <CardContent sx={{ p: 6 }}>
+          <form onSubmit={handleSubmit}>
+            <Grid container spacing={4}>
+              {/* Vehicle Name - Hero Section */}
+              <Grid item xs={12}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 4,
+                    borderRadius: 3,
+                    background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.03), rgba(66, 165, 245, 0.03))',
+                    border: '1px solid rgba(25, 118, 210, 0.08)',
+                    borderLeft: '4px solid #1976d2'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                    <CarIcon sx={{ color: '#1976d2', mr: 2, fontSize: 28 }} />
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+                      Vehicle Identity
+                    </Typography>
+                  </Box>
+                  <TextField
+                    fullWidth
+                    label="Vehicle Name"
+                    placeholder="e.g., Tesla Model S Plaid, BMW i8, Toyota Prius"
+                    value={formData.vehicleName}
+                    onChange={(e) => handleInputChange('vehicleName', e.target.value)}
+                    required
+                    variant="outlined"
+                    size="large"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 2,
+                        fontSize: '1.1rem',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        '& fieldset': {
+                          borderWidth: 2,
+                          borderColor: 'rgba(25, 118, 210, 0.2)'
+                        },
+                        '&:hover fieldset': {
+                          borderColor: '#1976d2'
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: '#1976d2',
+                          borderWidth: 2
+                        }
+                      },
+                      '& .MuiInputLabel-root': {
+                        fontSize: '1.1rem',
+                        fontWeight: 500
+                      }
+                    }}
                   />
-                  <label htmlFor="image-upload">
-                    <Button
-                      variant="outlined"
-                      component="span"
-                      startIcon={<PhotoCameraIcon />}
-                      sx={{ borderRadius: 2 }}
-                    >
-                      Upload Images
-                    </Button>
-                  </label>
-                </Box>
+                </Paper>
+              </Grid>
 
-                {formData.images.length > 0 && (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                    {formData.images.map((image, index) => (
-                      <Box key={index} sx={{ position: 'relative' }}>
-                        <Avatar
-                          src={image}
-                          variant="rounded"
-                          sx={{ width: 100, height: 100 }}
-                        />
-                        <IconButton
-                          size="small"
-                          onClick={() => handleRemoveImage(index)}
+              {/* Brand and Model - Single Row */}
+              <Grid item xs={12}>
+                <Grid container spacing={4}>
+                  <Grid item xs={12} md={4}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 3,
+                        borderRadius: 3,
+                        background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.03), rgba(129, 199, 132, 0.03))',
+                        border: '1px solid rgba(76, 175, 80, 0.08)',
+                        borderLeft: '4px solid #4caf50',
+                        height: '100%'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        <BuildIcon sx={{ color: '#4caf50', mr: 1.5, fontSize: 20 }} />
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#4caf50', fontSize: '1rem' }}>
+                          Brand
+                        </Typography>
+                      </Box>
+                      <FormControl fullWidth required size="large">
+                        <InputLabel sx={{ fontSize: '1rem', fontWeight: 500 }}>Choose Brand</InputLabel>
+                        <Select
+                          value={formData.brand}
+                          label="Choose Brand"
+                          onChange={(e) => handleInputChange('brand', e.target.value)}
                           sx={{
-                            position: 'absolute',
-                            top: -8,
-                            right: -8,
-                            backgroundColor: 'error.main',
-                            color: 'white',
-                            '&:hover': { backgroundColor: 'error.dark' }
+                            borderRadius: 2,
+                            fontSize: '1rem',
+                            backgroundColor: 'rgba(255,255,255,0.8)',
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderWidth: 2,
+                              borderColor: 'rgba(76, 175, 80, 0.2)'
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#4caf50'
+                            },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#4caf50',
+                              borderWidth: 2
+                            }
                           }}
                         >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
+                          {brands.map((brand) => (
+                            <MenuItem key={brand} value={brand} sx={{ fontSize: '1rem' }}>
+                              {brand}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Paper>
+                  </Grid>
+
+                  <Grid item xs={12} md={4}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 3,
+                        borderRadius: 3,
+                        background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.03), rgba(255, 183, 77, 0.03))',
+                        border: '1px solid rgba(255, 152, 0, 0.08)',
+                        borderLeft: '4px solid #ff9800',
+                        height: '100%'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        <InfoIcon sx={{ color: '#ff9800', mr: 1.5, fontSize: 20 }} />
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#ff9800', fontSize: '1rem' }}>
+                          Model
+                        </Typography>
                       </Box>
-                    ))}
-                  </Box>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Color Variants */}
-          <Grid item xs={12}>
-            <Card sx={{ borderRadius: 2 }}>
-              <CardContent sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                    Color Variants
-                  </Typography>
-                  <Button
-                    variant="outlined"
-                    startIcon={<AddIcon />}
-                    onClick={() => setColorDialogOpen(true)}
-                    sx={{ borderRadius: 2 }}
-                  >
-                    Add Color
-                  </Button>
-                </Box>
-
-                {formData.colorVariants.length > 0 && (
-                  <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
-                    {formData.colorVariants.map((color) => (
-                      <Chip
-                        key={color.id}
-                        label={`${color.name} (${color.stock})`}
+                      <TextField
+                        fullWidth
+                        label="Model Name"
+                        placeholder="e.g., Model S, i8, Prius"
+                        value={formData.model}
+                        onChange={(e) => handleInputChange('model', e.target.value)}
+                        required
+                        variant="outlined"
+                        size="large"
                         sx={{
-                          backgroundColor: color.hex,
-                          color: color.hex === '#FFFFFF' ? 'black' : 'white',
-                          '& .MuiChip-deleteIcon': {
-                            color: color.hex === '#FFFFFF' ? 'black' : 'white'
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            fontSize: '1rem',
+                            backgroundColor: 'rgba(255,255,255,0.8)',
+                            '& fieldset': {
+                              borderWidth: 2,
+                              borderColor: 'rgba(255, 152, 0, 0.2)'
+                            },
+                            '&:hover fieldset': {
+                              borderColor: '#ff9800'
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#ff9800',
+                              borderWidth: 2
+                            }
+                          },
+                          '& .MuiInputLabel-root': {
+                            fontSize: '1rem',
+                            fontWeight: 500
                           }
                         }}
-                        onDelete={() => handleRemoveColor(color.id)}
                       />
-                    ))}
-                  </Stack>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
+                    </Paper>
+                  </Grid>
 
-          {/* Action Buttons */}
-          <Grid item xs={12}>
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-              <Button
-                variant="outlined"
-                onClick={handleCancel}
-                startIcon={<CancelIcon />}
-                sx={{ borderRadius: 2, px: 4 }}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={saving}
-                startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
-                sx={{ borderRadius: 2, px: 4 }}
-              >
-                {saving ? 'Saving...' : (isEditMode ? 'Update Vehicle' : 'Create Vehicle')}
-              </Button>
-            </Box>
-          </Grid>
-        </Grid>
-      </form>
+                  <Grid item xs={12} md={4}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 3,
+                        borderRadius: 3,
+                        background: 'linear-gradient(135deg, rgba(156, 39, 176, 0.03), rgba(186, 104, 200, 0.03))',
+                        border: '1px solid rgba(156, 39, 176, 0.08)',
+                        borderLeft: '4px solid #9c27b0',
+                        height: '100%'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        <InfoIcon sx={{ color: '#9c27b0', mr: 1.5, fontSize: 20 }} />
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#9c27b0', fontSize: '1rem' }}>
+                          Year
+                        </Typography>
+                      </Box>
+                      <TextField
+                        fullWidth
+                        label="Manufacturing Year"
+                        type="number"
+                        placeholder="2024"
+                        value={formData.year}
+                        onChange={(e) => handleInputChange('year', e.target.value)}
+                        inputProps={{ min: 1900, max: new Date().getFullYear() + 1 }}
+                        variant="outlined"
+                        size="large"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            fontSize: '1rem',
+                            backgroundColor: 'rgba(255,255,255,0.8)',
+                            '& fieldset': {
+                              borderWidth: 2,
+                              borderColor: 'rgba(156, 39, 176, 0.2)'
+                            },
+                            '&:hover fieldset': {
+                              borderColor: '#9c27b0'
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#9c27b0',
+                              borderWidth: 2
+                            }
+                          },
+                          '& .MuiInputLabel-root': {
+                            fontSize: '1rem',
+                            fontWeight: 500
+                          }
+                        }}
+                      />
+                    </Paper>
+                  </Grid>
+                </Grid>
+              </Grid>
 
-      {/* Add Color Dialog */}
-      <Dialog open={colorDialogOpen} onClose={() => setColorDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 'bold' }}>Add Color Variant</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={3} sx={{ pt: 1 }}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Color Name"
-                value={newColor.name}
-                onChange={(e) => setNewColor(prev => ({ ...prev, name: e.target.value }))}
-                variant="outlined"
-              />
+              {/* Price and Status - Single Row */}
+              <Grid item xs={12}>
+                <Grid container spacing={4}>
+                  <Grid item xs={12} md={6}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 3,
+                        borderRadius: 3,
+                        background: 'linear-gradient(135deg, rgba(244, 67, 54, 0.03), rgba(229, 115, 115, 0.03))',
+                        border: '1px solid rgba(244, 67, 54, 0.08)',
+                        borderLeft: '4px solid #f44336',
+                        height: '100%'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        <MoneyIcon sx={{ color: '#f44336', mr: 1.5, fontSize: 20 }} />
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#f44336', fontSize: '1rem' }}>
+                          Price
+                        </Typography>
+                      </Box>
+                      <TextField
+                        fullWidth
+                        label="Vehicle Price"
+                        type="number"
+                        placeholder="50000"
+                        value={formData.price}
+                        onChange={(e) => handleInputChange('price', e.target.value)}
+                        required
+                        InputProps={{
+                          startAdornment: <InputAdornment position="start"><strong style={{ fontSize: '1.1rem' }}>$</strong></InputAdornment>,
+                        }}
+                        variant="outlined"
+                        size="large"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            fontSize: '1rem',
+                            backgroundColor: 'rgba(255,255,255,0.8)',
+                            '& fieldset': {
+                              borderWidth: 2,
+                              borderColor: 'rgba(244, 67, 54, 0.2)'
+                            },
+                            '&:hover fieldset': {
+                              borderColor: '#f44336'
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#f44336',
+                              borderWidth: 2
+                            }
+                          },
+                          '& .MuiInputLabel-root': {
+                            fontSize: '1rem',
+                            fontWeight: 500
+                          }
+                        }}
+                      />
+                    </Paper>
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 3,
+                        borderRadius: 3,
+                        background: 'linear-gradient(135deg, rgba(255, 193, 7, 0.03), rgba(255, 213, 79, 0.03))',
+                        border: '1px solid rgba(255, 193, 7, 0.08)',
+                        borderLeft: '4px solid #ffc107',
+                        height: '100%'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        <CheckCircleIcon sx={{ color: '#ffc107', mr: 1.5, fontSize: 20 }} />
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#ffc107', fontSize: '1rem' }}>
+                          Status
+                        </Typography>
+                      </Box>
+                      <FormControl fullWidth size="large">
+                        <InputLabel sx={{ fontSize: '1rem', fontWeight: 500 }}>Current Status</InputLabel>
+                        <Select
+                          value={formData.status}
+                          label="Current Status"
+                          onChange={(e) => handleInputChange('status', e.target.value)}
+                          sx={{
+                            borderRadius: 2,
+                            fontSize: '1rem',
+                            backgroundColor: 'rgba(255,255,255,0.8)',
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderWidth: 2,
+                              borderColor: 'rgba(255, 193, 7, 0.2)'
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#ffc107'
+                            },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#ffc107',
+                              borderWidth: 2
+                            }
+                          }}
+                        >
+                          {statuses.map((status) => (
+                            <MenuItem key={status.value} value={status.value} sx={{ fontSize: '1rem' }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                                <Typography sx={{ flexGrow: 1 }}>{status.label}</Typography>
+                                <Box
+                                  sx={{
+                                    width: 12,
+                                    height: 12,
+                                    borderRadius: '50%',
+                                    backgroundColor: `${status.color}.main`,
+                                    ml: 2
+                                  }}
+                                />
+                              </Box>
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Paper>
+                  </Grid>
+                </Grid>
+              </Grid>
+
+              {/* Description */}
+              <Grid item xs={12}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 4,
+                    borderRadius: 3,
+                    background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.03), rgba(77, 208, 225, 0.03))',
+                    border: '1px solid rgba(0, 188, 212, 0.08)',
+                    borderLeft: '4px solid #00bcd4'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                    <DescriptionIcon sx={{ color: '#00bcd4', mr: 2, fontSize: 24 }} />
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#00bcd4' }}>
+                      Description
+                    </Typography>
+                  </Box>
+                  <TextField
+                    fullWidth
+                    label="Vehicle Description"
+                    placeholder="Describe the vehicle's features, condition, and any special notes..."
+                    value={formData.description}
+                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    multiline
+                    rows={6}
+                    variant="outlined"
+                    size="large"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 2,
+                        fontSize: '1.1rem',
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                        '& fieldset': {
+                          borderWidth: 2,
+                          borderColor: 'rgba(0, 188, 212, 0.2)'
+                        },
+                        '&:hover fieldset': {
+                          borderColor: '#00bcd4'
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: '#00bcd4',
+                          borderWidth: 2
+                        }
+                      },
+                      '& .MuiInputLabel-root': {
+                        fontSize: '1.1rem',
+                        fontWeight: 500
+                      }
+                    }}
+                  />
+                </Paper>
+              </Grid>
+
+              {/* Image Upload */}
+              <Grid item xs={12}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 4,
+                    borderRadius: 3,
+                    background: 'linear-gradient(135deg, rgba(103, 58, 183, 0.03), rgba(149, 117, 205, 0.03))',
+                    border: '1px solid rgba(103, 58, 183, 0.08)',
+                    borderLeft: '4px solid #673ab7'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                    <PhotoCameraIcon sx={{ color: '#673ab7', mr: 2, fontSize: 24 }} />
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#673ab7' }}>
+                      Vehicle Image
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ mb: 3 }}>
+                    <input
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      id="image-upload"
+                      type="file"
+                      onChange={handleImageUpload}
+                    />
+                    <label htmlFor="image-upload">
+                      <Button
+                        variant="outlined"
+                        component="span"
+                        startIcon={<PhotoCameraIcon />}
+                        sx={{
+                          borderRadius: 3,
+                          border: '2px dashed #673ab7',
+                          color: '#673ab7',
+                          py: 2,
+                          px: 4,
+                          fontSize: '1.1rem',
+                          fontWeight: 'bold',
+                          '&:hover': {
+                            borderColor: '#5e35b1',
+                            backgroundColor: 'rgba(103, 58, 183, 0.04)',
+                            transform: 'translateY(-1px)'
+                          },
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        Choose Vehicle Image
+                      </Button>
+                    </label>
+                  </Box>
+
+                  {imagePreview && (
+                    <Box sx={{ position: 'relative', display: 'inline-block', mt: 2 }}>
+                      <Box
+                        component="img"
+                        src={imagePreview}
+                        alt="Vehicle preview"
+                        sx={{
+                          width: '100%',
+                          maxWidth: 500,
+                          height: 300,
+                          objectFit: 'cover',
+                          borderRadius: 3,
+                          boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                          border: '3px solid rgba(103, 58, 183, 0.2)'
+                        }}
+                      />
+                      <IconButton
+                        size="large"
+                        onClick={handleRemoveImage}
+                        sx={{
+                          position: 'absolute',
+                          top: 16,
+                          right: 16,
+                          backgroundColor: 'rgba(244, 67, 54, 0.95)',
+                          color: 'white',
+                          border: '2px solid white',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                          '&:hover': {
+                            backgroundColor: '#d32f2f',
+                            transform: 'scale(1.1)'
+                          },
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        <DeleteIcon fontSize="large" />
+                      </IconButton>
+                    </Box>
+                  )}
+                </Paper>
+              </Grid>
+
+              {/* Action Buttons */}
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center', mt: 2 }}>
+                  <Button
+                    variant="outlined"
+                    onClick={handleCancel}
+                    startIcon={<CancelIcon />}
+                    sx={{
+                      borderRadius: 3,
+                      px: 6,
+                      py: 2,
+                      borderColor: '#9e9e9e',
+                      color: '#616161',
+                      fontSize: '1.2rem',
+                      fontWeight: 'bold',
+                      minWidth: 200,
+                      '&:hover': {
+                        borderColor: '#757575',
+                        backgroundColor: 'rgba(117, 117, 117, 0.04)',
+                        transform: 'translateY(-1px)'
+                      },
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={saving}
+                    startIcon={saving ? <CircularProgress size={24} /> : <SaveIcon />}
+                    sx={{
+                      borderRadius: 3,
+                      px: 6,
+                      py: 2,
+                      background: 'linear-gradient(45deg, #1976d2, #42a5f5)',
+                      fontSize: '1.2rem',
+                      fontWeight: 'bold',
+                      minWidth: 200,
+                      boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
+                      '&:hover': {
+                        background: 'linear-gradient(45deg, #1565c0, #1976d2)',
+                        transform: 'translateY(-1px)',
+                        boxShadow: '0 6px 20px rgba(25, 118, 210, 0.4)'
+                      },
+                      '&:disabled': {
+                        background: '#ccc',
+                        color: '#666'
+                      },
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    {saving ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Add Vehicle')}
+                  </Button>
+                </Box>
+              </Grid>
             </Grid>
-            <Grid item xs={12} md={8}>
-              <TextField
-                fullWidth
-                label="Hex Color"
-                type="color"
-                value={newColor.hex}
-                onChange={(e) => setNewColor(prev => ({ ...prev, hex: e.target.value }))}
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="Stock"
-                type="number"
-                value={newColor.stock}
-                onChange={(e) => setNewColor(prev => ({ ...prev, stock: parseInt(e.target.value) || 1 }))}
-                inputProps={{ min: 1 }}
-                variant="outlined"
-              />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions sx={{ p: 3, gap: 1 }}>
-          <Button onClick={() => setColorDialogOpen(false)} variant="outlined">
-            Cancel
-          </Button>
-          <Button onClick={handleAddColor} variant="contained">
-            Add Color
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </form>
+        </CardContent>
+      </Card>
     </Container>
   )
 }
