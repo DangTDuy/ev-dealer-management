@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Container,
   Paper,
-  Typography,
+  Typography, 
   Box,
   Grid,
   TextField,
@@ -16,14 +16,16 @@ import {
   Checkbox,
   Chip,
   Avatar,
-  Divider,
-  Alert,
+  Card,
+  CardContent,
   Stepper,
   Step,
   StepLabel,
-  Card,
-  CardContent,
-  CardMedia
+  OutlinedInput,
+  InputAdornment,
+  alpha,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import {
   DirectionsCar as CarIcon,
@@ -33,12 +35,16 @@ import {
   Phone as PhoneIcon,
   Email as EmailIcon,
   LocationOn as LocationIcon,
-  CheckCircle as CheckIcon
+  CheckCircle as CheckIcon,
+  Speed as SpeedIcon,
+  AttachMoney as PriceIcon,
+  Schedule as ScheduleIcon
 } from '@mui/icons-material';
-import { PageHeader } from '../../components/common';
 
-const TestDriveForm = () => {
+const ModernTestDriveForm = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [activeStep, setActiveStep] = useState(0);
   const [formData, setFormData] = useState({
     customerName: '',
@@ -53,22 +59,52 @@ const TestDriveForm = () => {
   });
 
   const vehicles = [
-    { id: 1, name: 'Tesla Model 3', image: '', price: '1.2B VNĐ', range: '500km' },
-    { id: 2, name: 'Tesla Model Y', image: '', price: '1.5B VNĐ', range: '480km' },
-    { id: 3, name: 'BMW i3', image: '', price: '800M VNĐ', range: '300km' },
-    { id: 4, name: 'Audi e-tron', image: '', price: '1.5B VNĐ', range: '400km' },
-    { id: 5, name: 'Mercedes EQC', image: '', price: '1.8B VNĐ', range: '450km' },
-    { id: 6, name: 'Porsche Taycan', image: '', price: '2.1B VNĐ', range: '420km' }
+    { 
+      id: 1, 
+      name: 'Tesla Model 3', 
+      image: '', 
+      price: '1.2B VNĐ', 
+      range: '500km',
+      acceleration: '3.3s',
+      features: ['Autopilot', 'Premium Interior', 'Supercharging']
+    },
+    { 
+      id: 2, 
+      name: 'Tesla Model Y', 
+      image: '', 
+      price: '1.5B VNĐ', 
+      range: '480km',
+      acceleration: '3.5s',
+      features: ['7 Seats', 'Panoramic Roof', 'Tow Hitch']
+    },
+    { 
+      id: 3, 
+      name: 'BMW i3', 
+      image: '', 
+      price: '800M VNĐ', 
+      range: '300km',
+      acceleration: '4.2s',
+      features: ['Carbon Fiber', 'Sustainable Materials', 'Compact Design']
+    },
+    { 
+      id: 4, 
+      name: 'Audi e-tron', 
+      image: '', 
+      price: '1.5B VNĐ', 
+      range: '400km',
+      acceleration: '4.1s',
+      features: ['Quattro AWD', 'Virtual Mirrors', 'Air Suspension']
+    },
   ];
 
   const timeSlots = [
-    '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'
+    '08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'
   ];
 
   const steps = [
-    'Thông tin khách hàng',
+    'Thông tin',
     'Chọn xe',
-    'Đặt lịch',
+    'Thời gian',
     'Xác nhận'
   ];
 
@@ -89,240 +125,304 @@ const TestDriveForm = () => {
 
   const handleSubmit = () => {
     console.log('Test drive booking submitted:', formData);
-    // Here you would typically send the data to your API
+    // API call would go here
     navigate('/customers');
   };
 
-  const breadcrumbs = [
-    { label: 'Trang chủ', href: '/dashboard' },
-    { label: 'Khách hàng', href: '/customers' },
-    { label: 'Đặt lịch test drive', href: '/customers/test-drive/new' }
-  ];
-
-  const pageActions = [
-    {
-      label: 'Hủy',
-      variant: 'outlined',
-      color: 'secondary',
-      onClick: () => navigate('/customers')
-    }
-  ];
-
-  const renderStepContent = (step) => {
+  const getStepContent = (step) => {
     switch (step) {
       case 0:
         return (
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Họ và tên"
-                value={formData.customerName}
-                onChange={handleInputChange('customerName')}
-                required
-                InputProps={{
-                  startAdornment: <PersonIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                }}
-              />
+          <Box sx={{ maxWidth: 800, mx: 'auto' }}>
+            <Typography variant="h6" sx={{ mb: 3, color: 'primary.main', fontWeight: 600 }}>
+              Thông tin liên hệ
+            </Typography>
+            <Grid container spacing={3} direction="column">
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Họ và tên"
+                  value={formData.customerName}
+                  onChange={handleInputChange('customerName')}
+                  required
+                  variant="outlined"
+                  size="small"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon color="primary" fontSize="small" />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Địa chỉ"
+                  value={formData.location}
+                  onChange={handleInputChange('location')}
+                  variant="outlined"
+                  size="small"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LocationIcon color="primary" fontSize="small" />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Số điện thoại"
+                  value={formData.customerPhone}
+                  onChange={handleInputChange('customerPhone')}
+                  required
+                  variant="outlined"
+                  size="small"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PhoneIcon color="primary" fontSize="small" />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  type="email"
+                  value={formData.customerEmail}
+                  onChange={handleInputChange('customerEmail')}
+                  required
+                  variant="outlined"
+                  size="small"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailIcon color="primary" fontSize="small" />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Số điện thoại"
-                value={formData.customerPhone}
-                onChange={handleInputChange('customerPhone')}
-                required
-                InputProps={{
-                  startAdornment: <PhoneIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Email"
-                type="email"
-                value={formData.customerEmail}
-                onChange={handleInputChange('customerEmail')}
-                required
-                InputProps={{
-                  startAdornment: <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Địa chỉ"
-                value={formData.location}
-                onChange={handleInputChange('location')}
-                InputProps={{
-                  startAdornment: <LocationIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                }}
-              />
-            </Grid>
-          </Grid>
+          </Box>
         );
 
       case 1:
         return (
-          <Grid container spacing={3}>
-            {vehicles.map((vehicle) => (
-              <Grid item xs={12} md={6} key={vehicle.id}>
-                <Card
-                  sx={{
-                    cursor: 'pointer',
-                    border: formData.selectedVehicle === vehicle.id ? 2 : 1,
-                    borderColor: formData.selectedVehicle === vehicle.id ? 'primary.main' : 'divider',
-                    '&:hover': {
-                      boxShadow: 3
-                    }
-                  }}
-                  onClick={() => setFormData({ ...formData, selectedVehicle: vehicle.id })}
-                >
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
-                        <CarIcon />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                          {vehicle.name}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {vehicle.price} • {vehicle.range}
-                        </Typography>
+          <Box sx={{ maxWidth: 800, mx: 'auto' }}>
+            <Typography variant="h6" sx={{ mb: 3, color: 'primary.main', fontWeight: 600 }}>
+              Chọn xe test drive
+            </Typography>
+            <Grid container spacing={2} direction="column">
+              {vehicles.map((vehicle) => (
+                <Grid item xs={12} key={vehicle.id}>
+                  <Card
+                    sx={{
+                      cursor: 'pointer',
+                      border: formData.selectedVehicle === vehicle.id ? 2 : 1,
+                      borderColor: formData.selectedVehicle === vehicle.id ?
+                        'primary.main' : 'divider',
+                      bgcolor: formData.selectedVehicle === vehicle.id ?
+                        alpha(theme.palette.primary.main, 0.04) : 'background.paper',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: 2
+                      }
+                    }}
+                    onClick={() => setFormData({ ...formData, selectedVehicle: vehicle.id })}
+                  >
+                    <CardContent sx={{ p: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
+                        <Avatar 
+                          sx={{ 
+                            bgcolor: 'primary.main', 
+                            mr: 2,
+                            width: 40,
+                            height: 40
+                          }}
+                        >
+                          <CarIcon fontSize="small" />
+                        </Avatar>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.9rem' }}>
+                            {vehicle.name}
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <PriceIcon sx={{ fontSize: 14, mr: 0.5, color: 'success.main' }} />
+                              <Typography variant="body2" color="text.secondary" fontSize="0.75rem">
+                                {vehicle.price}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <SpeedIcon sx={{ fontSize: 14, mr: 0.5, color: 'info.main' }} />
+                              <Typography variant="body2" color="text.secondary" fontSize="0.75rem">
+                                {vehicle.range}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+                        {formData.selectedVehicle === vehicle.id && (
+                          <CheckIcon color="primary" fontSize="small" />
+                        )}
                       </Box>
-                    </Box>
-                    {formData.selectedVehicle === vehicle.id && (
-                      <Chip
-                        icon={<CheckIcon />}
-                        label="Đã chọn"
-                        color="primary"
-                        size="small"
-                      />
-                    )}
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+                      
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {vehicle.features.map((feature, index) => (
+                          <Chip
+                            key={index}
+                            label={feature}
+                            size="small"
+                            variant="outlined"
+                            color="primary"
+                            sx={{ height: 24, fontSize: '0.7rem' }}
+                          />
+                        ))}
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
         );
 
       case 2:
         return (
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Ngày mong muốn"
-                type="date"
-                value={formData.preferredDate}
-                onChange={handleInputChange('preferredDate')}
-                InputLabelProps={{ shrink: true }}
-                InputProps={{
-                  startAdornment: <CalendarIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                }}
-              />
+          <Box sx={{ maxWidth: 800, mx: 'auto' }}>
+            <Typography variant="h6" sx={{ mb: 3, color: 'primary.main', fontWeight: 600 }}>
+              Thời gian & Địa điểm
+            </Typography>
+            <Grid container spacing={3} direction="column">
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Ngày test drive"
+                  type="date"
+                  value={formData.preferredDate}
+                  onChange={handleInputChange('preferredDate')}
+                  InputLabelProps={{ shrink: true }}
+                  variant="outlined"
+                  size="small"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <CalendarIcon color="primary" fontSize="small" />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl fullWidth variant="outlined" size="small">
+                  <InputLabel>Khung giờ</InputLabel>
+                  <Select
+                    value={formData.preferredTime}
+                    onChange={handleInputChange('preferredTime')}
+                    label="Khung giờ"
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <TimeIcon color="primary" fontSize="small" />
+                      </InputAdornment>
+                    }
+                  >
+                    {timeSlots.map((time) => (
+                      <MenuItem key={time} value={time}>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <ScheduleIcon sx={{ mr: 1, fontSize: 16 }} />
+                          {time}
+                        </Box>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Yêu cầu đặc biệt"
+                  multiline
+                  rows={3}
+                  value={formData.specialRequests}
+                  onChange={handleInputChange('specialRequests')}
+                  variant="outlined"
+                  size="small"
+                  placeholder="Vui lòng cho chúng tôi biết..."
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Giờ mong muốn</InputLabel>
-                <Select
-                  value={formData.preferredTime}
-                  onChange={handleInputChange('preferredTime')}
-                  startAdornment={<TimeIcon sx={{ mr: 1, color: 'text.secondary' }} />}
-                >
-                  {timeSlots.map((time) => (
-                    <MenuItem key={time} value={time}>
-                      {time}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Yêu cầu đặc biệt"
-                multiline
-                rows={3}
-                value={formData.specialRequests}
-                onChange={handleInputChange('specialRequests')}
-                placeholder="Vui lòng mô tả bất kỳ yêu cầu đặc biệt nào..."
-              />
-            </Grid>
-          </Grid>
+          </Box>
         );
 
       case 3:
         const selectedVehicle = vehicles.find(v => v.id === formData.selectedVehicle);
         return (
-          <Box>
-            <Alert severity="info" sx={{ mb: 3 }}>
-              Vui lòng kiểm tra lại thông tin trước khi xác nhận đặt lịch test drive.
-            </Alert>
+          <Box sx={{ maxWidth: 800, mx: 'auto' }}>
+            <Typography variant="h6" sx={{ mb: 3, color: 'primary.main', fontWeight: 600 }}>
+              Xác nhận đặt lịch
+            </Typography>
             
-            <Paper sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-                <PersonIcon sx={{ mr: 1 }} />
-                Thông tin khách hàng
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="body2" color="text.secondary">Họ tên</Typography>
-                  <Typography variant="body1">{formData.customerName}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="body2" color="text.secondary">Số điện thoại</Typography>
-                  <Typography variant="body1">{formData.customerPhone}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="body2" color="text.secondary">Email</Typography>
-                  <Typography variant="body1">{formData.customerEmail}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="body2" color="text.secondary">Địa chỉ</Typography>
-                  <Typography variant="body1">{formData.location}</Typography>
-                </Grid>
+            <Grid container spacing={2} direction="column">
+              <Grid item xs={12}>
+                <Card sx={{ bgcolor: alpha(theme.palette.primary.main, 0.02), p: 1 }}>
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography variant="subtitle1" sx={{ mb: 2, display: 'flex', alignItems: 'center', fontSize: '0.9rem' }}>
+                      <PersonIcon sx={{ mr: 1, fontSize: '1rem' }} />
+                      Thông tin khách hàng
+                    </Typography>
+                    <Box>
+                      <InfoRow label="Họ tên" value={formData.customerName} />
+                      <InfoRow label="Số điện thoại" value={formData.customerPhone} />
+                      <InfoRow label="Email" value={formData.customerEmail} />
+                      <InfoRow label="Địa chỉ" value={formData.location} />
+                    </Box>
+                  </CardContent>
+                </Card>
               </Grid>
-            </Paper>
-
-            <Paper sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-                <CarIcon sx={{ mr: 1 }} />
-                Thông tin test drive
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="body2" color="text.secondary">Xe đã chọn</Typography>
-                  <Typography variant="body1">{selectedVehicle?.name}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="body2" color="text.secondary">Ngày</Typography>
-                  <Typography variant="body1">{formData.preferredDate}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="body2" color="text.secondary">Giờ</Typography>
-                  <Typography variant="body1">{formData.preferredTime}</Typography>
-                </Grid>
-                {formData.specialRequests && (
-                  <Grid item xs={12}>
-                    <Typography variant="body2" color="text.secondary">Yêu cầu đặc biệt</Typography>
-                    <Typography variant="body1">{formData.specialRequests}</Typography>
-                  </Grid>
-                )}
+              
+              <Grid item xs={12}>
+                <Card sx={{ bgcolor: alpha(theme.palette.success.main, 0.02), p: 1 }}>
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography variant="subtitle1" sx={{ mb: 2, display: 'flex', alignItems: 'center', fontSize: '0.9rem' }}>
+                      <CarIcon sx={{ mr: 1, fontSize: '1rem' }} />
+                      Thông tin test drive
+                    </Typography>
+                    <Box>
+                      <InfoRow label="Xe đã chọn" value={selectedVehicle?.name} />
+                      <InfoRow label="Ngày" value={formData.preferredDate} />
+                      <InfoRow label="Giờ" value={formData.preferredTime} />
+                      {formData.specialRequests && (
+                        <InfoRow label="Yêu cầu đặc biệt" value={formData.specialRequests} />
+                      )}
+                    </Box>
+                  </CardContent>
+                </Card>
               </Grid>
-            </Paper>
+            </Grid>
 
             <FormControlLabel
               control={
                 <Checkbox
                   checked={formData.agreeTerms}
                   onChange={(e) => setFormData({ ...formData, agreeTerms: e.target.checked })}
+                  color="primary"
+                  size="small"
                 />
               }
-              label="Tôi đồng ý với các điều khoản và điều kiện test drive"
+              label={
+                <Typography variant="body2" fontSize="0.8rem">
+                  Tôi đồng ý với các <strong>điều khoản và điều kiện</strong> test drive
+                </Typography>
+              }
+              sx={{ mt: 2 }}
             />
           </Box>
         );
@@ -332,17 +432,73 @@ const TestDriveForm = () => {
     }
   };
 
-  return (
-    <Container maxWidth="lg">
-      <PageHeader
-        title="Đặt lịch test drive"
-        subtitle="Trải nghiệm xe điện trước khi quyết định mua"
-        breadcrumbs={breadcrumbs}
-        actions={pageActions}
-      />
+  const InfoRow = ({ label, value }) => (
+    <Box sx={{ mb: 1.5 }}>
+      <Typography variant="caption" color="text.secondary" display="block" fontSize="0.7rem">
+        {label}
+      </Typography>
+      <Typography variant="body2" sx={{ fontWeight: 500 }} fontSize="0.8rem">
+        {value}
+      </Typography>
+    </Box>
+  );
 
-      <Paper sx={{ p: 3, borderRadius: 3 }}>
-        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+  return (
+    <Container maxWidth="md" sx={{ py: 3 }}>
+      <Box sx={{ textAlign: 'center', mb: 4 }}>
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            fontWeight: 700,
+            background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+            backgroundClip: 'text',
+            textFillColor: 'transparent',
+            mb: 1
+          }}
+        >
+          Đặt Lịch Test Drive
+        </Typography>
+        <Typography variant="body1" color="text.secondary" fontSize="0.9rem">
+          Trải nghiệm xe điện - Cảm nhận tương lai
+        </Typography>
+      </Box>
+
+      <Paper 
+        sx={{ 
+          p: 3, 
+          borderRadius: 3,
+          background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.8)} 0%, ${alpha(theme.palette.background.default, 0.9)} 100%)`,
+          backdropFilter: 'blur(10px)',
+          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`
+        }}
+      >
+        {/* Stepper được sửa lại */}
+        <Stepper 
+          activeStep={activeStep} 
+          sx={{ 
+            mb: 4,
+            '& .MuiStep-root': {
+              padding: isMobile ? '8px' : '16px',
+            },
+            '& .MuiStepLabel-root': {
+              padding: 0,
+            },
+            '& .MuiStepLabel-label': {
+              fontSize: isMobile ? '0.7rem' : '0.8rem',
+              fontWeight: 600,
+            },
+            '& .MuiStepConnector-root': {
+              marginLeft: isMobile ? '4px' : '8px',
+              marginRight: isMobile ? '4px' : '8px',
+            },
+            '& .MuiStepLabel-root .Mui-completed': {
+              color: theme.palette.success.main,
+            },
+            '& .MuiStepLabel-root .Mui-active': {
+              color: theme.palette.primary.main,
+            },
+          }}
+        >
           {steps.map((label) => (
             <Step key={label}>
               <StepLabel>{label}</StepLabel>
@@ -350,15 +506,17 @@ const TestDriveForm = () => {
           ))}
         </Stepper>
 
-        <Box sx={{ minHeight: 400 }}>
-          {renderStepContent(activeStep)}
+        <Box sx={{ minHeight: 300, mb: 3 }}>
+          {getStepContent(activeStep)}
         </Box>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
           <Button
             disabled={activeStep === 0}
             onClick={handleBack}
             variant="outlined"
+            size="medium"
+            sx={{ borderRadius: 2, minWidth: 100, fontSize: '0.8rem' }}
           >
             Quay lại
           </Button>
@@ -368,6 +526,13 @@ const TestDriveForm = () => {
               variant="contained"
               onClick={handleSubmit}
               disabled={!formData.agreeTerms}
+              size="medium"
+              sx={{ 
+                borderRadius: 2, 
+                minWidth: 150,
+                fontSize: '0.8rem',
+                background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`
+              }}
             >
               Xác nhận đặt lịch
             </Button>
@@ -380,6 +545,13 @@ const TestDriveForm = () => {
                 (activeStep === 1 && !formData.selectedVehicle) ||
                 (activeStep === 2 && (!formData.preferredDate || !formData.preferredTime))
               }
+              size="medium"
+              sx={{ 
+                borderRadius: 2, 
+                minWidth: 100,
+                fontSize: '0.8rem',
+                background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`
+              }}
             >
               Tiếp theo
             </Button>
@@ -387,7 +559,7 @@ const TestDriveForm = () => {
         </Box>
       </Paper>
     </Container>
-  );
+  );  
 };
 
-export default TestDriveForm;
+export default ModernTestDriveForm;
