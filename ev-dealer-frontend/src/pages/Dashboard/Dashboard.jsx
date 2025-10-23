@@ -12,6 +12,12 @@ import {
   Avatar,
   Chip,
   Divider,
+  Tabs,
+  Tab,
+  Card,
+  CardContent,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import {
   TrendingUp as TrendingUpIcon,
@@ -22,12 +28,135 @@ import {
   Assessment as ChartIcon,
   Notifications as NotificationIcon,
   Schedule as ScheduleIcon,
+  PieChart as PieChartIcon,
+  BarChart as BarChartIcon,
+  ShowChart as LineChartIcon,
 } from "@mui/icons-material";
+import {
+  PieChart,
+  Pie,
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
 import { PageHeader, ModernCard, DataTable } from "../../components/common";
 import api from "../../services/api";
 import authService from "../../services/authService";
 
+// Custom Chart Components
+const RevenuePieChart = ({ data }) => {
+  const theme = useTheme();
+  const COLORS = [
+    theme.palette.primary.main,
+    theme.palette.secondary.main,
+    theme.palette.success.main,
+    theme.palette.warning.main,
+    theme.palette.info.main,
+  ];
+
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <PieChart>
+        <Pie
+          data={data}
+          cx="50%"
+          cy="50%"
+          labelLine={false}
+          label={({ name, percent }) =>
+            `${name} ${(percent * 100).toFixed(0)}%`
+          }
+          outerRadius={80}
+          fill="#8884d8"
+          dataKey="value"
+        >
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+        <Tooltip formatter={(value) => [`${value} VNĐ`, "Doanh thu"]} />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+};
+
+const SalesBarChart = ({ data }) => {
+  const theme = useTheme();
+
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="name" />
+        <YAxis />
+        <Tooltip
+          formatter={(value) => [value, "Số lượng"]}
+          labelFormatter={(label) => `Tháng ${label}`}
+        />
+        <Legend />
+        <Bar
+          dataKey="sales"
+          name="Xe bán ra"
+          fill={theme.palette.primary.main}
+          radius={[4, 4, 0, 0]}
+        />
+        <Bar
+          dataKey="target"
+          name="Mục tiêu"
+          fill={theme.palette.secondary.main}
+          radius={[4, 4, 0, 0]}
+        />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+};
+
+const RevenueTrendChart = ({ data }) => {
+  const theme = useTheme();
+
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <LineChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="month" />
+        <YAxis />
+        <Tooltip formatter={(value) => [`${value} VNĐ`, "Doanh thu"]} />
+        <Legend />
+        <Line
+          type="monotone"
+          dataKey="revenue"
+          name="Doanh thu thực tế"
+          stroke={theme.palette.success.main}
+          strokeWidth={3}
+          dot={{ fill: theme.palette.success.main, strokeWidth: 2, r: 4 }}
+          activeDot={{ r: 6 }}
+        />
+        <Line
+          type="monotone"
+          dataKey="target"
+          name="Doanh thu mục tiêu"
+          stroke={theme.palette.warning.main}
+          strokeWidth={2}
+          strokeDasharray="5 5"
+          dot={{ fill: theme.palette.warning.main, strokeWidth: 2, r: 4 }}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+};
+
 const Dashboard = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [tabValue, setTabValue] = useState(0);
+
   // Mock data for dashboard
   const initialStatsCards = [
     {
@@ -70,6 +199,41 @@ const Dashboard = () => {
       color: "warning",
       progress: 45,
     },
+  ];
+
+  // Chart Data
+  const revenueByCategory = [
+    { name: "Sedan", value: 800000000 },
+    { name: "SUV", value: 600000000 },
+    { name: "Hatchback", value: 400000000 },
+    { name: "Luxury", value: 500000000 },
+    { name: "Electric", value: 100000000 },
+  ];
+
+  const monthlySales = [
+    { name: "1", sales: 65, target: 60 },
+    { name: "2", sales: 78, target: 65 },
+    { name: "3", sales: 82, target: 70 },
+    { name: "4", sales: 89, target: 75 },
+    { name: "5", sales: 76, target: 80 },
+    { name: "6", sales: 85, target: 85 },
+  ];
+
+  const revenueTrend = [
+    { month: "Tháng 1", revenue: 1200000000, target: 1100000000 },
+    { month: "Tháng 2", revenue: 1500000000, target: 1300000000 },
+    { month: "Tháng 3", revenue: 1800000000, target: 1500000000 },
+    { month: "Tháng 4", revenue: 2100000000, target: 1800000000 },
+    { month: "Tháng 5", revenue: 1900000000, target: 2000000000 },
+    { month: "Tháng 6", revenue: 2400000000, target: 2200000000 },
+  ];
+
+  const vehiclePerformance = [
+    { model: "Tesla Model 3", efficiency: 95, satisfaction: 92 },
+    { model: "BMW i3", efficiency: 88, satisfaction: 85 },
+    { model: "Audi e-tron", efficiency: 92, satisfaction: 90 },
+    { model: "Mercedes EQC", efficiency: 85, satisfaction: 88 },
+    { model: "Porsche Taycan", efficiency: 90, satisfaction: 94 },
   ];
 
   // State (start with mock data; will try to fetch real data)
@@ -222,8 +386,12 @@ const Dashboard = () => {
     ];
   })();
 
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
+
   return (
-    <Container maxWidth="xl">
+    <Container maxWidth="xl" sx={{ py: 3 }}>
       <PageHeader
         title="Bảng điều khiển"
         subtitle="Tổng quan về hoạt động kinh doanh và hiệu suất hệ thống"
@@ -261,6 +429,186 @@ const Dashboard = () => {
         ))}
       </Grid>
 
+      {/* Chart Section with Tabs */}
+      <Card sx={{ mb: 4, borderRadius: 3, boxShadow: 3 }}>
+        <CardContent sx={{ p: 0 }}>
+          <Tabs
+            value={tabValue}
+            onChange={handleTabChange}
+            sx={{
+              borderBottom: 1,
+              borderColor: "divider",
+              px: 3,
+              pt: 2,
+            }}
+          >
+            <Tab
+              icon={<PieChartIcon />}
+              label="Phân loại doanh thu"
+              iconPosition="start"
+            />
+            <Tab
+              icon={<BarChartIcon />}
+              label="Doanh số theo tháng"
+              iconPosition="start"
+            />
+            <Tab
+              icon={<LineChartIcon />}
+              label="Xu hướng doanh thu"
+              iconPosition="start"
+            />
+            <Tab
+              icon={<TrendingUpIcon />}
+              label="Hiệu suất dòng xe"
+              iconPosition="start"
+            />
+            <Tab
+              icon={<ChartIcon />}
+              label="Doanh số theo khu vực"
+              iconPosition="start"
+            />
+          </Tabs>
+
+          <Box sx={{ p: 3 }}>
+            {tabValue === 0 && (
+              <Box>
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{
+                    fontWeight: 600,
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <PieChartIcon sx={{ mr: 1, color: "primary.main" }} />
+                  Phân bổ Doanh thu theo Dòng xe
+                </Typography>
+                <RevenuePieChart data={revenueByCategory} />
+              </Box>
+            )}
+
+            {tabValue === 1 && (
+              <Box>
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{
+                    fontWeight: 600,
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <BarChartIcon sx={{ mr: 1, color: "primary.main" }} />
+                  Doanh số Bán hàng 6 Tháng Gần đây
+                </Typography>
+                <SalesBarChart data={monthlySales} />
+              </Box>
+            )}
+
+            {tabValue === 2 && (
+              <Box>
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{
+                    fontWeight: 600,
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <LineChartIcon sx={{ mr: 1, color: "primary.main" }} />
+                  Xu hướng Doanh thu & Mục tiêu
+                </Typography>
+                <RevenueTrendChart data={revenueTrend} />
+              </Box>
+            )}
+
+            {tabValue === 3 && (
+              <Box>
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{
+                    fontWeight: 600,
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <TrendingUpIcon sx={{ mr: 1, color: "primary.main" }} />
+                  Hiệu suất Dòng xe
+                </Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={vehiclePerformance}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="model" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar
+                      dataKey="efficiency"
+                      name="Hiệu suất (%)"
+                      fill={theme.palette.primary.main}
+                      radius={[4, 4, 0, 0]}
+                    />
+                    <Bar
+                      dataKey="satisfaction"
+                      name="Hài lòng (%)"
+                      fill={theme.palette.success.main}
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+            )}
+
+            {tabValue === 4 && (
+              <Box>
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{
+                    fontWeight: 600,
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <ChartIcon sx={{ mr: 1, color: "primary.main" }} />
+                  Doanh số theo Khu vực
+                </Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart
+                    data={[
+                      { region: "Miền Bắc", sales: 45, revenue: 1200000000 },
+                      { region: "Miền Trung", sales: 28, revenue: 800000000 },
+                      { region: "Miền Nam", sales: 62, revenue: 1600000000 },
+                    ]}
+                    layout="vertical"
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" />
+                    <YAxis dataKey="region" type="category" />
+                    <Tooltip
+                      formatter={(value, name) => [
+                        name === "sales" ? `${value} xe` : `${value} VNĐ`,
+                        name === "sales" ? "Số lượng" : "Doanh thu",
+                      ]}
+                    />
+                    <Legend />
+                    <Bar
+                      dataKey="sales"
+                      name="Số lượng bán"
+                      fill={theme.palette.info.main}
+                      radius={[0, 4, 4, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+            )}
+          </Box>
+        </CardContent>
+      </Card>
+
       {/* Charts and Activities */}
       <Grid container spacing={3}>
         {/* Recent Activities */}
@@ -269,8 +617,7 @@ const Dashboard = () => {
             sx={{
               p: 3,
               borderRadius: 3,
-              boxShadow:
-                "0px 1px 3px rgba(0, 0, 0, 0.1), 0px 1px 2px rgba(0, 0, 0, 0.06)",
+              boxShadow: 3,
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
@@ -320,8 +667,7 @@ const Dashboard = () => {
             sx={{
               p: 3,
               borderRadius: 3,
-              boxShadow:
-                "0px 1px 3px rgba(0, 0, 0, 0.1), 0px 1px 2px rgba(0, 0, 0, 0.06)",
+              boxShadow: 3,
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
