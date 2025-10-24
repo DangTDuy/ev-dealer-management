@@ -34,6 +34,8 @@ import {
   ChevronLeft as ChevronLeftIcon
 } from '@mui/icons-material';
 
+import Topbar from '../components/common/Topbar';
+
 const drawerWidth = 280;
 const miniDrawerWidth = 70;
 
@@ -251,62 +253,8 @@ const MainLayout = () => {
     <Box sx={{ display: 'flex', bgcolor: 'background.default', minHeight: '100vh' }}>
       <CssBaseline />
       
-      {/* App Bar */}
-      <AppBar
-        position="fixed"
-        sx={{
-          width: { md: `calc(100% - ${currentDrawerWidth}px)` },
-          ml: { md: `${currentDrawerWidth}px` },
-          transition: theme.transitions.create(['width', 'margin'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
-        }}
-      >
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={isMobile ? handleDrawerToggle : handleMiniDrawerToggle}
-            sx={{ mr: 2 }}
-          >
-            {isMobile ? <MenuIcon /> : <ChevronLeftIcon />}
-          </IconButton>
-          
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            {location.pathname === '/dashboard' && 'Bảng điều khiển'}
-            {location.pathname === '/vehicles' && 'Quản lý xe'}
-            {location.pathname === '/customers' && 'Quản lý khách hàng'}
-            {location.pathname === '/sales' && 'Bán hàng'}
-            {location.pathname === '/notifications' && 'Thông báo'}
-            {location.pathname === '/reports' && 'Báo cáo'}
-            {location.pathname === '/settings' && 'Cài đặt'}
-          </Typography>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Tooltip title="Thông báo">
-              <IconButton color="inherit">
-                <Badge badgeContent={4} color="error">
-                  <NotificationsIcon />
-                </Badge>
-              </IconButton>
-            </Tooltip>
-            
-            <Chip
-              label="Online"
-              color="success"
-              size="small"
-              sx={{ 
-                '& .MuiChip-label': { 
-                  fontSize: '0.75rem',
-                  fontWeight: 600 
-                } 
-              }}
-            />
-          </Box>
-        </Toolbar>
-      </AppBar>
+      {/* Topbar */}
+      <Topbar />
 
       {/* Drawer */}
       <Box
