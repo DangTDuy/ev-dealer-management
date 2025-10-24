@@ -237,8 +237,8 @@
 
 ## 🔔 Module 8: Notifications
 
-**Người phụ trách:** **\*\*\*\***\_**\*\*\*\***  
-**Deadline:** **\*\*\*\***\_**\*\*\*\***
+**Người phụ trách:**Huỳnh Nguyễn Đăng
+**Deadline:** 28/10/2025
 
 ### Tasks:
 
