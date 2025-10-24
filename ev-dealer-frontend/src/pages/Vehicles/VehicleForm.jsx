@@ -23,7 +23,8 @@ import {
   InputAdornment,
   IconButton,
   Paper,
-  Chip
+  Chip,
+  Divider
 } from '@mui/material'
 import {
   Save as SaveIcon,
@@ -37,7 +38,8 @@ import {
   Description as DescriptionIcon,
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
-  Info as InfoIcon
+  Info as InfoIcon,
+  CalendarToday as CalendarIcon
 } from '@mui/icons-material'
 
 import vehicleService from '../../services/vehicleService'
@@ -52,7 +54,7 @@ const VehicleForm = () => {
     vehicleName: '',
     brand: '',
     model: '',
-    year: '',
+    year: new Date().getFullYear(),
     price: '',
     status: 'Available',
     description: '',
@@ -68,14 +70,16 @@ const VehicleForm = () => {
 
   // Options
   const brands = [
-    'Tesla', 'Nissan', 'BMW', 'Audi', 'Mercedes-Benz',
-    'Volkswagen', 'Ford', 'Chevrolet', 'Toyota', 'Honda'
+    'Tesla', 'Toyota', 'Honda', 'Ford', 'Chevrolet',
+    'BMW', 'Mercedes-Benz', 'Audi', 'Volkswagen', 'Nissan',
+    'Hyundai', 'Kia', 'Lexus', 'Porsche', 'Jaguar'
   ]
 
   const statuses = [
     { value: 'Available', label: 'Available', color: 'success' },
     { value: 'Sold', label: 'Sold', color: 'error' },
-    { value: 'In Maintenance', label: 'In Maintenance', color: 'warning' }
+    { value: 'In Maintenance', label: 'In Maintenance', color: 'warning' },
+    { value: 'Reserved', label: 'Reserved', color: 'info' }
   ]
 
   // Load data on mount
@@ -93,7 +97,7 @@ const VehicleForm = () => {
         vehicleName: vehicle.vehicleName || '',
         brand: vehicle.brand || '',
         model: vehicle.model || '',
-        year: vehicle.year || '',
+        year: vehicle.year || new Date().getFullYear(),
         price: vehicle.price || '',
         status: vehicle.status || 'Available',
         description: vehicle.description || '',
@@ -284,100 +288,80 @@ const VehicleForm = () => {
         <CardContent sx={{ p: 6 }}>
           <form onSubmit={handleSubmit}>
             <Grid container spacing={4}>
-              {/* Vehicle Name - Hero Section */}
+              
+              {/* Row 1: Vehicle Identity */}
               <Grid item xs={12}>
                 <Paper
                   elevation={0}
                   sx={{
                     p: 4,
                     borderRadius: 3,
-                    background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.03), rgba(66, 165, 245, 0.03))',
-                    border: '1px solid rgba(25, 118, 210, 0.08)',
-                    borderLeft: '4px solid #1976d2'
+                    background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.05), rgba(66, 165, 245, 0.05))',
+                    border: '2px solid rgba(25, 118, 210, 0.1)',
+                    borderLeft: '6px solid #1976d2'
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <CarIcon sx={{ color: '#1976d2', mr: 2, fontSize: 28 }} />
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+                    <BuildIcon sx={{ color: '#1976d2', mr: 2, fontSize: 32 }} />
+                    <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
                       Vehicle Identity
                     </Typography>
                   </Box>
-                  <TextField
-                    fullWidth
-                    label="Vehicle Name"
-                    placeholder="e.g., Tesla Model S Plaid, BMW i8, Toyota Prius"
-                    value={formData.vehicleName}
-                    onChange={(e) => handleInputChange('vehicleName', e.target.value)}
-                    required
-                    variant="outlined"
-                    size="large"
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 2,
-                        fontSize: '1.1rem',
-                        backgroundColor: 'rgba(255,255,255,0.8)',
-                        '& fieldset': {
-                          borderWidth: 2,
-                          borderColor: 'rgba(25, 118, 210, 0.2)'
-                        },
-                        '&:hover fieldset': {
-                          borderColor: '#1976d2'
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#1976d2',
-                          borderWidth: 2
-                        }
-                      },
-                      '& .MuiInputLabel-root': {
-                        fontSize: '1.1rem',
-                        fontWeight: 500
-                      }
-                    }}
-                  />
-                </Paper>
-              </Grid>
-
-              {/* Brand and Model - Single Row */}
-              <Grid item xs={12}>
-                <Grid container spacing={4}>
-                  <Grid item xs={12} md={4}>
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        p: 3,
-                        borderRadius: 3,
-                        background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.03), rgba(129, 199, 132, 0.03))',
-                        border: '1px solid rgba(76, 175, 80, 0.08)',
-                        borderLeft: '4px solid #4caf50',
-                        height: '100%'
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <BuildIcon sx={{ color: '#4caf50', mr: 1.5, fontSize: 20 }} />
-                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#4caf50', fontSize: '1rem' }}>
-                          Brand
-                        </Typography>
-                      </Box>
-                      <FormControl fullWidth required size="large">
-                        <InputLabel sx={{ fontSize: '1rem', fontWeight: 500 }}>Choose Brand</InputLabel>
+                  <Grid container spacing={3}>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <TextField
+                        fullWidth
+                        label="Vehicle Name"
+                        placeholder="e.g., Tesla Model S Plaid, BMW i8, Toyota Prius"
+                        value={formData.vehicleName}
+                        onChange={(e) => handleInputChange('vehicleName', e.target.value)}
+                        required
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            fontSize: '1rem',
+                            backgroundColor: 'rgba(255,255,255,0.9)',
+                            '& fieldset': {
+                              borderWidth: 2,
+                              borderColor: 'rgba(25, 118, 210, 0.3)'
+                            },
+                            '&:hover fieldset': {
+                              borderColor: '#1976d2'
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#1976d2',
+                              borderWidth: 3
+                            }
+                          },
+                          '& .MuiInputLabel-root': {
+                            fontSize: '1rem',
+                            fontWeight: 600
+                          }
+                        }}
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <FormControl fullWidth required>
+                        <InputLabel sx={{ fontSize: '1rem', fontWeight: 600 }}>Brand</InputLabel>
                         <Select
                           value={formData.brand}
-                          label="Choose Brand"
+                          label="Brand"
                           onChange={(e) => handleInputChange('brand', e.target.value)}
                           sx={{
                             borderRadius: 2,
                             fontSize: '1rem',
-                            backgroundColor: 'rgba(255,255,255,0.8)',
+                            backgroundColor: 'rgba(255,255,255,0.9)',
                             '& .MuiOutlinedInput-notchedOutline': {
                               borderWidth: 2,
-                              borderColor: 'rgba(76, 175, 80, 0.2)'
+                              borderColor: 'rgba(25, 118, 210, 0.3)'
                             },
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#4caf50'
+                              borderColor: '#1976d2'
                             },
                             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#4caf50',
-                              borderWidth: 2
+                              borderColor: '#1976d2',
+                              borderWidth: 3
                             }
                           }}
                         >
@@ -388,44 +372,103 @@ const VehicleForm = () => {
                           ))}
                         </Select>
                       </FormControl>
-                    </Paper>
+                    </Grid>
                   </Grid>
+                </Paper>
+              </Grid>
 
-                  <Grid item xs={12} md={4}>
+              {/* Row 2: Model, Year, Price */}
+              <Grid item xs={12}>
+                <Grid container spacing={3}>
+                  {/* Model */}
+                  <Grid size={{ xs: 12, md: 4 }}>
                     <Paper
                       elevation={0}
                       sx={{
                         p: 3,
                         borderRadius: 3,
-                        background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.03), rgba(255, 183, 77, 0.03))',
-                        border: '1px solid rgba(255, 152, 0, 0.08)',
-                        borderLeft: '4px solid #ff9800',
+                        background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.05), rgba(129, 199, 132, 0.05))',
+                        border: '2px solid rgba(76, 175, 80, 0.1)',
+                        borderLeft: '4px solid #4caf50',
                         height: '100%'
                       }}
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <InfoIcon sx={{ color: '#ff9800', mr: 1.5, fontSize: 20 }} />
-                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#ff9800', fontSize: '1rem' }}>
+                        <CarIcon sx={{ color: '#4caf50', mr: 1.5, fontSize: 24 }} />
+                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#4caf50' }}>
                           Model
                         </Typography>
                       </Box>
                       <TextField
                         fullWidth
                         label="Model Name"
-                        placeholder="e.g., Model S, i8, Prius"
+                        placeholder="e.g., Model 3, i8, Prius"
                         value={formData.model}
                         onChange={(e) => handleInputChange('model', e.target.value)}
                         required
                         variant="outlined"
-                        size="large"
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             borderRadius: 2,
                             fontSize: '1rem',
-                            backgroundColor: 'rgba(255,255,255,0.8)',
+                            backgroundColor: 'rgba(255,255,255,0.9)',
                             '& fieldset': {
                               borderWidth: 2,
-                              borderColor: 'rgba(255, 152, 0, 0.2)'
+                              borderColor: 'rgba(76, 175, 80, 0.3)'
+                            },
+                            '&:hover fieldset': {
+                              borderColor: '#4caf50'
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#4caf50',
+                              borderWidth: 2
+                            }
+                          }
+                        }}
+                      />
+                    </Paper>
+                  </Grid>
+
+                  {/* Year */}
+                  <Grid size={{ xs: 12, md: 4 }}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 3,
+                        borderRadius: 3,
+                        background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.05), rgba(255, 183, 77, 0.05))',
+                        border: '2px solid rgba(255, 152, 0, 0.1)',
+                        borderLeft: '4px solid #ff9800',
+                        height: '100%'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        <CalendarIcon sx={{ color: '#ff9800', mr: 1.5, fontSize: 24 }} />
+                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#ff9800' }}>
+                          Year
+                        </Typography>
+                      </Box>
+                      <TextField
+                        fullWidth
+                        label="Manufacturing Year"
+                        type="number"
+                        placeholder="2025"
+                        value={formData.year}
+                        onChange={(e) => handleInputChange('year', e.target.value)}
+                        inputProps={{ 
+                          min: 1900, 
+                          max: new Date().getFullYear() + 1,
+                          step: 1
+                        }}
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            fontSize: '1rem',
+                            backgroundColor: 'rgba(255,255,255,0.9)',
+                            '& fieldset': {
+                              borderWidth: 2,
+                              borderColor: 'rgba(255, 152, 0, 0.3)'
                             },
                             '&:hover fieldset': {
                               borderColor: '#ff9800'
@@ -434,52 +477,55 @@ const VehicleForm = () => {
                               borderColor: '#ff9800',
                               borderWidth: 2
                             }
-                          },
-                          '& .MuiInputLabel-root': {
-                            fontSize: '1rem',
-                            fontWeight: 500
                           }
                         }}
                       />
                     </Paper>
                   </Grid>
 
-                  <Grid item xs={12} md={4}>
+                  {/* Price */}
+                  <Grid size={{ xs: 12, md: 4 }}>
                     <Paper
                       elevation={0}
                       sx={{
                         p: 3,
                         borderRadius: 3,
-                        background: 'linear-gradient(135deg, rgba(156, 39, 176, 0.03), rgba(186, 104, 200, 0.03))',
-                        border: '1px solid rgba(156, 39, 176, 0.08)',
+                        background: 'linear-gradient(135deg, rgba(156, 39, 176, 0.05), rgba(186, 104, 200, 0.05))',
+                        border: '2px solid rgba(156, 39, 176, 0.1)',
                         borderLeft: '4px solid #9c27b0',
                         height: '100%'
                       }}
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <InfoIcon sx={{ color: '#9c27b0', mr: 1.5, fontSize: 20 }} />
-                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#9c27b0', fontSize: '1rem' }}>
-                          Year
+                        <MoneyIcon sx={{ color: '#9c27b0', mr: 1.5, fontSize: 24 }} />
+                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#9c27b0' }}>
+                          Price
                         </Typography>
                       </Box>
                       <TextField
                         fullWidth
-                        label="Manufacturing Year"
+                        label="Vehicle Price"
                         type="number"
-                        placeholder="2024"
-                        value={formData.year}
-                        onChange={(e) => handleInputChange('year', e.target.value)}
-                        inputProps={{ min: 1900, max: new Date().getFullYear() + 1 }}
+                        placeholder="45000"
+                        value={formData.price}
+                        onChange={(e) => handleInputChange('price', e.target.value)}
+                        required
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <strong style={{ fontSize: '1rem' }}>$</strong>
+                            </InputAdornment>
+                          ),
+                        }}
                         variant="outlined"
-                        size="large"
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             borderRadius: 2,
                             fontSize: '1rem',
-                            backgroundColor: 'rgba(255,255,255,0.8)',
+                            backgroundColor: 'rgba(255,255,255,0.9)',
                             '& fieldset': {
                               borderWidth: 2,
-                              borderColor: 'rgba(156, 39, 176, 0.2)'
+                              borderColor: 'rgba(156, 39, 176, 0.3)'
                             },
                             '&:hover fieldset': {
                               borderColor: '#9c27b0'
@@ -488,10 +534,6 @@ const VehicleForm = () => {
                               borderColor: '#9c27b0',
                               borderWidth: 2
                             }
-                          },
-                          '& .MuiInputLabel-root': {
-                            fontSize: '1rem',
-                            fontWeight: 500
                           }
                         }}
                       />
@@ -500,86 +542,30 @@ const VehicleForm = () => {
                 </Grid>
               </Grid>
 
-              {/* Price and Status - Single Row */}
+              {/* Row 3: Status and Description - Cùng hàng */}
               <Grid item xs={12}>
-                <Grid container spacing={4}>
-                  <Grid item xs={12} md={6}>
+                <Grid container spacing={2}>
+                  {/* Status - Cột trái */}
+                  <Grid size={{ xs: 40, md: 8 }}>
                     <Paper
                       elevation={0}
                       sx={{
                         p: 3,
                         borderRadius: 3,
-                        background: 'linear-gradient(135deg, rgba(244, 67, 54, 0.03), rgba(229, 115, 115, 0.03))',
-                        border: '1px solid rgba(244, 67, 54, 0.08)',
+                        background: 'linear-gradient(135deg, rgba(244, 67, 54, 0.05), rgba(229, 115, 115, 0.05))',
+                        border: '2px solid rgba(244, 67, 54, 0.1)',
                         borderLeft: '4px solid #f44336',
                         height: '100%'
                       }}
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <MoneyIcon sx={{ color: '#f44336', mr: 1.5, fontSize: 20 }} />
-                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#f44336', fontSize: '1rem' }}>
-                          Price
-                        </Typography>
-                      </Box>
-                      <TextField
-                        fullWidth
-                        label="Vehicle Price"
-                        type="number"
-                        placeholder="50000"
-                        value={formData.price}
-                        onChange={(e) => handleInputChange('price', e.target.value)}
-                        required
-                        InputProps={{
-                          startAdornment: <InputAdornment position="start"><strong style={{ fontSize: '1.1rem' }}>$</strong></InputAdornment>,
-                        }}
-                        variant="outlined"
-                        size="large"
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            fontSize: '1rem',
-                            backgroundColor: 'rgba(255,255,255,0.8)',
-                            '& fieldset': {
-                              borderWidth: 2,
-                              borderColor: 'rgba(244, 67, 54, 0.2)'
-                            },
-                            '&:hover fieldset': {
-                              borderColor: '#f44336'
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderColor: '#f44336',
-                              borderWidth: 2
-                            }
-                          },
-                          '& .MuiInputLabel-root': {
-                            fontSize: '1rem',
-                            fontWeight: 500
-                          }
-                        }}
-                      />
-                    </Paper>
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        p: 3,
-                        borderRadius: 3,
-                        background: 'linear-gradient(135deg, rgba(255, 193, 7, 0.03), rgba(255, 213, 79, 0.03))',
-                        border: '1px solid rgba(255, 193, 7, 0.08)',
-                        borderLeft: '4px solid #ffc107',
-                        height: '100%'
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <CheckCircleIcon sx={{ color: '#ffc107', mr: 1.5, fontSize: 20 }} />
-                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#ffc107', fontSize: '1rem' }}>
+                        <CheckCircleIcon sx={{ color: '#f44336', mr: 1.5, fontSize: 24 }} />
+                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#f44336' }}>
                           Status
                         </Typography>
                       </Box>
-                      <FormControl fullWidth size="large">
-                        <InputLabel sx={{ fontSize: '1rem', fontWeight: 500 }}>Current Status</InputLabel>
+                      <FormControl fullWidth>
+                        <InputLabel sx={{ fontSize: '1rem', fontWeight: 600 }}>Current Status</InputLabel>
                         <Select
                           value={formData.status}
                           label="Current Status"
@@ -587,112 +573,110 @@ const VehicleForm = () => {
                           sx={{
                             borderRadius: 2,
                             fontSize: '1rem',
-                            backgroundColor: 'rgba(255,255,255,0.8)',
+                            backgroundColor: 'rgba(255,255,255,0.9)',
                             '& .MuiOutlinedInput-notchedOutline': {
                               borderWidth: 2,
-                              borderColor: 'rgba(255, 193, 7, 0.2)'
+                              borderColor: 'rgba(244, 67, 54, 0.3)'
                             },
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#ffc107'
+                              borderColor: '#f44336'
                             },
                             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#ffc107',
+                              borderColor: '#f44336',
                               borderWidth: 2
                             }
                           }}
                         >
                           {statuses.map((status) => (
                             <MenuItem key={status.value} value={status.value} sx={{ fontSize: '1rem' }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                <Typography sx={{ flexGrow: 1 }}>{status.label}</Typography>
-                                <Box
-                                  sx={{
-                                    width: 12,
-                                    height: 12,
-                                    borderRadius: '50%',
-                                    backgroundColor: `${status.color}.main`,
-                                    ml: 2
-                                  }}
-                                />
-                              </Box>
+                              <Chip 
+                                label={status.label}
+                                color={status.color}
+                                size="medium"
+                                variant="filled"
+                                sx={{ 
+                                  fontWeight: 'bold',
+                                  minWidth: 120
+                                }}
+                              />
                             </MenuItem>
                           ))}
                         </Select>
                       </FormControl>
                     </Paper>
                   </Grid>
+
+                  {/* Description - Cột phải */}
+                  <Grid size={{ xs: 40, md: 10 }}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 3,
+                        borderRadius: 3,
+                        background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.05), rgba(77, 208, 225, 0.05))',
+                        border: '2px solid rgba(0, 188, 212, 0.1)',
+                        borderLeft: '4px solid #00bcd4',
+                        height: '100%'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        <DescriptionIcon sx={{ color: '#00bcd4', mr: 2, fontSize: 24 }} />
+                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#00bcd4' }}>
+                          Description
+                        </Typography>
+                      </Box>
+                      <TextField
+                        fullWidth
+                        label="Vehicle Description"
+                        placeholder="Describe the vehicle's features, condition, specifications, and any special notes..."
+                        value={formData.description}
+                        onChange={(e) => handleInputChange('description', e.target.value)}
+                        multiline
+                        rows={4}
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            fontSize: '1rem',
+                            backgroundColor: 'rgba(255,255,255,0.9)',
+                            '& fieldset': {
+                              borderWidth: 2,
+                              borderColor: 'rgba(0, 188, 212, 0.3)'
+                            },
+                            '&:hover fieldset': {
+                              borderColor: '#00bcd4'
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#00bcd4',
+                              borderWidth: 2
+                            }
+                          },
+                          '& .MuiInputLabel-root': {
+                            fontSize: '1rem',
+                            fontWeight: 600
+                          }
+                        }}
+                      />
+                    </Paper>
+                  </Grid>
                 </Grid>
               </Grid>
 
-              {/* Description */}
+              {/* Row 4: Vehicle Image - Riêng hàng */}
               <Grid item xs={12}>
                 <Paper
                   elevation={0}
                   sx={{
-                    p: 4,
+                    p:3,
                     borderRadius: 3,
-                    background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.03), rgba(77, 208, 225, 0.03))',
-                    border: '1px solid rgba(0, 188, 212, 0.08)',
-                    borderLeft: '4px solid #00bcd4'
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <DescriptionIcon sx={{ color: '#00bcd4', mr: 2, fontSize: 24 }} />
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#00bcd4' }}>
-                      Description
-                    </Typography>
-                  </Box>
-                  <TextField
-                    fullWidth
-                    label="Vehicle Description"
-                    placeholder="Describe the vehicle's features, condition, and any special notes..."
-                    value={formData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
-                    multiline
-                    rows={6}
-                    variant="outlined"
-                    size="large"
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 2,
-                        fontSize: '1.1rem',
-                        backgroundColor: 'rgba(255,255,255,0.8)',
-                        '& fieldset': {
-                          borderWidth: 2,
-                          borderColor: 'rgba(0, 188, 212, 0.2)'
-                        },
-                        '&:hover fieldset': {
-                          borderColor: '#00bcd4'
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#00bcd4',
-                          borderWidth: 2
-                        }
-                      },
-                      '& .MuiInputLabel-root': {
-                        fontSize: '1.1rem',
-                        fontWeight: 500
-                      }
-                    }}
-                  />
-                </Paper>
-              </Grid>
-
-              {/* Image Upload */}
-              <Grid item xs={12}>
-                <Paper
-                  elevation={0}
-                  sx={{
-                    p: 4,
-                    borderRadius: 3,
-                    background: 'linear-gradient(135deg, rgba(103, 58, 183, 0.03), rgba(149, 117, 205, 0.03))',
-                    border: '1px solid rgba(103, 58, 183, 0.08)',
+                    background: 'linear-gradient(135deg, rgba(103, 58, 183, 0.05), rgba(149, 117, 205, 0.05))',
+                    border: '2px solid rgba(103, 58, 183, 0.1)',
                     borderLeft: '4px solid #673ab7'
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <PhotoCameraIcon sx={{ color: '#673ab7', mr: 2, fontSize: 24 }} />
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#673ab7' }}>
+                    <PhotoCameraIcon sx={{ color: '#673ab7', mr: 2, fontSize: 28 }} />
+                    <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#673ab7' }}>
                       Vehicle Image
                     </Typography>
                   </Box>
@@ -716,7 +700,7 @@ const VehicleForm = () => {
                           color: '#673ab7',
                           py: 2,
                           px: 4,
-                          fontSize: '1.1rem',
+                          fontSize: '1rem',
                           fontWeight: 'bold',
                           '&:hover': {
                             borderColor: '#5e35b1',
@@ -732,19 +716,19 @@ const VehicleForm = () => {
                   </Box>
 
                   {imagePreview && (
-                    <Box sx={{ position: 'relative', display: 'inline-block', mt: 2 }}>
+                    <Box sx={{ position: 'relative', display: 'flex', justifyContent: 'center', mt: 2 }}>
                       <Box
                         component="img"
                         src={imagePreview}
                         alt="Vehicle preview"
                         sx={{
                           width: '100%',
-                          maxWidth: 500,
-                          height: 300,
+                          maxWidth: 1200,
+                          height:  600,
                           objectFit: 'cover',
                           borderRadius: 3,
-                          boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-                          border: '3px solid rgba(103, 58, 183, 0.2)'
+                          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                          border: '3px solid rgba(103, 58, 183, 0.3)'
                         }}
                       />
                       <IconButton
@@ -752,8 +736,8 @@ const VehicleForm = () => {
                         onClick={handleRemoveImage}
                         sx={{
                           position: 'absolute',
-                          top: 16,
-                          right: 16,
+                          top: 24,
+                          right: 24,
                           backgroundColor: 'rgba(244, 67, 54, 0.95)',
                           color: 'white',
                           border: '2px solid white',
@@ -774,6 +758,7 @@ const VehicleForm = () => {
 
               {/* Action Buttons */}
               <Grid item xs={12}>
+                <Divider sx={{ my: 4, borderColor: 'rgba(25, 118, 210, 0.2)' }} />
                 <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center', mt: 2 }}>
                   <Button
                     variant="outlined"
@@ -783,17 +768,22 @@ const VehicleForm = () => {
                       borderRadius: 3,
                       px: 6,
                       py: 2,
-                      borderColor: '#9e9e9e',
-                      color: '#616161',
-                      fontSize: '1.2rem',
-                      fontWeight: 'bold',
-                      minWidth: 200,
+                      borderColor: '#e0e0e0',
+                      color: '#666666',
+                      fontSize: '1.1rem',
+                      fontWeight: 600,
+                      fontFamily: 'Inter, Roboto, sans-serif',
+                      minWidth: 180,
+                      backgroundColor: '#ffffff',
+                      border: '2px solid #e0e0e0',
                       '&:hover': {
-                        borderColor: '#757575',
-                        backgroundColor: 'rgba(117, 117, 117, 0.04)',
-                        transform: 'translateY(-1px)'
+                        borderColor: '#1976d2',
+                        backgroundColor: '#f8f9ff',
+                        color: '#1976d2',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 12px rgba(25, 118, 210, 0.15)'
                       },
-                      transition: 'all 0.2s ease'
+                      transition: 'all 0.3s ease'
                     }}
                   >
                     Cancel
@@ -802,26 +792,28 @@ const VehicleForm = () => {
                     type="submit"
                     variant="contained"
                     disabled={saving}
-                    startIcon={saving ? <CircularProgress size={24} /> : <SaveIcon />}
+                    startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
                     sx={{
                       borderRadius: 3,
                       px: 6,
                       py: 2,
-                      background: 'linear-gradient(45deg, #1976d2, #42a5f5)',
-                      fontSize: '1.2rem',
-                      fontWeight: 'bold',
-                      minWidth: 200,
-                      boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
+                      background: 'linear-gradient(135deg, #1976d2, #00bcd4)',
+                      fontSize: '1.1rem',
+                      fontWeight: 600,
+                      fontFamily: 'Inter, Roboto, sans-serif',
+                      minWidth: 180,
+                      boxShadow: '0 4px 20px rgba(25, 118, 210, 0.3)',
                       '&:hover': {
-                        background: 'linear-gradient(45deg, #1565c0, #1976d2)',
-                        transform: 'translateY(-1px)',
-                        boxShadow: '0 6px 20px rgba(25, 118, 210, 0.4)'
+                        background: 'linear-gradient(135deg, #1565c0, #0097a7)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 8px 30px rgba(25, 118, 210, 0.4)'
                       },
                       '&:disabled': {
-                        background: '#ccc',
-                        color: '#666'
+                        background: '#cccccc',
+                        color: '#999999',
+                        boxShadow: 'none'
                       },
-                      transition: 'all 0.2s ease'
+                      transition: 'all 0.3s ease'
                     }}
                   >
                     {saving ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Add Vehicle')}
