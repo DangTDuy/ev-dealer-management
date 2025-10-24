@@ -217,8 +217,8 @@
 
 ## 📈 Module 7: Reports & Analytics
 
-**Người phụ trách:** **\*\*\*\***\_**\*\*\*\***  
-**Deadline:** **\*\*\*\***\_**\*\*\*\***
+**Người phụ trách:** Đặng Thanh Duy  
+**Deadline:** 27/10/2025
 
 ### Tasks:
 
