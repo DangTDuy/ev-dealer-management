@@ -271,8 +271,8 @@
 
 ## ⚙️ Module 9: Settings
 
-**Người phụ trách:** **\*\*\*\***\_**\*\*\*\***  
-**Deadline:** **\*\*\*\***\_**\*\*\*\***
+**Người phụ trách:** Đặng Thanh Duy
+**Deadline:** 25/10/2025
 
 ### Tasks:
 
