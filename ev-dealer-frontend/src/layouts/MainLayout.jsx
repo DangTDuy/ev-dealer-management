@@ -38,39 +38,45 @@ const drawerWidth = 280;
 const miniDrawerWidth = 70;
 
 const navItems = [
-  { 
-    text: 'Bảng điều khiển', 
-    icon: <DashboardIcon />, 
+  {
+    text: 'Bảng điều khiển',
+    icon: <DashboardIcon />,
     path: '/dashboard',
     badge: null
   },
-  { 
-    text: 'Quản lý xe', 
-    icon: <CarIcon />, 
+  {
+    text: 'Quản lý xe',
+    icon: <CarIcon />,
     path: '/vehicles',
     badge: null
   },
-  { 
-    text: 'Khách hàng', 
-    icon: <PeopleIcon />, 
+  {
+    text: 'Khách hàng',
+    icon: <PeopleIcon />,
     path: '/customers',
     badge: '12'
   },
-  { 
-    text: 'Bán hàng', 
-    icon: <SalesIcon />, 
+  {
+    text: 'Bán hàng',
+    icon: <SalesIcon />,
     path: '/sales',
     badge: '3'
   },
-  { 
-    text: 'Báo cáo', 
-    icon: <ReportIcon />, 
+  {
+    text: 'Thông báo',
+    icon: <NotificationsIcon />,
+    path: '/notifications',
+    badge: '6'
+  },
+  {
+    text: 'Báo cáo',
+    icon: <ReportIcon />,
     path: '/reports',
     badge: null
   },
-  { 
-    text: 'Cài đặt', 
-    icon: <SettingsIcon />, 
+  {
+    text: 'Cài đặt',
+    icon: <SettingsIcon />,
     path: '/settings',
     badge: null
   },
@@ -273,6 +279,7 @@ const MainLayout = () => {
             {location.pathname === '/vehicles' && 'Quản lý xe'}
             {location.pathname === '/customers' && 'Quản lý khách hàng'}
             {location.pathname === '/sales' && 'Bán hàng'}
+            {location.pathname === '/notifications' && 'Thông báo'}
             {location.pathname === '/reports' && 'Báo cáo'}
             {location.pathname === '/settings' && 'Cài đặt'}
           </Typography>

@@ -253,51 +253,95 @@ const Notifications = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Breadcrumbs */}
-      <Breadcrumbs sx={{ mb: 3 }}>
-        <Link
-          color="inherit"
-          href="#"
-          onClick={(e) => {
-            e.preventDefault()
-            navigate('/')
-          }}
-          sx={{ display: 'flex', alignItems: 'center' }}
-        >
-          <HomeIcon sx={{ mr: 0.5 }} fontSize="inherit" />
-          Trang chủ
-        </Link>
-        <Typography color="text.primary" sx={{ display: 'flex', alignItems: 'center' }}>
-          <ActiveNotificationsIcon sx={{ mr: 0.5 }} fontSize="inherit" />
-          Thông báo
-        </Typography>
-      </Breadcrumbs>
-
-      {/* Header */}
-      <Box sx={{ mb: 4, textAlign: 'center' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-          <Badge badgeContent={stats?.unread || 0} color="error" sx={{ mr: 2 }}>
-            <NotificationsIcon sx={{ fontSize: 40, color: '#1976d2' }} />
-          </Badge>
-          <Typography
-            variant="h3"
-            component="h1"
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+        py: 4
+      }}
+    >
+      <Container maxWidth="lg">
+        {/* Breadcrumbs */}
+        <Breadcrumbs sx={{ mb: 4, '& .MuiBreadcrumbs-separator': { color: '#666' } }}>
+          <Link
+            color="inherit"
+            href="#"
+            onClick={(e) => {
+              e.preventDefault()
+              navigate('/')
+            }}
             sx={{
-              fontWeight: 'bold',
-              background: 'linear-gradient(45deg, #1976d2, #42a5f5)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
+              display: 'flex',
+              alignItems: 'center',
+              textDecoration: 'none',
+              '&:hover': { textDecoration: 'underline' }
             }}
           >
+            <HomeIcon sx={{ mr: 0.5, color: '#1976d2' }} fontSize="inherit" />
+            Trang chủ
+          </Link>
+          <Typography color="text.primary" sx={{ display: 'flex', alignItems: 'center', fontWeight: 500 }}>
+            <ActiveNotificationsIcon sx={{ mr: 0.5, color: '#1976d2' }} fontSize="inherit" />
             Thông báo
           </Typography>
+        </Breadcrumbs>
+
+        {/* Hero Header */}
+        <Box
+          sx={{
+            mb: 6,
+            textAlign: 'center',
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)',
+            borderRadius: 4,
+            p: 6,
+            boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            position: 'relative',
+            overflow: 'hidden',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%239C92AC" fill-opacity="0.05"%3E%3Ccircle cx="30" cy="30" r="4"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+              opacity: 0.3
+            }
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 3, position: 'relative', zIndex: 1 }}>
+            <Typography
+              variant="h2"
+              component="h1"
+              sx={{
+                fontWeight: 800,
+                background: 'linear-gradient(45deg, #1976d2, #42a5f5, #1565c0)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                textShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                letterSpacing: '-0.02em',
+                border : '24px',
+              }}
+            >
+              Thông báo
+            </Typography>
+          </Box>
+          <Typography
+            variant="h5"
+            color="text.secondary"
+            sx={{
+              fontWeight: 400,
+              maxWidth: 600,
+              mx: 'auto',
+              lineHeight: 1.6,
+              opacity: 0.8
+            }}
+          >
+            Theo dõi tất cả hoạt động và cập nhật quan trọng của hệ thống
+          </Typography>
         </Box>
-        <Typography variant="h6" color="text.secondary">
-          Theo dõi tất cả hoạt động và cập nhật quan trọng
-        </Typography>
-      </Box>
 
       {/* Error Message */}
       {error && (
@@ -308,81 +352,205 @@ const Notifications = () => {
 
       {/* Stats Cards */}
       {stats && (
-        <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid container spacing={4} sx={{ mb: 6 }}>
           <Grid item xs={12} sm={6} md={3}>
             <Paper
-              elevation={2}
+              elevation={6}
               sx={{
-                p: 3,
+                p: 4,
                 textAlign: 'center',
-                borderRadius: 3,
-                background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
-                border: '1px solid rgba(25, 118, 210, 0.1)'
+                borderRadius: 4,
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                border: '2px solid rgba(255,255,255,0.2)',
+                minHeight: 150,
+                minWidth:  400,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                position: 'relative',
+                overflow: 'hidden',
+                boxShadow: '0 20px 40px rgba(102, 126, 234, 0.3)',
+                '&:hover': {
+                  transform: 'translateY(-8px) scale(1.02)',
+                  boxShadow: '0 25px 50px rgba(102, 126, 234, 0.4)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                },
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: -50,
+                  right: -50,
+                  width: 100,
+                  height: 100,
+                  background: 'rgba(255,255,255,0.1)',
+                  borderRadius: '50%',
+                  zIndex: 0
+                }
               }}
             >
-              <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
-                {stats.total}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Tổng số thông báo
-              </Typography>
+              <Box sx={{ position: 'relative', zIndex: 1 }}>
+                <NotificationsIcon sx={{ fontSize: 48, color: 'white', mb: 2, opacity: 0.9 }} />
+                <Typography variant="h1" sx={{ fontWeight: 800, color: 'white', mb: 1, fontSize: '3.5rem', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                  {stats.total}
+                </Typography>
+                <Typography variant="h5" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 600, fontSize: '1.25rem' }}>
+                  Tổng số thông báo
+                </Typography>
+              </Box>
             </Paper>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Paper
-              elevation={2}
+              elevation={6}
               sx={{
-                p: 3,
+                p: 4,
                 textAlign: 'center',
-                borderRadius: 3,
-                background: 'linear-gradient(135deg, #ffebee, #fce4ec)',
-                border: '1px solid rgba(244, 67, 54, 0.1)'
+                borderRadius: 4,
+                background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                border: '2px solid rgba(255,255,255,0.2)',
+                minHeight: 150,
+                minWidth:  200,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                position: 'relative',
+                overflow: 'hidden',
+                boxShadow: '0 20px 40px rgba(245, 87, 108, 0.3)',
+                '&:hover': {
+                  transform: 'translateY(-8px) scale(1.02)',
+                  boxShadow: '0 25px 50px rgba(245, 87, 108, 0.4)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                },
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: -50,
+                  right: -50,
+                  width: 100,
+                  height: 100,
+                  background: 'rgba(255,255,255,0.1)',
+                  borderRadius: '50%',
+                  zIndex: 0
+                }
               }}
             >
-              <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#f44336' }}>
-                {stats.unread}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Chưa đọc
-              </Typography>
+              <Box sx={{ position: 'relative', zIndex: 1 }}>
+                <Badge
+                  badgeContent="!"
+                  color="error"
+                  sx={{
+                    '& .MuiBadge-badge': {
+                      fontSize: '1.2rem',
+                      fontWeight: 'bold',
+                      width: 28,
+                      height: 28,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(45deg, #ff6b6b, #ee5a24)',
+                      boxShadow: '0 2px 8px rgba(255, 107, 107, 0.4)'
+                    }
+                  }}
+                >
+                  <NotificationsIcon sx={{ fontSize: 48, color: 'white', mb: 2, opacity: 0.9 }} />
+                </Badge>
+                <Typography variant="h1" sx={{ fontWeight: 800, color: 'white', mb: 1, fontSize: '3.5rem', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                  {stats.unread}
+                </Typography>
+                <Typography variant="h5" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 600, fontSize: '1.25rem' }}>
+                  Chưa đọc
+                </Typography>
+              </Box>
             </Paper>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Paper
-              elevation={2}
+              elevation={6}
               sx={{
-                p: 3,
+                p: 4,
                 textAlign: 'center',
-                borderRadius: 3,
-                background: 'linear-gradient(135deg, #e8f5e8, #f1f8e9)',
-                border: '1px solid rgba(76, 175, 80, 0.1)'
+                borderRadius: 4,
+                background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                border: '2px solid rgba(255,255,255,0.2)',
+                minHeight: 150,
+                minWidth:  200,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                position: 'relative',
+                overflow: 'hidden',
+                boxShadow: '0 20px 40px rgba(79, 172, 254, 0.3)',
+                '&:hover': {
+                  transform: 'translateY(-8px) scale(1.02)',
+                  boxShadow: '0 25px 50px rgba(79, 172, 254, 0.4)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                },
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: -50,
+                  right: -50,
+                  width: 100,
+                  height: 100,
+                  background: 'rgba(255,255,255,0.1)',
+                  borderRadius: '50%',
+                  zIndex: 0
+                }
               }}
             >
-              <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#4caf50' }}>
-                {stats.byType.orders}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Đơn hàng
-              </Typography>
+              <Box sx={{ position: 'relative', zIndex: 1 }}>
+                <OrdersIcon sx={{ fontSize: 48, color: 'white', mb: 2, opacity: 0.9 }} />
+                <Typography variant="h1" sx={{ fontWeight: 800, color: 'white', mb: 1, fontSize: '3.5rem', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                  {stats.byType.orders}
+                </Typography>
+                <Typography variant="h5" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 600, fontSize: '1.25rem' }}>
+                  Đơn hàng
+                </Typography>
+              </Box>
             </Paper>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Paper
-              elevation={2}
+              elevation={6}
               sx={{
-                p: 3,
+                p: 4,
                 textAlign: 'center',
-                borderRadius: 3,
-                background: 'linear-gradient(135deg, #fff3e0, #fce4ec)',
-                border: '1px solid rgba(255, 152, 0, 0.1)'
+                borderRadius: 4,
+                background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                border: '2px solid rgba(255,255,255,0.2)',
+                minHeight: 150,
+                minWidth:  200,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                position: 'relative',
+                overflow: 'hidden',
+                boxShadow: '0 20px 40px rgba(67, 233, 123, 0.3)',
+                '&:hover': {
+                  transform: 'translateY(-8px) scale(1.02)',
+                  boxShadow: '0 25px 50px rgba(67, 233, 123, 0.4)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                },
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: -50,
+                  right: -50,
+                  width: 100,
+                  height: 100,
+                  background: 'rgba(255,255,255,0.1)',
+                  borderRadius: '50%',
+                  zIndex: 0
+                }
               }}
             >
-              <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#ff9800' }}>
-                {stats.byType.deliveries}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Giao hàng
-              </Typography>
+              <Box sx={{ position: 'relative', zIndex: 1 }}>
+                <DeliveriesIcon sx={{ fontSize: 48, color: 'white', mb: 2, opacity: 0.9 }} />
+                <Typography variant="h1" sx={{ fontWeight: 800, color: 'white', mb: 1, fontSize: '3.5rem', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                  {stats.byType.deliveries}
+                </Typography>
+                <Typography variant="h5" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 600, fontSize: '1.25rem' }}>
+                  Giao hàng
+                </Typography>
+              </Box>
             </Paper>
           </Grid>
         </Grid>
@@ -390,13 +558,15 @@ const Notifications = () => {
 
       {/* Actions Bar */}
       <Paper
-        elevation={2}
+        elevation={4}
         sx={{
-          p: 3,
-          mb: 3,
-          borderRadius: 3,
+          p: 6,
+          mb: 5,
+          borderRadius: 5,
           background: 'linear-gradient(135deg, #fafafa, #f5f5f5)',
-          border: '1px solid rgba(0,0,0,0.08)'
+          border: '3px solid rgba(0,0,0,0.15)',
+          boxShadow: '0 12px 30px rgba(0,0,0,0.15)',
+          minHeight: 120
         }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
@@ -412,7 +582,7 @@ const Notifications = () => {
                 variant={activeFilter === type.value ? 'filled' : 'outlined'}
                 color={activeFilter === type.value ? 'primary' : 'default'}
                 sx={{
-                  borderRadius: 2,
+                  borderRadius: 3,
                   fontWeight: 'medium',
                   '&:hover': {
                     transform: 'translateY(-1px)',
@@ -657,7 +827,8 @@ const Notifications = () => {
       >
         <MarkAllReadIcon />
       </Fab>
-    </Container>
+      </Container>
+    </Box>
   )
 }
 
