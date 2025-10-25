@@ -289,8 +289,8 @@
 
 ## 🧩 Module 10: Common Components
 
-**Người phụ trách:** **\*\*\*\***\_**\*\*\*\***  
-**Deadline:** **\*\*\*\***\_**\*\*\*\***
+**Người phụ trách: Nguyen Chi Trung 
+**Deadline: 28/10/2025
 
 ### Tasks:
 
