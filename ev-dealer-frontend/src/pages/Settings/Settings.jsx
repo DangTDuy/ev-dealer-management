@@ -64,6 +64,7 @@ const Settings = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isLargeScreen = useMediaQuery(theme.breakpoints.up("xl"));
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -128,24 +129,33 @@ const Settings = () => {
   const user = authService.getCurrentUser();
 
   return (
-    <Container maxWidth="xl" sx={{ py: 3 }}>
-      {" "}
-      {/* Đổi từ lg sang xl */}
+    <Container
+      maxWidth="xl"
+      sx={{
+        py: 3,
+        // Thêm padding để tránh chồng chéo với sidebar fixed
+        pr: { lg: "400px", xs: 0 },
+        transition: "padding-right 0.3s ease-in-out",
+      }}
+    >
       <PageHeader
         title="Cài đặt"
         subtitle="Quản lý thông tin người dùng và quyền truy cập"
       />
+
       <Grid container spacing={3}>
-        <Grid item xs={12} lg={9}>
-          {" "}
-          {/* Tăng từ md=8 lên lg=9 */}
+        {/* Main Content - Chiếm toàn bộ không gian có sẵn */}
+        <Grid item xs={12}>
           <Paper
             sx={{
-              p: 4,
+              p: { xs: 2, md: 4 },
               borderRadius: 3,
               boxShadow: 3,
               background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.action.hover} 100%)`,
               minHeight: "600px",
+              // Đảm bảo không bị ẩn sau sidebar
+              position: "relative",
+              zIndex: 1,
             }}
           >
             <Box sx={{ mb: 3 }}>
@@ -157,6 +167,7 @@ const Settings = () => {
                   display: "flex",
                   alignItems: "center",
                   gap: 2,
+                  fontSize: { xs: "1.75rem", md: "2.125rem" },
                 }}
               >
                 <Security fontSize="large" /> Cài đặt hệ thống
@@ -164,7 +175,7 @@ const Settings = () => {
               <Typography
                 variant="h6"
                 color="text.secondary"
-                sx={{ mt: 1, ml: 6 }}
+                sx={{ mt: 1, ml: { xs: 0, md: 6 } }}
               >
                 Quản lý thông tin cá nhân, bảo mật và phân quyền
               </Typography>
@@ -177,6 +188,7 @@ const Settings = () => {
                 borderColor: "divider",
                 mb: 3,
                 width: "100%",
+                overflow: "hidden",
               }}
             >
               <Tabs
@@ -187,9 +199,10 @@ const Settings = () => {
                 sx={{
                   "& .MuiTab-root": {
                     py: 2,
-                    fontSize: "1rem",
+                    fontSize: { xs: "0.875rem", md: "1rem" },
                     fontWeight: 600,
                     minHeight: "60px",
+                    minWidth: { xs: "120px", md: "auto" },
                   },
                 }}
               >
@@ -212,12 +225,18 @@ const Settings = () => {
             </Box>
 
             <Box className="tab-content" sx={{ width: "100%" }}>
+              {/* Tab 1: Profile */}
               <TabPanel value={activeTab} index={0}>
                 <Grid container spacing={4}>
-                  <Grid item xs={12} md={8}>
+                  <Grid item xs={12} lg={8}>
                     <Typography
                       variant="h5"
-                      sx={{ mb: 3, fontWeight: 600, color: "primary.main" }}
+                      sx={{
+                        mb: 3,
+                        fontWeight: 600,
+                        color: "primary.main",
+                        fontSize: { xs: "1.5rem", md: "1.75rem" },
+                      }}
                     >
                       <Person sx={{ mr: 2, verticalAlign: "middle" }} />
                       Cập nhật thông tin cá nhân
@@ -235,7 +254,7 @@ const Settings = () => {
                         <TextField
                           name="fullName"
                           label="Họ và tên"
-                          defaultValue={user?.fullName || "John Doe"}
+                          defaultValue={user?.fullName || ""}
                           fullWidth
                           variant="outlined"
                           size="medium"
@@ -249,7 +268,7 @@ const Settings = () => {
                           name="email"
                           type="email"
                           label="Địa chỉ email"
-                          defaultValue={user?.email || "dev@example.com"}
+                          defaultValue={user?.email || ""}
                           fullWidth
                           variant="outlined"
                           size="medium"
@@ -263,7 +282,7 @@ const Settings = () => {
                           name="phone"
                           type="tel"
                           label="Số điện thoại"
-                          defaultValue={user?.phone || "(123) 456-7890"}
+                          defaultValue={user?.phone || ""}
                           fullWidth
                           variant="outlined"
                           size="medium"
@@ -325,7 +344,14 @@ const Settings = () => {
                         </Box>
                       </Box>
 
-                      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: 2,
+                          flexWrap: "wrap",
+                          justifyContent: { xs: "center", md: "flex-start" },
+                        }}
+                      >
                         <Button
                           type="submit"
                           variant="contained"
@@ -337,6 +363,7 @@ const Settings = () => {
                             borderRadius: 2,
                             fontWeight: 600,
                             fontSize: "1rem",
+                            minWidth: { xs: "140px", md: "auto" },
                           }}
                         >
                           {isSubmitting ? "Đang cập nhật..." : "Lưu thay đổi"}
@@ -348,6 +375,7 @@ const Settings = () => {
                             py: 1.5,
                             borderRadius: 2,
                             fontWeight: 600,
+                            minWidth: { xs: "140px", md: "auto" },
                           }}
                         >
                           Hủy bỏ
@@ -356,10 +384,15 @@ const Settings = () => {
                     </form>
                   </Grid>
 
-                  {/* Thêm cột phụ để lấp đầy không gian */}
-                  <Grid item xs={12} md={4}>
+                  {/* Info Cards Column */}
+                  <Grid item xs={12} lg={4}>
                     <Card
-                      sx={{ bgcolor: "primary.light", color: "white", mb: 2 }}
+                      sx={{
+                        bgcolor: "primary.light",
+                        color: "white",
+                        mb: 2,
+                        borderRadius: 2,
+                      }}
                     >
                       <CardContent>
                         <Typography
@@ -384,6 +417,7 @@ const Settings = () => {
                       sx={{
                         border: `1px solid ${theme.palette.divider}`,
                         mb: 2,
+                        borderRadius: 2,
                       }}
                     >
                       <CardContent>
@@ -440,12 +474,18 @@ const Settings = () => {
                 </Grid>
               </TabPanel>
 
+              {/* Tab 2: Security - Giữ nguyên code gốc */}
               <TabPanel value={activeTab} index={1}>
                 <Grid container spacing={4}>
                   <Grid item xs={12} md={8}>
                     <Typography
                       variant="h5"
-                      sx={{ mb: 3, fontWeight: 600, color: "primary.main" }}
+                      sx={{
+                        mb: 3,
+                        fontWeight: 600,
+                        color: "primary.main",
+                        fontSize: { xs: "1.5rem", md: "1.75rem" },
+                      }}
                     >
                       <Key sx={{ mr: 2, verticalAlign: "middle" }} />
                       Quản lý bảo mật
@@ -549,7 +589,14 @@ const Settings = () => {
                         </Button>
                       </Box>
 
-                      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: 2,
+                          flexWrap: "wrap",
+                          justifyContent: { xs: "center", md: "flex-start" },
+                        }}
+                      >
                         <Button
                           type="submit"
                           variant="contained"
@@ -561,6 +608,7 @@ const Settings = () => {
                             borderRadius: 2,
                             fontWeight: 600,
                             fontSize: "1rem",
+                            minWidth: { xs: "140px", md: "auto" },
                           }}
                         >
                           {isSubmitting ? "Đang xử lý..." : "Cập nhật mật khẩu"}
@@ -572,6 +620,7 @@ const Settings = () => {
                             py: 1.5,
                             borderRadius: 2,
                             fontWeight: 600,
+                            minWidth: { xs: "140px", md: "auto" },
                           }}
                         >
                           Hủy bỏ
@@ -588,6 +637,7 @@ const Settings = () => {
                         mb: 2,
                         border: 1,
                         borderColor: "error.light",
+                        borderRadius: 2,
                       }}
                     >
                       <CardContent>
@@ -613,6 +663,7 @@ const Settings = () => {
                       sx={{
                         border: `1px solid ${theme.palette.divider}`,
                         mb: 2,
+                        borderRadius: 2,
                       }}
                     >
                       <CardContent>
@@ -671,12 +722,17 @@ const Settings = () => {
                 </Grid>
               </TabPanel>
 
+              {/* Tab 3: Permissions - Giữ nguyên code gốc */}
               <TabPanel value={activeTab} index={2}>
-                {/* Giữ nguyên phần phân quyền như cũ nhưng tối ưu layout */}
                 <div className="permissions-settings">
                   <Typography
                     variant="h5"
-                    sx={{ mb: 3, fontWeight: 600, color: "primary.main" }}
+                    sx={{
+                      mb: 3,
+                      fontWeight: 600,
+                      color: "primary.main",
+                      fontSize: { xs: "1.5rem", md: "1.75rem" },
+                    }}
                   >
                     <Security sx={{ mr: 2, verticalAlign: "middle" }} />
                     Quản lý phân quyền hệ thống
@@ -695,7 +751,7 @@ const Settings = () => {
                             thống.
                           </Alert>
 
-                          <Card sx={{ mb: 3, p: 3 }}>
+                          <Card sx={{ mb: 3, p: 3, borderRadius: 2 }}>
                             <Typography
                               variant="h6"
                               sx={{ mb: 2, fontWeight: 600 }}
@@ -787,178 +843,165 @@ const Settings = () => {
             </Box>
           </Paper>
         </Grid>
+      </Grid>
 
-        {/* Sidebar bên phải */}
-        <Grid
-          item
-          xs={12}
-          lg={3}
-          sx={{
-            position: {
-              lg: "fixed",
-              xs: "static",
-            },
-            right: {
-              lg: "24px",
-              xs: "auto",
-            },
-            width: {
-              lg: "350px",
-              xs: "100%",
-            },
-            height: "100%",
-            overflowY: "auto",
-            paddingRight: {
-              lg: 2,
-              xs: 0,
-            },
-            "&::-webkit-scrollbar": {
-              width: "4px",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              backgroundColor: "divider",
-              borderRadius: "4px",
-            },
-          }}
-        >
-          <ModernCard
-            title={user?.fullName || "Người dùng"}
-            subtitle={user?.email || ""}
-            value={user?.role || "—"}
-            icon={
-              user?.avatar ? (
-                <Avatar src={user.avatar} sx={{ width: 60, height: 60 }} />
-              ) : (
-                <Avatar
-                  sx={{
-                    bgcolor: "primary.main",
-                    width: 60,
-                    height: 60,
-                    fontSize: "1.5rem",
-                  }}
-                >
-                  {(user?.fullName || "U").charAt(0).toUpperCase()}
-                </Avatar>
-              )
-            }
-            color="primary"
-          />
-
-          <Card
-            sx={{
-              mt: 3,
-              borderRadius: 3,
-              boxShadow: 2,
-              background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.action.hover} 100%)`,
-            }}
-          >
-            <CardContent>
-              <Typography
-                variant="h6"
+      {/* Sidebar bên phải - FIXED POSITION */}
+      <Box
+        sx={{
+          position: "fixed",
+          top: "100px",
+          right: "24px",
+          width: "350px",
+          height: "calc(100vh - 140px)",
+          overflowY: "auto",
+          display: { xs: "none", lg: "block" },
+          zIndex: 1000,
+          "&::-webkit-scrollbar": {
+            width: "4px",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: "divider",
+            borderRadius: "4px",
+          },
+        }}
+      >
+        <ModernCard
+          title={user?.fullName || "Người dùng"}
+          subtitle={user?.email || ""}
+          value={user?.role || "—"}
+          icon={
+            user?.avatar ? (
+              <Avatar src={user.avatar} sx={{ width: 60, height: 60 }} />
+            ) : (
+              <Avatar
                 sx={{
-                  fontWeight: 600,
-                  mb: 2,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
+                  bgcolor: "primary.main",
+                  width: 60,
+                  height: 60,
+                  fontSize: "1.5rem",
                 }}
               >
-                <Help /> Trợ giúp & Hỗ trợ
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <Button
-                  variant="outlined"
-                  startIcon={<Person />}
-                  fullWidth
-                  sx={{ justifyContent: "flex-start", py: 1.5 }}
-                >
-                  Hướng dẫn sử dụng
-                </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<Lock />}
-                  fullWidth
-                  sx={{ justifyContent: "flex-start", py: 1.5 }}
-                >
-                  Bảo mật tài khoản
-                </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<Security />}
-                  fullWidth
-                  sx={{ justifyContent: "flex-start", py: 1.5 }}
-                >
-                  Quản lý phân quyền
-                </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<Notifications />}
-                  fullWidth
-                  sx={{ justifyContent: "flex-start", py: 1.5 }}
-                >
-                  Cài đặt thông báo
-                </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<Language />}
-                  fullWidth
-                  sx={{ justifyContent: "flex-start", py: 1.5 }}
-                >
-                  Ngôn ngữ & Vùng
-                </Button>
-              </Box>
-            </CardContent>
-          </Card>
+                {(user?.fullName || "U").charAt(0).toUpperCase()}
+              </Avatar>
+            )
+          }
+          color="primary"
+        />
 
-          {/* Thêm card thống kê */}
-          <Card sx={{ mt: 3, p: 2 }}>
-            <CardContent>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                📊 Hoạt động gần đây
-              </Typography>
-              <Stack spacing={2}>
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
-                    Đăng nhập thành công
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    display="block"
-                  >
-                    Hôm nay, 14:30
-                  </Typography>
-                </Box>
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
-                    Cập nhật hồ sơ
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    display="block"
-                  >
-                    2 ngày trước
-                  </Typography>
-                </Box>
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
-                    Đổi mật khẩu
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    display="block"
-                  >
-                    1 tuần trước
-                  </Typography>
-                </Box>
-              </Stack>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+        <Card
+          sx={{
+            mt: 3,
+            borderRadius: 3,
+            boxShadow: 2,
+            background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.action.hover} 100%)`,
+          }}
+        >
+          <CardContent>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 600,
+                mb: 2,
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
+              <Help /> Trợ giúp & Hỗ trợ
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <Button
+                variant="outlined"
+                startIcon={<Person />}
+                fullWidth
+                sx={{ justifyContent: "flex-start", py: 1.5 }}
+              >
+                Hướng dẫn sử dụng
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<Lock />}
+                fullWidth
+                sx={{ justifyContent: "flex-start", py: 1.5 }}
+              >
+                Bảo mật tài khoản
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<Security />}
+                fullWidth
+                sx={{ justifyContent: "flex-start", py: 1.5 }}
+              >
+                Quản lý phân quyền
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<Notifications />}
+                fullWidth
+                sx={{ justifyContent: "flex-start", py: 1.5 }}
+              >
+                Cài đặt thông báo
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<Language />}
+                fullWidth
+                sx={{ justifyContent: "flex-start", py: 1.5 }}
+              >
+                Ngôn ngữ & Vùng
+              </Button>
+            </Box>
+          </CardContent>
+        </Card>
+
+        {/* Thêm card thống kê */}
+        <Card sx={{ mt: 3, p: 2, borderRadius: 2 }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              📊 Hoạt động gần đây
+            </Typography>
+            <Stack spacing={2}>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
+                  Đăng nhập thành công
+                </Typography>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  display="block"
+                >
+                  Hôm nay, 14:30
+                </Typography>
+              </Box>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
+                  Cập nhật hồ sơ
+                </Typography>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  display="block"
+                >
+                  2 ngày trước
+                </Typography>
+              </Box>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
+                  Đổi mật khẩu
+                </Typography>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  display="block"
+                >
+                  1 tuần trước
+                </Typography>
+              </Box>
+            </Stack>
+          </CardContent>
+        </Card>
+      </Box>
     </Container>
   );
 };
