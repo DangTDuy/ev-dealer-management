@@ -159,8 +159,53 @@ const features = [
   },
 ]
 
+// Format price function
+const formatPrice = (price) => {
+  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+}
+
 export default function LandingPage() {
   const navigate = useNavigate()
+
+  // Car data with detailed prices
+  const cars = [
+    {
+      name: 'Tesla Model 3',
+      price: '1.200.000.000',
+      formattedPrice: '1.200.000.000 VNĐ',
+      range: '580 km',
+      speed: '0-100: 3.3s',
+      color: '#667eea',
+      image: '/src/assets/img/car1.png',
+    },
+    {
+      name: 'VinFast VF8',
+      price: '1.100.000.000',
+      formattedPrice: '1.100.000.000 VNĐ',
+      range: '420 km',
+      speed: '0-100: 5.5s',
+      color: '#f093fb',
+      image: '/src/assets/img/car2.png',
+    },
+    {
+      name: 'Porsche Taycan',
+      price: '4.500.000.000',
+      formattedPrice: '4.500.000.000 VNĐ',
+      range: '484 km',
+      speed: '0-100: 2.8s',
+      color: '#4facfe',
+      image: '/src/assets/img/car3.png',
+    },
+    {
+      name: 'BMW iX',
+      price: '3.800.000.000',
+      formattedPrice: '3.800.000.000 VNĐ',
+      range: '630 km',
+      speed: '0-100: 4.6s',
+      color: '#43e97b',
+      image: '/src/assets/img/car4.png',
+    },
+  ]
 
   return (
     <Box
@@ -634,40 +679,7 @@ export default function LandingPage() {
               mx: 'auto',
             }}
           >
-            {[
-              {
-                name: 'Tesla Model 3',
-                price: '1.2 tỷ',
-                range: '580 km',
-                speed: '0-100: 3.3s',
-                color: '#667eea',
-                image: '/src/assets/img/car1.png',
-              },
-              {
-                name: 'VinFast VF8',
-                price: '1.1 tỷ',
-                range: '420 km',
-                speed: '0-100: 5.5s',
-                color: '#f093fb',
-                image: '/src/assets/img/car2.png',
-              },
-              {
-                name: 'Porsche Taycan',
-                price: '4.5 tỷ',
-                range: '484 km',
-                speed: '0-100: 2.8s',
-                color: '#4facfe',
-                image: '/src/assets/img/car3.png',
-              },
-              {
-                name: 'BMW iX',
-                price: '3.8 tỷ',
-                range: '630 km',
-                speed: '0-100: 4.6s',
-                color: '#43e97b',
-                image: '/src/assets/img/car4.png',
-              },
-            ].map((car, index) => (
+            {cars.map((car, index) => (
               <Card
                 key={index}
                 elevation={0}
@@ -735,7 +747,7 @@ export default function LandingPage() {
                     }}
                   />
 
-                  {/* Price Badge */}
+                  {/* Price Badge - Updated with rounded corners and full price */}
                   <Box
                     sx={{
                       position: 'absolute',
@@ -743,15 +755,20 @@ export default function LandingPage() {
                       right: 20,
                       background: `linear-gradient(135deg, ${car.color} 0%, ${car.color}dd 100%)`,
                       color: 'white',
-                      px: 2.5,
-                      py: 1,
-                      borderRadius: 3,
+                      px: 3,
+                      py: 1.5,
+                      borderRadius: '15px !important', // More rounded corners with important
                       fontWeight: 900,
-                      fontSize: '1.2rem',
+                      fontSize: '1rem',
                       boxShadow: `0 8px 24px ${car.color}60`,
+                      textAlign: 'center',
+                      minWidth: 180,
+                      border: '2px solid rgba(255, 255, 255, 0.2)',
                     }}
                   >
-                    {car.price}
+                    <Typography sx={{ fontSize: '0.9rem', fontWeight: 800, lineHeight: 1.2 }}>
+                      {car.formattedPrice}
+                    </Typography>
                   </Box>
                 </Box>
 
@@ -1020,4 +1037,3 @@ export default function LandingPage() {
     </Box>
   )
 }
-
