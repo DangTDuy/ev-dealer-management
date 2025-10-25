@@ -34,51 +34,43 @@ import {
   ChevronLeft as ChevronLeftIcon
 } from '@mui/icons-material';
 
-import Topbar from '../components/common/Topbar';
-
 const drawerWidth = 280;
 const miniDrawerWidth = 70;
 
 const navItems = [
-  {
-    text: 'Bảng điều khiển',
-    icon: <DashboardIcon />,
+  { 
+    text: 'Bảng điều khiển', 
+    icon: <DashboardIcon />, 
     path: '/dashboard',
     badge: null
   },
-  {
-    text: 'Quản lý xe',
-    icon: <CarIcon />,
+  { 
+    text: 'Quản lý xe', 
+    icon: <CarIcon />, 
     path: '/vehicles',
     badge: null
   },
-  {
-    text: 'Khách hàng',
-    icon: <PeopleIcon />,
+  { 
+    text: 'Khách hàng', 
+    icon: <PeopleIcon />, 
     path: '/customers',
     badge: '12'
   },
-  {
-    text: 'Bán hàng',
-    icon: <SalesIcon />,
+  { 
+    text: 'Bán hàng', 
+    icon: <SalesIcon />, 
     path: '/sales',
     badge: '3'
   },
-  {
-    text: 'Thông báo',
-    icon: <NotificationsIcon />,
-    path: '/notifications',
-    badge: '6'
-  },
-  {
-    text: 'Báo cáo',
-    icon: <ReportIcon />,
+  { 
+    text: 'Báo cáo', 
+    icon: <ReportIcon />, 
     path: '/reports',
     badge: null
   },
-  {
-    text: 'Cài đặt',
-    icon: <SettingsIcon />,
+  { 
+    text: 'Cài đặt', 
+    icon: <SettingsIcon />, 
     path: '/settings',
     badge: null
   },
@@ -253,8 +245,61 @@ const MainLayout = () => {
     <Box sx={{ display: 'flex', bgcolor: 'background.default', minHeight: '100vh' }}>
       <CssBaseline />
       
-      {/* Topbar */}
-      <Topbar />
+      {/* App Bar */}
+      <AppBar
+        position="fixed"
+        sx={{
+          width: { md: `calc(100% - ${currentDrawerWidth}px)` },
+          ml: { md: `${currentDrawerWidth}px` },
+          transition: theme.transitions.create(['width', 'margin'], {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+          }),
+        }}
+      >
+        <Toolbar>
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={isMobile ? handleDrawerToggle : handleMiniDrawerToggle}
+            sx={{ mr: 2 }}
+          >
+            {isMobile ? <MenuIcon /> : <ChevronLeftIcon />}
+          </IconButton>
+          
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+            {location.pathname === '/dashboard' && 'Bảng điều khiển'}
+            {location.pathname === '/vehicles' && 'Quản lý xe'}
+            {location.pathname === '/customers' && 'Quản lý khách hàng'}
+            {location.pathname === '/sales' && 'Bán hàng'}
+            {location.pathname === '/reports' && 'Báo cáo'}
+            {location.pathname === '/settings' && 'Cài đặt'}
+          </Typography>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Tooltip title="Thông báo">
+              <IconButton color="inherit">
+                <Badge badgeContent={4} color="error">
+                  <NotificationsIcon />
+                </Badge>
+              </IconButton>
+            </Tooltip>
+            
+            <Chip
+              label="Online"
+              color="success"
+              size="small"
+              sx={{ 
+                '& .MuiChip-label': { 
+                  fontSize: '0.75rem',
+                  fontWeight: 600 
+                } 
+              }}
+            />
+          </Box>
+        </Toolbar>
+      </AppBar>
 
       {/* Drawer */}
       <Box
