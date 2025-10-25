@@ -1,12 +1,3 @@
-/**
- * Topbar Component - Modern UI with Material-UI
- * Features:
- * - Search bar
- * - Notification bell with badge and dropdown
- * - User menu dropdown
- * - Responsive design
- */
-
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -46,7 +37,7 @@ import {
   Payment as PaymentsIcon,
   Settings as SystemIcon,
   Campaign as PromotionsIcon,
-  MarkAsRead as MarkAsReadIcon,
+  Done as MarkAsReadIcon,
   Clear as ClearIcon,
   NavigateNext as NavigateNextIcon
 } from '@mui/icons-material'
