@@ -279,12 +279,16 @@ const MainLayout = () => {
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Tooltip title="Thông báo">
-              <IconButton color="inherit">
-                <Badge badgeContent={4} color="error">
-                  <NotificationsIcon />
-                </Badge>
-              </IconButton>
-            </Tooltip>
+                <IconButton
+                  color="inherit"
+                  aria-label="Thông báo"
+                  onClick={() => navigate('/Notifications')}
+                >
+                  <Badge badgeContent={4} color="error">
+                    <NotificationsIcon />
+                  </Badge>
+                </IconButton>
+              </Tooltip>
             
             <Chip
               label="Online"

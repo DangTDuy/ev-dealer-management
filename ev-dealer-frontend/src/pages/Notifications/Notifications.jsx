@@ -352,9 +352,9 @@ const Notifications = () => {
 
       {/* Stats Cards */}
       {stats && (
-        <Grid container spacing={4} sx={{ mb: 6 }}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper
+        <Grid container spacing={3} sx={{ mb: 6 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3}}>
+              <Paper
               elevation={6}
               sx={{
                 p: 4,
@@ -362,8 +362,8 @@ const Notifications = () => {
                 borderRadius: 4,
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 border: '2px solid rgba(255,255,255,0.2)',
-                minHeight: 150,
-                minWidth:  400,
+                minHeight: 180,
+                width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
@@ -380,7 +380,7 @@ const Notifications = () => {
                   position: 'absolute',
                   top: -50,
                   right: -50,
-                  width: 100,
+                  width: 300,
                   height: 100,
                   background: 'rgba(255,255,255,0.1)',
                   borderRadius: '50%',
@@ -399,8 +399,8 @@ const Notifications = () => {
               </Box>
             </Paper>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Paper
               elevation={6}
               sx={{
                 p: 4,
@@ -408,8 +408,8 @@ const Notifications = () => {
                 borderRadius: 4,
                 background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
                 border: '2px solid rgba(255,255,255,0.2)',
-                minHeight: 150,
-                minWidth:  200,
+                minHeight: 180,            
+                width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
@@ -461,17 +461,17 @@ const Notifications = () => {
               </Box>
             </Paper>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Paper
               elevation={6}
               sx={{
-                p: 4,
+                p: 3.5,
                 textAlign: 'center',
                 borderRadius: 4,
                 background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
                 border: '2px solid rgba(255,255,255,0.2)',
-                minHeight: 150,
-                minWidth:  200,
+                minHeight: 180,
+                width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
@@ -507,17 +507,17 @@ const Notifications = () => {
               </Box>
             </Paper>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Paper
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Paper
               elevation={6}
               sx={{
-                p: 4,
+                p: 3.5,
                 textAlign: 'center',
                 borderRadius: 4,
                 background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
                 border: '2px solid rgba(255,255,255,0.2)',
-                minHeight: 150,
-                minWidth:  200,
+                minHeight: 180,
+                width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
@@ -712,8 +712,8 @@ const Notifications = () => {
                       <ListItemText
                         primary={
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                            <Typography
-                              variant="h6"
+                            <Box
+                              component="span"
                               sx={{
                                 fontWeight: notification.isRead ? 'normal' : 'bold',
                                 color: notification.isRead ? 'text.primary' : 'text.primary',
@@ -721,7 +721,7 @@ const Notifications = () => {
                               }}
                             >
                               {notification.title}
-                            </Typography>
+                            </Box>
                             <Chip
                               label={notificationTypes.find(t => t.value === notification.type)?.label}
                               size="small"
@@ -737,9 +737,9 @@ const Notifications = () => {
                           </Box>
                         }
                         secondary={
-                          <Box>
-                            <Typography
-                              variant="body1"
+                          <Box component="div">
+                            <Box
+                              component="div"
                               sx={{
                                 color: 'text.primary',
                                 mb: 1,
@@ -747,16 +747,16 @@ const Notifications = () => {
                               }}
                             >
                               {notification.message}
-                            </Typography>
-                            <Typography
-                              variant="caption"
+                            </Box>
+                            <Box
+                              component="span"
                               sx={{
                                 color: 'text.secondary',
                                 fontSize: '0.875rem'
                               }}
                             >
                               {formatTimeAgo(notification.createdAt)}
-                            </Typography>
+                            </Box>
                           </Box>
                         }
                       />

@@ -79,9 +79,10 @@ const AppRoutes = () => {
         {/* Reports */}
         <Route path="/reports" element={<Reports />} />
         
-        {/* Notifications */}
-        <Route path="/notifications" element={<Notifications />} />
-        <Route path="/notifications/preferences" element={<NotificationPreferences />} />
+  {/* Notifications (allow capitalized path for compatibility) */}
+  <Route path="/notifications" element={<Notifications />} />
+  <Route path="/Notifications" element={<Notifications />} />
+  <Route path="/notifications/preferences" element={<NotificationPreferences />} />
         
         {/* Settings */}
         <Route path="/settings" element={<Settings />} />

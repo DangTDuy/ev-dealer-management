@@ -242,29 +242,29 @@
 
 ### Tasks:
 
-- [ ] **Notifications Page** (`src/pages/Notifications/Notifications.jsx`)
+- [x] **Notifications Page** (`src/pages/Notifications/Notifications.jsx`)
 
-  - [ ] Notification list
-  - [ ] Unread indicator
-  - [ ] Filter by type (Orders, Deliveries, Payments, System)
-  - [ ] Mark as read/unread
-  - [ ] Delete notification
-  - [ ] Mark all as read button
-  - [ ] Preferences link
+  - [x] Notification list
+  - [x] Unread indicator
+  - [x] Filter by type (Orders, Deliveries, Payments, System)
+  - [x] Mark as read/unread
+  - [x] Delete notification
+  - [x] Mark all as read button
+  - [x] Preferences link
 
-- [ ] **Notification Preferences** (`src/pages/Notifications/NotificationPreferences.jsx`)
+- [x] **Notification Preferences** (`src/pages/Notifications/NotificationPreferences.jsx`)
 
-  - [ ] Email notifications toggle
-  - [ ] SMS notifications toggle
-  - [ ] In-app notifications toggle
-  - [ ] Notification types checkboxes
-  - [ ] Save preferences API
-  - [ ] Success message
+  - [x] Email notifications toggle
+  - [x] SMS notifications toggle
+  - [x] In-app notifications toggle
+  - [x] Notification types checkboxes
+  - [x] Save preferences API
+  - [x] Success message
 
-- [ ] **Topbar Notification Bell** (`src/components/common/Topbar.jsx`)
-  - [ ] Notification icon with badge
-  - [ ] Unread count
-  - [ ] Dropdown preview
+- [x] **Topbar Notification Bell** (`src/components/common/Topbar.jsx`)
+  - [x] Notification icon with badge
+  - [x] Unread count
+  - [x] Dropdown preview
   - [ ] Real-time updates (optional)
 
 ---
