@@ -140,9 +140,9 @@ const Register = () => {
     try {
       // Call register API
       await authService.register({
-        name: formData.name,
+        username: formData.email, // Use email as username
         email: formData.email,
-        phone: formData.phone,
+        fullName: formData.name,
         password: formData.password,
       })
 
@@ -421,4 +421,3 @@ const Register = () => {
 }
 
 export default Register
-
