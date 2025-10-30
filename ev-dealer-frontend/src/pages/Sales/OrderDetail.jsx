@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { mockOrder, mockPaymentSchedule, mockContracts } from '../../data/mockDataSales';
 
 // Icons
 const BackIcon = () => (
@@ -74,64 +75,6 @@ export default function OrderDetail() {
   const [contracts, setContracts] = useState([]);
   const [payments, setPayments] = useState([]);
 
-  // Mock order data
-  const mockOrder = {
-    id: orderId,
-    customer: {
-      name: 'Nguyễn Văn A',
-      phone: '0912345678',
-      email: 'nguyenvana@email.com',
-      address: '123 Nguyễn Huệ, Quận 1, TP.HCM',
-      idNumber: '123456789',
-      idIssueDate: '2020-01-15',
-      idIssuePlace: 'TP.HCM'
-    },
-    vehicle: {
-      name: 'VinFast VF8 Plus',
-      model: 'VF8',
-      color: 'Đen',
-      vin: 'VF8VN2025001234',
-      price: 1350000000,
-      image: 'https://via.placeholder.com/300x200?text=VF8+Plus'
-    },
-    orderInfo: {
-      orderDate: '2025-10-15',
-      expectedDeliveryDate: '2025-11-30',
-      salesPerson: 'John Doe',
-      branch: 'VinFast Quận 1',
-      status: 'confirmed',
-      quantity: 1,
-      unitPrice: 1350000000,
-      discount: 50000000,
-      totalPrice: 1300000000
-    },
-    payment: {
-      type: 'installment',
-      downPayment: 390000000,
-      downPaymentPaid: 390000000,
-      loanAmount: 910000000,
-      loanTerm: 24,
-      interestRate: 8.5,
-      monthlyPayment: 41350000
-    }
-  };
-
-  // Mock payment schedule
-  const mockPaymentSchedule = [
-    { month: 1, dueDate: '2025-12-15', amount: 41350000, status: 'paid', paidDate: '2025-12-10' },
-    { month: 2, dueDate: '2026-01-15', amount: 41350000, status: 'paid', paidDate: '2026-01-12' },
-    { month: 3, dueDate: '2026-02-15', amount: 41350000, status: 'pending', paidDate: null },
-    { month: 4, dueDate: '2026-03-15', amount: 41350000, status: 'pending', paidDate: null },
-    { month: 5, dueDate: '2026-04-15', amount: 41350000, status: 'pending', paidDate: null },
-    { month: 6, dueDate: '2026-05-15', amount: 41350000, status: 'pending', paidDate: null }
-  ];
-
-  // Mock contracts
-  const mockContracts = [
-    { id: 1, name: 'Hợp đồng mua bán xe.pdf', uploadDate: '2025-10-16', size: '2.3 MB' },
-    { id: 2, name: 'Hợp đồng tài chính.pdf', uploadDate: '2025-10-16', size: '1.8 MB' }
-  ];
-
   useEffect(() => {
     // Simulate API call
     setTimeout(() => {
@@ -175,44 +118,93 @@ export default function OrderDetail() {
     );
   };
 
-  const handleRecordPayment = () => {
-    // Simulate API call
-    const newPayment = {
-      month: payments.filter(p => p.status === 'pending').length + 1,
-      dueDate: new Date().toISOString().split('T')[0],
-      amount: parseFloat(paymentAmount),
-      status: 'paid',
-      paidDate: new Date().toISOString().split('T')[0],
-      note: paymentNote
-    };
-    
-    setPayments([...payments, newPayment]);
-    setShowPaymentModal(false);
-    setPaymentAmount('');
-    setPaymentNote('');
-    alert('Ghi nhận thanh toán thành công!');
-  };
+const handleRecordPayment = () => {
+  // Thêm validation
+  if (!paymentAmount || parseFloat(paymentAmount) <= 0) {
+    alert('Vui lòng nhập số tiền hợp lệ');
+    return;
+  }
 
-  const handleUpdateStatus = () => {
-    setOrder({...order, orderInfo: {...order.orderInfo, status: newStatus}});
-    setShowStatusModal(false);
-    setNewStatus('');
-    alert('Cập nhật trạng thái thành công!');
-  };
+  // Tìm kỳ thanh toán pending đầu tiên
+  const pendingPayment = payments.find(p => p.status === 'pending');
+  if (!pendingPayment) {
+    alert('Không có kỳ thanh toán nào đang chờ');
+    return;
+  }
 
-  const handleUploadContract = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const newContract = {
-        id: contracts.length + 1,
-        name: file.name,
-        uploadDate: new Date().toISOString().split('T')[0],
-        size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`
-      };
-      setContracts([...contracts, newContract]);
-      alert('Tải lên hợp đồng thành công!');
+  // Cập nhật trạng thái thanh toán
+  const updatedPayments = payments.map(p => 
+    p.month === pendingPayment.month 
+      ? { ...p, status: 'paid', paidDate: new Date().toISOString().split('T')[0] }
+      : p
+  );
+  
+  setPayments(updatedPayments);
+  setShowPaymentModal(false);
+  setPaymentAmount('');
+  setPaymentNote('');
+  alert('Ghi nhận thanh toán thành công!');
+};
+
+const handleUpdateStatus = () => {
+  // Thêm validation
+  if (!newStatus) {
+    alert('Vui lòng chọn trạng thái mới');
+    return;
+  }
+  
+  setOrder({
+    ...order, 
+    orderInfo: {
+      ...order.orderInfo, 
+      status: newStatus
     }
-  };
+  });
+  setShowStatusModal(false);
+  setNewStatus('');
+  alert('Cập nhật trạng thái thành công!');
+};
+
+// Xử lý lỗi ảnh
+const handleImageError = (e) => {
+  e.target.src = 'h/src/assets/img/default-car.png';
+  e.target.alt = 'Không thể tải ảnh';
+};
+
+// TÌM: hàm handleUploadContract
+// THAY THẾ bằng:
+
+const handleUploadContract = (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    // Kiểm tra loại file
+    const allowedTypes = ['.pdf', '.doc', '.docx'];
+    const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+    
+    if (!allowedTypes.includes(fileExtension)) {
+      alert('Chỉ chấp nhận file PDF, DOC, DOCX');
+      return;
+    }
+
+    // Kiểm tra kích thước file (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File không được vượt quá 10MB');
+      return;
+    }
+
+    const newContract = {
+      id: contracts.length + 1,
+      name: file.name,
+      uploadDate: new Date().toISOString().split('T')[0],
+      size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+    };
+    setContracts([...contracts, newContract]);
+    alert('Tải lên hợp đồng thành công!');
+    
+    // Reset input file
+    e.target.value = '';
+  }
+};
 
   const handleDownloadContract = (contract) => {
     alert(`Đang tải xuống: ${contract.name}`);
