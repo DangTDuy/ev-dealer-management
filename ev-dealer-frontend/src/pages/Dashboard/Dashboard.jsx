@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Grid,
@@ -31,6 +31,7 @@ import {
   PieChart as PieChartIcon,
   BarChart as BarChartIcon,
   ShowChart as LineChartIcon,
+  Circle as CircleIcon,
 } from "@mui/icons-material";
 import {
   PieChart,
@@ -47,11 +48,297 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { PageHeader, ModernCard, DataTable } from "../../components/common";
+import { PageHeader, DataTable } from "../../components/common";
 import api from "../../services/api";
 import authService from "../../services/authService";
 
-// Custom Chart Components
+// Enhanced Scrollable Stats Component with Swipe
+const ScrollableStats = ({ stats, currentIndex, onIndexChange }) => {
+  const theme = useTheme();
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+
+  const minSwipeDistance = 50;
+  const currentStat = stats[currentIndex];
+
+  const handleTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && currentIndex < stats.length - 1) {
+      onIndexChange(currentIndex + 1);
+    } else if (isRightSwipe && currentIndex > 0) {
+      onIndexChange(currentIndex - 1);
+    }
+  };
+
+  const handleMouseDown = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.clientX);
+  };
+
+  const handleMouseMove = (e) => {
+    if (touchStart !== null) {
+      setTouchEnd(e.clientX);
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && currentIndex < stats.length - 1) {
+      onIndexChange(currentIndex + 1);
+    } else if (isRightSwipe && currentIndex > 0) {
+      onIndexChange(currentIndex - 1);
+    }
+
+    setTouchStart(null);
+    setTouchEnd(null);
+  };
+
+  return (
+    <Card
+      sx={{
+        borderRadius: 3,
+        boxShadow: 3,
+        overflow: "hidden",
+        height: "290px",
+        position: "relative",
+        background: theme.palette.background.paper,
+        border: `1px solid ${theme.palette.divider}`,
+        cursor: "grab",
+        userSelect: "none",
+        width: "100%",
+        "&:active": {
+          cursor: "grabbing",
+        },
+        "&:hover": {
+          boxShadow: 6,
+        },
+        transition: "all 0.2s ease",
+      }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+    >
+      <CardContent
+        sx={{
+          p: 4,
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          position: "relative",
+        }}
+      >
+        {/* Progress Indicator Dots */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            mb: 3,
+            gap: 1,
+          }}
+        >
+          {stats.map((_, index) => (
+            <Box
+              key={index}
+              onClick={() => onIndexChange(index)}
+              sx={{
+                cursor: "pointer",
+                padding: 0.5,
+                color:
+                  index === currentIndex
+                    ? theme.palette.primary.main
+                    : theme.palette.action.disabled,
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  color: theme.palette.primary.main,
+                },
+              }}
+            >
+              <CircleIcon
+                sx={{
+                  fontSize: index === currentIndex ? 12 : 8,
+                  transition: "font-size 0.2s ease",
+                }}
+              />
+            </Box>
+          ))}
+        </Box>
+
+        {/* Main Content */}
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 4,
+          }}
+        >
+          {/* Text Content - Wider */}
+          <Box sx={{ flex: 2, minWidth: 0 }}>
+            <Typography
+              variant="h2"
+              sx={{
+                fontWeight: 700,
+                mb: 2,
+                color: theme.palette.text.primary,
+                fontSize: { xs: "2.5rem", md: "3rem" },
+                lineHeight: 1.1,
+              }}
+            >
+              {currentStat.value}
+            </Typography>
+
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 600,
+                mb: 1,
+                color: "text.primary",
+                fontSize: { xs: "1.2rem", md: "1.5rem" },
+              }}
+            >
+              {currentStat.title}
+            </Typography>
+
+            <Typography
+              variant="h6"
+              color="text.secondary"
+              sx={{
+                mb: 3,
+                fontSize: { xs: "1rem", md: "1.1rem" },
+              }}
+            >
+              {currentStat.subtitle}
+            </Typography>
+          </Box>
+
+          {/* Icon and Progress - Larger */}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 3,
+              flexShrink: 0,
+            }}
+          >
+            <Avatar
+              sx={{
+                bgcolor: `${currentStat.color}.main`,
+                width: 80,
+                height: 80,
+                boxShadow: 3,
+              }}
+            >
+              {React.cloneElement(currentStat.icon, {
+                sx: { fontSize: 36 },
+              })}
+            </Avatar>
+
+            {/* Progress Circle - Larger */}
+            <Box sx={{ position: "relative", width: 90, height: 90 }}>
+              <svg width="90" height="90" viewBox="0 0 90 90">
+                <circle
+                  cx="45"
+                  cy="45"
+                  r="36"
+                  fill="none"
+                  stroke={theme.palette.action.disabledBackground}
+                  strokeWidth="5"
+                />
+                <circle
+                  cx="45"
+                  cy="45"
+                  r="36"
+                  fill="none"
+                  stroke={theme.palette[currentStat.color].main}
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                  strokeDasharray={`${(currentStat.progress / 100) * 226} 226`}
+                  transform="rotate(-90 45 45)"
+                />
+                <text
+                  x="45"
+                  y="50"
+                  textAnchor="middle"
+                  fill={theme.palette.text.primary}
+                  fontSize="14"
+                  fontWeight="700"
+                >
+                  {currentStat.progress}%
+                </text>
+              </svg>
+            </Box>
+          </Box>
+        </Box>
+
+        {/* Change Indicator */}
+        <Box
+          sx={{
+            position: "absolute",
+            top: 20,
+            right: 20,
+          }}
+        >
+          <Chip
+            label={currentStat.change}
+            size="medium"
+            color={currentStat.changeType === "positive" ? "success" : "error"}
+            variant="filled"
+            sx={{
+              fontWeight: 700,
+              fontSize: "0.9rem",
+              height: "32px",
+            }}
+          />
+        </Box>
+
+        {/* Swipe Hint */}
+        {stats.length > 1 && (
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: 12,
+              left: "50%",
+              transform: "translateX(-50%)",
+              opacity: 0.6,
+            }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              Kéo sang trái/phải để xem tiếp
+            </Typography>
+          </Box>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+// Custom Chart Components with larger containers
 const RevenuePieChart = ({ data }) => {
   const theme = useTheme();
   const COLORS = [
@@ -63,7 +350,7 @@ const RevenuePieChart = ({ data }) => {
   ];
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={350}>
       <PieChart>
         <Pie
           data={data}
@@ -73,7 +360,7 @@ const RevenuePieChart = ({ data }) => {
           label={({ name, percent }) =>
             `${name} ${(percent * 100).toFixed(0)}%`
           }
-          outerRadius={80}
+          outerRadius={100}
           fill="#8884d8"
           dataKey="value"
         >
@@ -91,7 +378,7 @@ const SalesBarChart = ({ data }) => {
   const theme = useTheme();
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={350}>
       <BarChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" />
@@ -122,7 +409,7 @@ const RevenueTrendChart = ({ data }) => {
   const theme = useTheme();
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={350}>
       <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="month" />
@@ -135,8 +422,8 @@ const RevenueTrendChart = ({ data }) => {
           name="Doanh thu thực tế"
           stroke={theme.palette.success.main}
           strokeWidth={3}
-          dot={{ fill: theme.palette.success.main, strokeWidth: 2, r: 4 }}
-          activeDot={{ r: 6 }}
+          dot={{ fill: theme.palette.success.main, strokeWidth: 2, r: 5 }}
+          activeDot={{ r: 7 }}
         />
         <Line
           type="monotone"
@@ -145,7 +432,7 @@ const RevenueTrendChart = ({ data }) => {
           stroke={theme.palette.warning.main}
           strokeWidth={2}
           strokeDasharray="5 5"
-          dot={{ fill: theme.palette.warning.main, strokeWidth: 2, r: 4 }}
+          dot={{ fill: theme.palette.warning.main, strokeWidth: 2, r: 5 }}
         />
       </LineChart>
     </ResponsiveContainer>
@@ -156,6 +443,7 @@ const Dashboard = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [tabValue, setTabValue] = useState(0);
+  const [currentStatIndex, setCurrentStatIndex] = useState(0);
 
   // Mock data for dashboard
   const initialStatsCards = [
@@ -236,7 +524,7 @@ const Dashboard = () => {
     { model: "Porsche Taycan", efficiency: 90, satisfaction: 94 },
   ];
 
-  // State (start with mock data; will try to fetch real data)
+  // State
   const [statsCards, setStatsCards] = useState(initialStatsCards);
 
   const initialRecentActivities = [
@@ -321,8 +609,6 @@ const Dashboard = () => {
           setTopVehicles(data.topVehicles);
       }
     } catch (err) {
-      // fallback to mock data; log for debugging
-      // eslint-disable-next-line no-console
       console.warn("Dashboard fetch failed, using mock data", err);
     } finally {
       setLoading(false);
@@ -331,22 +617,17 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboard();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // User & role-based visibility
   const [currentUser] = useState(() => authService.getCurrentUser());
-  const role = currentUser?.role
-    ? String(currentUser.role).toLowerCase()
-    : "customer";
+  const role = currentUser?.role?.toLowerCase() || "customer";
 
-  // Visible stats/cards based on role
   const visibleStats =
     role === "admin" || role === "branch"
       ? statsCards
       : statsCards.filter((c) => c.title === "Xe bán được");
 
-  // Actions based on role
   const headerActions = (() => {
     if (role === "admin") {
       return [
@@ -376,7 +657,6 @@ const Dashboard = () => {
         },
       ];
     }
-    // customer
     return [
       {
         label: "Mua xe",
@@ -390,8 +670,23 @@ const Dashboard = () => {
     setTabValue(newValue);
   };
 
+  const handleIndexChange = (newIndex) => {
+    setCurrentStatIndex(newIndex);
+  };
+
+  useEffect(() => {
+    if (visibleStats.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentStatIndex((prev) =>
+          prev < visibleStats.length - 1 ? prev + 1 : 0
+        );
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [visibleStats.length]);
+
   return (
-    <Container maxWidth="xl" sx={{ py: 3 }}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
       <PageHeader
         title="Bảng điều khiển"
         subtitle="Tổng quan về hoạt động kinh doanh và hiệu suất hệ thống"
@@ -420,17 +715,24 @@ const Dashboard = () => {
         actions={headerActions}
       />
 
-      {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {visibleStats.map((card, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
-            <ModernCard {...card} />
-          </Grid>
-        ))}
-      </Grid>
+      {/* Scrollable Stats Cards - Full Width */}
+      <Box sx={{ mb: 5, width: "100%" }}>
+        <ScrollableStats
+          stats={visibleStats}
+          currentIndex={currentStatIndex}
+          onIndexChange={handleIndexChange}
+        />
+      </Box>
 
-      {/* Chart Section with Tabs */}
-      <Card sx={{ mb: 4, borderRadius: 3, boxShadow: 3 }}>
+      {/* Chart Section with Tabs - Wider */}
+      <Card
+        sx={{
+          mb: 5,
+          borderRadius: 3,
+          boxShadow: 3,
+          width: "100%",
+        }}
+      >
         <CardContent sx={{ p: 0 }}>
           <Tabs
             value={tabValue}
@@ -438,7 +740,7 @@ const Dashboard = () => {
             sx={{
               borderBottom: 1,
               borderColor: "divider",
-              px: 3,
+              px: 4,
               pt: 2,
             }}
           >
@@ -469,16 +771,17 @@ const Dashboard = () => {
             />
           </Tabs>
 
-          <Box sx={{ p: 3 }}>
+          <Box sx={{ p: 4, minHeight: "400px" }}>
             {tabValue === 0 && (
               <Box>
                 <Typography
-                  variant="h6"
+                  variant="h5"
                   gutterBottom
                   sx={{
                     fontWeight: 600,
                     display: "flex",
                     alignItems: "center",
+                    mb: 3,
                   }}
                 >
                   <PieChartIcon sx={{ mr: 1, color: "primary.main" }} />
@@ -491,12 +794,13 @@ const Dashboard = () => {
             {tabValue === 1 && (
               <Box>
                 <Typography
-                  variant="h6"
+                  variant="h5"
                   gutterBottom
                   sx={{
                     fontWeight: 600,
                     display: "flex",
                     alignItems: "center",
+                    mb: 3,
                   }}
                 >
                   <BarChartIcon sx={{ mr: 1, color: "primary.main" }} />
@@ -509,12 +813,13 @@ const Dashboard = () => {
             {tabValue === 2 && (
               <Box>
                 <Typography
-                  variant="h6"
+                  variant="h5"
                   gutterBottom
                   sx={{
                     fontWeight: 600,
                     display: "flex",
                     alignItems: "center",
+                    mb: 3,
                   }}
                 >
                   <LineChartIcon sx={{ mr: 1, color: "primary.main" }} />
@@ -527,18 +832,19 @@ const Dashboard = () => {
             {tabValue === 3 && (
               <Box>
                 <Typography
-                  variant="h6"
+                  variant="h5"
                   gutterBottom
                   sx={{
                     fontWeight: 600,
                     display: "flex",
                     alignItems: "center",
+                    mb: 3,
                   }}
                 >
                   <TrendingUpIcon sx={{ mr: 1, color: "primary.main" }} />
                   Hiệu suất Dòng xe
                 </Typography>
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={350}>
                   <BarChart data={vehiclePerformance}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="model" />
@@ -565,18 +871,19 @@ const Dashboard = () => {
             {tabValue === 4 && (
               <Box>
                 <Typography
-                  variant="h6"
+                  variant="h5"
                   gutterBottom
                   sx={{
                     fontWeight: 600,
                     display: "flex",
                     alignItems: "center",
+                    mb: 3,
                   }}
                 >
                   <ChartIcon sx={{ mr: 1, color: "primary.main" }} />
                   Doanh số theo Khu vực
                 </Typography>
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={350}>
                   <BarChart
                     data={[
                       { region: "Miền Bắc", sales: 45, revenue: 1200000000 },
@@ -609,82 +916,157 @@ const Dashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Charts and Activities */}
-      <Grid container spacing={3}>
-        {/* Recent Activities */}
-        <Grid item xs={12} md={6}>
-          <Paper
+      {/* ===== 2 CARD BÊN DƯỚI (Căn giữa giống phần KPI trên) ===== */}
+      <Grid container spacing={4} justifyContent="center" sx={{ mt: 2 }}>
+        {/* Bảng Top Vehicles */}
+        <Grid item xs={12} md={5}>
+          <Card
             sx={{
-              p: 3,
               borderRadius: 3,
               boxShadow: 3,
+              height: "100%",
+              minHeight: "450px",
+              display: "flex",
+              flexDirection: "column",
             }}
           >
-            <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-              <ScheduleIcon sx={{ mr: 1, color: "primary.main" }} />
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Hoạt động gần đây
-              </Typography>
-            </Box>
-            <List sx={{ p: 0 }}>
-              {recentActivities.map((activity, index) => (
-                <React.Fragment key={activity.id}>
-                  <ListItem sx={{ px: 0, py: 1.5 }}>
-                    <ListItemAvatar>
-                      <Avatar
-                        sx={{
-                          bgcolor: `${activity.color}.main`,
-                          width: 32,
-                          height: 32,
-                        }}
-                      >
-                        {activity.icon}
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                          {activity.message}
-                        </Typography>
-                      }
-                      secondary={
-                        <Typography variant="caption" color="text.secondary">
-                          {activity.time}
-                        </Typography>
-                      }
-                    />
-                  </ListItem>
-                  {index < recentActivities.length - 1 && <Divider />}
-                </React.Fragment>
-              ))}
-            </List>
-          </Paper>
+            <CardContent
+              sx={{ p: 4, flex: 1, display: "flex", flexDirection: "column" }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  mb: 3,
+                }}
+              >
+                <ChartIcon
+                  sx={{
+                    color: "primary.main",
+                    mb: 2,
+                    fontSize: "2.5rem",
+                  }}
+                />
+                <Typography
+                  variant="h4"
+                  fontWeight={700}
+                  sx={{ textAlign: "center" }}
+                >
+                  Xe bán chạy nhất
+                </Typography>
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <DataTable
+                  columns={columns}
+                  data={topVehicles}
+                  searchable={false}
+                  pagination={false}
+                  selectable={false}
+                  title=""
+                  sx={{ height: "100%" }}
+                />
+              </Box>
+            </CardContent>
+          </Card>
         </Grid>
 
-        {/* Top Vehicles */}
-        <Grid item xs={12} md={6}>
-          <Paper
+        {/* Hoạt động gần đây */}
+        <Grid item xs={12} md={5}>
+          <Card
             sx={{
-              p: 3,
               borderRadius: 3,
               boxShadow: 3,
+              height: "100%",
+              minHeight: "450px",
+              display: "flex",
+              flexDirection: "column",
             }}
           >
-            <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-              <ChartIcon sx={{ mr: 1, color: "primary.main" }} />
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Xe bán chạy nhất
-              </Typography>
-            </Box>
-            <DataTable
-              columns={columns}
-              data={topVehicles}
-              searchable={false}
-              pagination={false}
-              selectable={false}
-              title=""
-            />
-          </Paper>
+            <CardContent
+              sx={{ p: 4, flex: 1, display: "flex", flexDirection: "column" }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  mb: 3,
+                }}
+              >
+                <ScheduleIcon
+                  sx={{
+                    color: "primary.main",
+                    mb: 2,
+                    fontSize: "2.5rem",
+                  }}
+                />
+                <Typography
+                  variant="h4"
+                  fontWeight={700}
+                  sx={{ textAlign: "center" }}
+                >
+                  Hoạt động gần đây
+                </Typography>
+              </Box>
+              <List sx={{ flex: 1, overflow: "auto" }}>
+                {recentActivities.map((activity, index) => (
+                  <React.Fragment key={activity.id}>
+                    <ListItem
+                      sx={{
+                        px: 2,
+                        py: 2,
+                        display: "flex",
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      <ListItemAvatar sx={{ minWidth: 60 }}>
+                        <Avatar
+                          sx={{
+                            bgcolor: `${activity.color}.main`,
+                            width: 50,
+                            height: 50,
+                          }}
+                        >
+                          {activity.icon}
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={
+                          <Typography
+                            variant="h6"
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: "1rem",
+                              lineHeight: 1.3,
+                            }}
+                          >
+                            {activity.message}
+                          </Typography>
+                        }
+                        secondary={
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: "text.secondary",
+                              mt: 0.5,
+                              fontSize: "0.9rem",
+                            }}
+                          >
+                            {activity.time}
+                          </Typography>
+                        }
+                        sx={{ ml: 2 }}
+                      />
+                    </ListItem>
+                    {index < recentActivities.length - 1 && (
+                      <Divider variant="inset" component="li" />
+                    )}
+                  </React.Fragment>
+                ))}
+              </List>
+            </CardContent>
+          </Card>
         </Grid>
       </Grid>
     </Container>
