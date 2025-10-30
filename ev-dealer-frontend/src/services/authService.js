@@ -2,20 +2,20 @@ import api from './api'
 
 const authService = {
   // Login
-  login: async (email, password, rememberMe = false) => {
+  login: async (username, password, rememberMe = false) => {
     try {
-      const response = await api.post('/auth/login', { email, password })
-      
+      const response = await api.post('/auth/login', { username, password })
+
       // Save token and user info
       if (response.token) {
         localStorage.setItem('token', response.token)
         localStorage.setItem('user', JSON.stringify(response.user))
-        
+
         if (rememberMe) {
           localStorage.setItem('rememberMe', 'true')
         }
       }
-      
+
       return response
     } catch (error) {
       throw error
@@ -63,7 +63,14 @@ const authService = {
   // Get current user
   getCurrentUser: () => {
     const userStr = localStorage.getItem('user')
-    return userStr ? JSON.parse(userStr) : null
+    if (!userStr) return null
+    try {
+      return JSON.parse(userStr)
+    } catch (error) {
+      console.error('Error parsing user data:', error)
+      localStorage.removeItem('user')
+      return null
+    }
   },
 
   // Check if user is authenticated
