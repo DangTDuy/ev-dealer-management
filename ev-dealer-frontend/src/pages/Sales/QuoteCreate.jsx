@@ -32,7 +32,6 @@ const DownloadIcon = () => (
 export default function QuoteCreate() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
   
   // Customer info
   const [customerInfo, setCustomerInfo] = useState({
@@ -63,6 +62,49 @@ export default function QuoteCreate() {
     salesPerson: 'User John Doe',
     validUntil: ''
   });
+
+  // Validation form
+const validateForm = () => {
+  if (!customerInfo.name.trim()) {
+    alert('Vui lòng nhập họ tên khách hàng');
+    return false;
+  }
+  
+  if (!customerInfo.phone.trim()) {
+    alert('Vui lòng nhập số điện thoại');
+    return false;
+  }
+
+  // Kiểm tra định dạng số điện thoại
+  const phoneRegex = /(0[3|5|7|8|9])+([0-9]{8})\b/;
+  if (!phoneRegex.test(customerInfo.phone)) {
+    alert('Số điện thoại không hợp lệ');
+    return false;
+  }
+
+  // Kiểm tra email nếu có
+  if (customerInfo.email && !/\S+@\S+\.\S+/.test(customerInfo.email)) {
+    alert('Email không hợp lệ');
+    return false;
+  }
+
+  // Kiểm tra ít nhất một xe được chọn
+  const hasValidItems = quoteItems.some(item => item.vehicleId && item.quantity > 0);
+  if (!hasValidItems) {
+    alert('Vui lòng chọn ít nhất một xe');
+    return false;
+  }
+
+  // Kiểm tra từng xe đã chọn
+  for (let item of quoteItems) {
+    if (item.vehicleId && item.quantity < 1) {
+      alert('Số lượng phải lớn hơn 0');
+      return false;
+    }
+  }
+
+  return true;
+};
 
   // Mock vehicle data
   const vehicles = [
@@ -148,28 +190,32 @@ export default function QuoteCreate() {
     setQuoteItems(newItems);
   };
 
-  const handleGenerateQuote = async () => {
-    setLoading(true);
+const handleGenerateQuote = async () => {
+  // Thêm validation
+  if (!validateForm()) {
+    return;
+  }
+
+  setLoading(true);
+  
+  // Simulate API call
+  setTimeout(() => {
+    const quoteData = {
+      customer: customerInfo,
+      items: quoteItems.filter(item => item.vehicleId), // Chỉ lấy items hợp lệ
+      payment: paymentInfo,
+      additional: additionalInfo,
+      total: calculateTotal(),
+      createdAt: new Date().toISOString()
+    };
     
-    // Simulate API call
-    setTimeout(() => {
-      const quoteData = {
-        customer: customerInfo,
-        items: quoteItems,
-        payment: paymentInfo,
-        additional: additionalInfo,
-        total: calculateTotal(),
-        createdAt: new Date().toISOString()
-      };
-      
-      console.log('Generated quote:', quoteData);
-      setLoading(false);
-      
-      // Navigate to quote detail or show success message
-      alert('Báo giá đã được tạo thành công!');
-      navigate('/sales');
-    }, 1500);
-  };
+    console.log('Generated quote:', quoteData);
+    setLoading(false);
+    
+    alert('Báo giá đã được tạo thành công!');
+    navigate('/sales');
+  }, 1500);
+};
 
   const handleDownloadQuote = () => {
     // Simulate PDF download
@@ -177,8 +223,12 @@ export default function QuoteCreate() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F9FAFB', padding: '24px' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      backgroundColor: '#F8FAFC',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+    }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
         {/* Header */}
         <div style={{ 
           display: 'flex', 
@@ -186,7 +236,7 @@ export default function QuoteCreate() {
           justifyContent: 'space-between', 
           marginBottom: '24px',
           paddingBottom: '16px',
-          borderBottom: '1px solid #E5E7EB'
+          borderBottom: '1px solid #E2E8F0'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button 
@@ -200,7 +250,10 @@ export default function QuoteCreate() {
                 border: '1px solid #D1D5DB',
                 borderRadius: '8px',
                 cursor: 'pointer',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                fontSize: '14px',
+                fontWeight: '500',
+                color: '#374151'
               }}
               onMouseOver={(e) => e.target.style.backgroundColor = '#F3F4F6'}
               onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
@@ -209,12 +262,9 @@ export default function QuoteCreate() {
               Quay lại
             </button>
             <div>
-              <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#111827', margin: 0 }}>
+              <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#0F172A', margin: 0 }}>
                 Tạo Báo Giá Mới
               </h1>
-              <p style={{ color: '#6B7280', margin: '0 0 0 0', fontSize: '14px' }}>
-                Tạo báo giá cho khách hàng
-              </p>
             </div>
           </div>
           
@@ -231,7 +281,9 @@ export default function QuoteCreate() {
                 border: '1px solid #D1D5DB',
                 borderRadius: '8px',
                 cursor: 'pointer',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                fontSize: '14px',
+                fontWeight: '500'
               }}
               onMouseOver={(e) => e.target.style.backgroundColor = '#F3F4F6'}
               onMouseOut={(e) => e.target.style.backgroundColor = 'white'}
@@ -247,12 +299,14 @@ export default function QuoteCreate() {
                 alignItems: 'center',
                 gap: '8px',
                 padding: '10px 20px',
-                backgroundColor: loading ? '#9CA3AF' : '#2563EB',
+                backgroundColor: loading ? '#9CA3AF' : '#3B82F6',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                fontSize: '14px',
+                fontWeight: '500'
               }}
             >
               {loading ? 'Đang xử lý...' : 'Tạo báo giá'}
@@ -262,22 +316,23 @@ export default function QuoteCreate() {
 
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
           {/* Main Content */}
-          <div>
+          <div style={{ minWidth: 0 }}> {/* Thêm minWidth: 0 để tránh tràn layout */}
             {/* Customer Information */}
             <div style={{
               backgroundColor: 'white',
               borderRadius: '12px',
               padding: '24px',
               marginBottom: '24px',
-              border: '1px solid #E5E7EB'
+              border: '1px solid #E2E8F0',
+              boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)'
             }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#0F172A', marginBottom: '20px' }}>
                 Thông tin khách hàng
               </h2>
               
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                <div style={{ minWidth: 0 }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                     Họ và tên *
                   </label>
                   <input
@@ -286,17 +341,20 @@ export default function QuoteCreate() {
                     onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
                     style={{
                       width: '100%',
-                      padding: '10px 14px',
-                      border: '1px solid #D1D5DB',
+                      padding: '10px 12px',
+                      border: '1px solid #CBD5E1',
                       borderRadius: '8px',
-                      fontSize: '14px'
+                      fontSize: '14px',
+                      backgroundColor: '#F8FAFC',
+                      height: '40px',
+                      boxSizing: 'border-box'
                     }}
                     placeholder="Nhập họ và tên"
                   />
                 </div>
                 
-                <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                <div style={{ minWidth: 0 }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                     Số điện thoại *
                   </label>
                   <input
@@ -305,17 +363,20 @@ export default function QuoteCreate() {
                     onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
                     style={{
                       width: '100%',
-                      padding: '10px 14px',
-                      border: '1px solid #D1D5DB',
+                      padding: '10px 12px',
+                      border: '1px solid #CBD5E1',
                       borderRadius: '8px',
-                      fontSize: '14px'
+                      fontSize: '14px',
+                      backgroundColor: '#F8FAFC',
+                      height: '40px',
+                      boxSizing: 'border-box'
                     }}
                     placeholder="Nhập số điện thoại"
                   />
                 </div>
                 
-                <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                <div style={{ minWidth: 0 }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                     Email
                   </label>
                   <input
@@ -324,17 +385,20 @@ export default function QuoteCreate() {
                     onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
                     style={{
                       width: '100%',
-                      padding: '10px 14px',
-                      border: '1px solid #D1D5DB',
+                      padding: '10px 12px',
+                      border: '1px solid #CBD5E1',
                       borderRadius: '8px',
-                      fontSize: '14px'
+                      fontSize: '14px',
+                      backgroundColor: '#F8FAFC',
+                      height: '40px',
+                      boxSizing: 'border-box'
                     }}
                     placeholder="Nhập email"
                   />
                 </div>
                 
-                <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                <div style={{ minWidth: 0 }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                     Số CMND/CCCD
                   </label>
                   <input
@@ -343,17 +407,20 @@ export default function QuoteCreate() {
                     onChange={(e) => setCustomerInfo({...customerInfo, idNumber: e.target.value})}
                     style={{
                       width: '100%',
-                      padding: '10px 14px',
-                      border: '1px solid #D1D5DB',
+                      padding: '10px 12px',
+                      border: '1px solid #CBD5E1',
                       borderRadius: '8px',
-                      fontSize: '14px'
+                      fontSize: '14px',
+                      backgroundColor: '#F8FAFC',
+                      height: '40px',
+                      boxSizing: 'border-box'
                     }}
                     placeholder="Nhập số CMND/CCCD"
                   />
                 </div>
                 
-                <div style={{ gridColumn: 'span 2' }}>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                <div style={{ gridColumn: 'span 2', minWidth: 0 }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                     Địa chỉ
                   </label>
                   <input
@@ -362,10 +429,13 @@ export default function QuoteCreate() {
                     onChange={(e) => setCustomerInfo({...customerInfo, address: e.target.value})}
                     style={{
                       width: '100%',
-                      padding: '10px 14px',
-                      border: '1px solid #D1D5DB',
+                      padding: '10px 12px',
+                      border: '1px solid #CBD5E1',
                       borderRadius: '8px',
-                      fontSize: '14px'
+                      fontSize: '14px',
+                      backgroundColor: '#F8FAFC',
+                      height: '40px',
+                      boxSizing: 'border-box'
                     }}
                     placeholder="Nhập địa chỉ"
                   />
@@ -379,10 +449,11 @@ export default function QuoteCreate() {
               borderRadius: '12px',
               padding: '24px',
               marginBottom: '24px',
-              border: '1px solid #E5E7EB'
+              border: '1px solid #E2E8F0',
+              boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)'
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#0F172A', margin: 0 }}>
                   Chi tiết xe
                 </h2>
                 <button
@@ -392,12 +463,13 @@ export default function QuoteCreate() {
                     alignItems: 'center',
                     gap: '6px',
                     padding: '8px 16px',
-                    backgroundColor: '#2563EB',
+                    backgroundColor: '#3B82F6',
                     color: 'white',
                     border: 'none',
                     borderRadius: '8px',
                     cursor: 'pointer',
-                    fontSize: '14px'
+                    fontSize: '14px',
+                    fontWeight: '500'
                   }}
                 >
                   <PlusIcon />
@@ -407,14 +479,20 @@ export default function QuoteCreate() {
               
               {quoteItems.map((item, index) => (
                 <div key={index} style={{
-                  padding: '16px',
-                  border: '1px solid #E5E7EB',
+                  padding: '20px',
+                  border: '1px solid #E2E8F0',
                   borderRadius: '8px',
-                  marginBottom: index < quoteItems.length - 1 ? '16px' : '0'
+                  marginBottom: index < quoteItems.length - 1 ? '16px' : '0',
+                  backgroundColor: '#F8FAFC'
                 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr auto', gap: '12px', alignItems: 'end' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) auto', 
+                    gap: '12px', 
+                    alignItems: 'end' 
+                  }}>
+                    <div style={{ minWidth: 0 }}>
+                      <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                         Chọn xe
                       </label>
                       <select
@@ -422,10 +500,23 @@ export default function QuoteCreate() {
                         onChange={(e) => updateQuoteItem(index, 'vehicleId', e.target.value)}
                         style={{
                           width: '100%',
-                          padding: '10px 14px',
-                          border: '1px solid #D1D5DB',
+                          padding: '10px 12px',
+                          border: '1px solid #CBD5E1',
                           borderRadius: '8px',
-                          fontSize: '14px'
+                          fontSize: '14px',
+                          backgroundColor: 'white',
+                          height: '40px',
+                          boxSizing: 'border-box',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          appearance: 'none',
+                          backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'right 12px center',
+                          backgroundSize: '16px',
+                          paddingRight: '36px',
+                          color: '#374151'
                         }}
                       >
                         <option value="">-- Chọn xe --</option>
@@ -437,8 +528,8 @@ export default function QuoteCreate() {
                       </select>
                     </div>
                     
-                    <div>
-                      <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                    <div style={{ minWidth: 0 }}>
+                      <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                         Số lượng
                       </label>
                       <input
@@ -448,16 +539,19 @@ export default function QuoteCreate() {
                         onChange={(e) => updateQuoteItem(index, 'quantity', parseInt(e.target.value) || 1)}
                         style={{
                           width: '100%',
-                          padding: '10px 14px',
-                          border: '1px solid #D1D5DB',
+                          padding: '10px 12px',
+                          border: '1px solid #CBD5E1',
                           borderRadius: '8px',
-                          fontSize: '14px'
+                          fontSize: '14px',
+                          backgroundColor: 'white',
+                          height: '40px',
+                          boxSizing: 'border-box'
                         }}
                       />
                     </div>
                     
-                    <div>
-                      <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                    <div style={{ minWidth: 0 }}>
+                      <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                         Đơn giá
                       </label>
                       <input
@@ -466,17 +560,22 @@ export default function QuoteCreate() {
                         readOnly
                         style={{
                           width: '100%',
-                          padding: '10px 14px',
-                          border: '1px solid #D1D5DB',
+                          padding: '10px 12px',
+                          border: '1px solid #CBD5E1',
                           borderRadius: '8px',
                           fontSize: '14px',
-                          backgroundColor: '#F9FAFB'
+                          backgroundColor: '#F1F5F9',
+                          height: '40px',
+                          boxSizing: 'border-box',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
                         }}
                       />
                     </div>
                     
-                    <div>
-                      <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                    <div style={{ minWidth: 0 }}>
+                      <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                         Giảm giá (%)
                       </label>
                       <input
@@ -487,10 +586,13 @@ export default function QuoteCreate() {
                         onChange={(e) => updateQuoteItem(index, 'discount', parseFloat(e.target.value) || 0)}
                         style={{
                           width: '100%',
-                          padding: '10px 14px',
-                          border: '1px solid #D1D5DB',
+                          padding: '10px 12px',
+                          border: '1px solid #CBD5E1',
                           borderRadius: '8px',
-                          fontSize: '14px'
+                          fontSize: '14px',
+                          backgroundColor: 'white',
+                          height: '40px',
+                          boxSizing: 'border-box'
                         }}
                       />
                     </div>
@@ -500,11 +602,16 @@ export default function QuoteCreate() {
                       disabled={quoteItems.length === 1}
                       style={{
                         padding: '10px',
-                        backgroundColor: quoteItems.length === 1 ? '#F3F4F6' : '#FEE2E2',
+                        backgroundColor: quoteItems.length === 1 ? '#F1F5F9' : '#FEE2E2',
                         border: 'none',
                         borderRadius: '8px',
                         cursor: quoteItems.length === 1 ? 'not-allowed' : 'pointer',
-                        color: quoteItems.length === 1 ? '#9CA3AF' : '#DC2626'
+                        color: quoteItems.length === 1 ? '#94A3B8' : '#DC2626',
+                        height: '40px',
+                        width: '40px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
                       }}
                     >
                       <TrashIcon />
@@ -512,10 +619,10 @@ export default function QuoteCreate() {
                   </div>
                   
                   {item.vehicleId && (
-                    <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #F3F4F6' }}>
+                    <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #E2E8F0' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                        <span style={{ color: '#6B7280' }}>Thành tiền:</span>
-                        <span style={{ fontWeight: '600', color: '#111827' }}>
+                        <span style={{ color: '#64748B' }}>Thành tiền:</span>
+                        <span style={{ fontWeight: '600', color: '#0F172A' }}>
                           {formatCurrency((item.unitPrice * item.quantity) * (1 - item.discount / 100))}
                         </span>
                       </div>
@@ -530,17 +637,18 @@ export default function QuoteCreate() {
               backgroundColor: 'white',
               borderRadius: '12px',
               padding: '24px',
-              border: '1px solid #E5E7EB'
+              border: '1px solid #E2E8F0',
+              boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)'
             }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#0F172A', marginBottom: '20px' }}>
                 Thông tin thanh toán
               </h2>
               
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '12px' }}>
                   Hình thức thanh toán
                 </label>
-                <div style={{ display: 'flex', gap: '16px' }}>
+                <div style={{ display: 'flex', gap: '20px' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                     <input
                       type="radio"
@@ -549,7 +657,7 @@ export default function QuoteCreate() {
                       checked={paymentInfo.type === 'full'}
                       onChange={(e) => setPaymentInfo({...paymentInfo, type: e.target.value})}
                     />
-                    <span style={{ fontSize: '14px' }}>Trả toàn bộ</span>
+                    <span style={{ fontSize: '14px', color: '#374151' }}>Trả toàn bộ</span>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                     <input
@@ -559,15 +667,15 @@ export default function QuoteCreate() {
                       checked={paymentInfo.type === 'installment'}
                       onChange={(e) => setPaymentInfo({...paymentInfo, type: e.target.value})}
                     />
-                    <span style={{ fontSize: '14px' }}>Trả góp</span>
+                    <span style={{ fontSize: '14px', color: '#374151' }}>Trả góp</span>
                   </label>
                 </div>
               </div>
               
               {paymentInfo.type === 'installment' && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                  <div style={{ minWidth: 0 }}>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                       Trả trước (%)
                     </label>
                     <input
@@ -578,16 +686,19 @@ export default function QuoteCreate() {
                       onChange={(e) => setPaymentInfo({...paymentInfo, downPaymentPercent: parseInt(e.target.value) || 30})}
                       style={{
                         width: '100%',
-                        padding: '10px 14px',
-                        border: '1px solid #D1D5DB',
+                        padding: '10px 12px',
+                        border: '1px solid #CBD5E1',
                         borderRadius: '8px',
-                        fontSize: '14px'
+                        fontSize: '14px',
+                        backgroundColor: 'white',
+                        height: '40px',
+                        boxSizing: 'border-box'
                       }}
                     />
                   </div>
                   
-                  <div>
-                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                  <div style={{ minWidth: 0 }}>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                       Kỳ hạn (tháng)
                     </label>
                     <select
@@ -595,10 +706,22 @@ export default function QuoteCreate() {
                       onChange={(e) => setPaymentInfo({...paymentInfo, loanTerm: parseInt(e.target.value)})}
                       style={{
                         width: '100%',
-                        padding: '10px 14px',
-                        border: '1px solid #D1D5DB',
+                        padding: '10px 12px',
+                        border: '1px solid #CBD5E1',
                         borderRadius: '8px',
-                        fontSize: '14px'
+                        fontSize: '14px',
+                        backgroundColor: 'white',
+                        height: '40px',
+                        boxSizing: 'border-box',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        appearance: 'none',
+                        backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'right 12px center',
+                        backgroundSize: '16px',
+                        paddingRight: '36px'
                       }}
                     >
                       <option value={6}>6 tháng</option>
@@ -610,8 +733,8 @@ export default function QuoteCreate() {
                     </select>
                   </div>
                   
-                  <div>
-                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                  <div style={{ minWidth: 0 }}>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                       Lãi suất (%/năm)
                     </label>
                     <input
@@ -621,10 +744,13 @@ export default function QuoteCreate() {
                       onChange={(e) => setPaymentInfo({...paymentInfo, interestRate: parseFloat(e.target.value) || 0})}
                       style={{
                         width: '100%',
-                        padding: '10px 14px',
-                        border: '1px solid #D1D5DB',
+                        padding: '10px 12px',
+                        border: '1px solid #CBD5E1',
                         borderRadius: '8px',
-                        fontSize: '14px'
+                        fontSize: '14px',
+                        backgroundColor: 'white',
+                        height: '40px',
+                        boxSizing: 'border-box'
                       }}
                     />
                   </div>
@@ -634,21 +760,22 @@ export default function QuoteCreate() {
           </div>
 
           {/* Sidebar */}
-          <div>
+          <div style={{ minWidth: 0 }}> {/* Thêm minWidth: 0 để tránh tràn layout */}
             {/* Quote Summary */}
             <div style={{
               backgroundColor: 'white',
               borderRadius: '12px',
               padding: '24px',
               marginBottom: '24px',
-              border: '1px solid #E5E7EB'
+              border: '1px solid #E2E8F0',
+              boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)'
             }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#0F172A', marginBottom: '20px' }}>
                 Tóm tắt báo giá
               </h2>
               
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                   Nhân viên bán hàng
                 </label>
                 <input
@@ -657,16 +784,19 @@ export default function QuoteCreate() {
                   onChange={(e) => setAdditionalInfo({...additionalInfo, salesPerson: e.target.value})}
                   style={{
                     width: '100%',
-                    padding: '10px 14px',
-                    border: '1px solid #D1D5DB',
+                    padding: '10px 12px',
+                    border: '1px solid #CBD5E1',
                     borderRadius: '8px',
-                    fontSize: '14px'
+                    fontSize: '14px',
+                    backgroundColor: '#F8FAFC',
+                    height: '40px',
+                    boxSizing: 'border-box'
                   }}
                 />
               </div>
               
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                   Ngày giao xe dự kiến
                 </label>
                 <input
@@ -675,16 +805,19 @@ export default function QuoteCreate() {
                   onChange={(e) => setAdditionalInfo({...additionalInfo, deliveryDate: e.target.value})}
                   style={{
                     width: '100%',
-                    padding: '10px 14px',
-                    border: '1px solid #D1D5DB',
+                    padding: '10px 12px',
+                    border: '1px solid #CBD5E1',
                     borderRadius: '8px',
-                    fontSize: '14px'
+                    fontSize: '14px',
+                    backgroundColor: '#F8FAFC',
+                    height: '40px',
+                    boxSizing: 'border-box'
                   }}
                 />
               </div>
               
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                   Báo giá có hiệu lực đến
                 </label>
                 <input
@@ -693,16 +826,19 @@ export default function QuoteCreate() {
                   onChange={(e) => setAdditionalInfo({...additionalInfo, validUntil: e.target.value})}
                   style={{
                     width: '100%',
-                    padding: '10px 14px',
-                    border: '1px solid #D1D5DB',
+                    padding: '10px 12px',
+                    border: '1px solid #CBD5E1',
                     borderRadius: '8px',
-                    fontSize: '14px'
+                    fontSize: '14px',
+                    backgroundColor: '#F8FAFC',
+                    height: '40px',
+                    boxSizing: 'border-box'
                   }}
                 />
               </div>
               
               <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                   Ghi chú
                 </label>
                 <textarea
@@ -711,11 +847,14 @@ export default function QuoteCreate() {
                   rows={3}
                   style={{
                     width: '100%',
-                    padding: '10px 14px',
-                    border: '1px solid #D1D5DB',
+                    padding: '10px 12px',
+                    border: '1px solid #CBD5E1',
                     borderRadius: '8px',
                     fontSize: '14px',
-                    resize: 'vertical'
+                    backgroundColor: '#F8FAFC',
+                    resize: 'vertical',
+                    boxSizing: 'border-box',
+                    minHeight: '80px'
                   }}
                   placeholder="Thêm ghi chú cho báo giá..."
                 />
@@ -727,45 +866,46 @@ export default function QuoteCreate() {
               backgroundColor: 'white',
               borderRadius: '12px',
               padding: '24px',
-              border: '1px solid #E5E7EB'
+              border: '1px solid #E2E8F0',
+              boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)'
             }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#0F172A', marginBottom: '20px' }}>
                 Chi tiết giá
               </h2>
               
-              <div style={{ marginBottom: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '8px' }}>
-                  <span style={{ color: '#6B7280' }}>Tổng cộng:</span>
-                  <span style={{ color: '#111827' }}>{formatCurrency(calculateTotal())}</span>
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '12px' }}>
+                  <span style={{ color: '#64748B' }}>Tổng cộng:</span>
+                  <span style={{ color: '#0F172A', fontWeight: '500' }}>{formatCurrency(calculateTotal())}</span>
                 </div>
                 
                 {paymentInfo.type === 'installment' && (
                   <>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '8px' }}>
-                      <span style={{ color: '#6B7280' }}>Trả trước ({paymentInfo.downPaymentPercent}%):</span>
-                      <span style={{ color: '#111827' }}>{formatCurrency(calculateDownPayment())}</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '12px' }}>
+                      <span style={{ color: '#64748B' }}>Trả trước ({paymentInfo.downPaymentPercent}%):</span>
+                      <span style={{ color: '#0F172A', fontWeight: '500' }}>{formatCurrency(calculateDownPayment())}</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '8px' }}>
-                      <span style={{ color: '#6B7280' }}>Số tiền vay:</span>
-                      <span style={{ color: '#111827' }}>{formatCurrency(calculateLoanAmount())}</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '12px' }}>
+                      <span style={{ color: '#64748B' }}>Số tiền vay:</span>
+                      <span style={{ color: '#0F172A', fontWeight: '500' }}>{formatCurrency(calculateLoanAmount())}</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '8px' }}>
-                      <span style={{ color: '#6B7280' }}>Góp hàng tháng:</span>
-                      <span style={{ color: '#111827' }}>{formatCurrency(calculateMonthlyPayment())}</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '12px' }}>
+                      <span style={{ color: '#64748B' }}>Góp hàng tháng:</span>
+                      <span style={{ color: '#0F172A', fontWeight: '500' }}>{formatCurrency(calculateMonthlyPayment())}</span>
                     </div>
                   </>
                 )}
               </div>
               
               <div style={{ 
-                paddingTop: '12px', 
-                borderTop: '1px solid #E5E7EB',
+                paddingTop: '16px', 
+                borderTop: '1px solid #E2E8F0',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center'
               }}>
-                <span style={{ fontSize: '16px', fontWeight: '600', color: '#111827' }}>Tổng thanh toán:</span>
-                <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#2563EB' }}>
+                <span style={{ fontSize: '16px', fontWeight: '600', color: '#0F172A' }}>Tổng thanh toán:</span>
+                <span style={{ fontSize: '20px', fontWeight: '700', color: '#3B82F6' }}>
                   {formatCurrency(calculateTotal())}
                 </span>
               </div>
@@ -773,6 +913,54 @@ export default function QuoteCreate() {
           </div>
         </div>
       </div>
+
+      {/* Thêm CSS để đảm bảo tính ổn định */}
+      <style>{`
+        /* Cố định hoàn toàn kích thước select và input */
+        select, input[type="text"], input[type="tel"], input[type="email"], input[type="number"], input[type="date"] {
+          height: 40px !important;
+          box-sizing: border-box !important;
+          min-width: 100% !important;
+          max-width: 100% !important;
+        }
+        
+        select {
+          overflow: hidden !important;
+          text-overflow: ellipsis !important;
+          white-space: nowrap !important;
+        }
+        
+        /* Đảm bảo textarea có kích thước phù hợp */
+        textarea {
+          box-sizing: border-box !important;
+          min-width: 100% !important;
+          max-width: 100% !important;
+        }
+        
+        /* Cải thiện hiển thị options trong select */
+        select option {
+          background-color: white;
+          color: #374151;
+          padding: 8px 12px;
+        }
+        
+        select option:hover,
+        select option:focus,
+        select option:active {
+          background-color: #3B82F6 !important;
+          color: white !important;
+        }
+        
+        select option:checked {
+          background-color: #3B82F6 !important;
+          color: white !important;
+        }
+        
+        /* Đảm bảo radio buttons có style nhất quán */
+        input[type="radio"] {
+          margin: 0;
+        }
+      `}</style>
     </div>
   );
 }
