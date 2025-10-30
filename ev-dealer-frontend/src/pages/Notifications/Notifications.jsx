@@ -18,6 +18,8 @@ import {
   Card,
   CardContent,
   Chip,
+  ToggleButtonGroup,
+  ToggleButton,
   IconButton,
   List,
   ListItem,
@@ -262,29 +264,7 @@ const Notifications = () => {
     >
       <Container maxWidth="lg">
         {/* Breadcrumbs */}
-        <Breadcrumbs sx={{ mb: 4, '& .MuiBreadcrumbs-separator': { color: '#666' } }}>
-          <Link
-            color="inherit"
-            href="#"
-            onClick={(e) => {
-              e.preventDefault()
-              navigate('/')
-            }}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              textDecoration: 'none',
-              '&:hover': { textDecoration: 'underline' }
-            }}
-          >
-            <HomeIcon sx={{ mr: 0.5, color: '#1976d2' }} fontSize="inherit" />
-            Trang chủ
-          </Link>
-          <Typography color="text.primary" sx={{ display: 'flex', alignItems: 'center', fontWeight: 500 }}>
-            <ActiveNotificationsIcon sx={{ mr: 0.5, color: '#1976d2' }} fontSize="inherit" />
-            Thông báo
-          </Typography>
-        </Breadcrumbs>
+        
 
         {/* Hero Header */}
         <Box
@@ -352,48 +332,47 @@ const Notifications = () => {
 
       {/* Stats Cards */}
       {stats && (
-        <Grid container spacing={3} sx={{ mb: 6 }}>
+          <Grid container spacing={3} sx={{ mb: 6 }}>
           <Grid size={{ xs: 12, sm: 6, md: 3}}>
               <Paper
-              elevation={6}
+              elevation={2}
               sx={{
                 p: 4,
                 textAlign: 'center',
                 borderRadius: 4,
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                border: '2px solid rgba(255,255,255,0.2)',
-                minHeight: 180,
+                background: 'linear-gradient(135deg, #eef6ff 0%, #e4f1ff 100%)',
+                border: '1px solid rgba(13,71,161,0.06)',
+                minHeight: 160,
                 width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
                 position: 'relative',
                 overflow: 'hidden',
-                boxShadow: '0 20px 40px rgba(102, 126, 234, 0.3)',
+                boxShadow: '0 12px 30px rgba(13,71,161,0.06)',
                 '&:hover': {
-                  transform: 'translateY(-8px) scale(1.02)',
-                  boxShadow: '0 25px 50px rgba(102, 126, 234, 0.4)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                  transform: 'translateY(-6px) scale(1.01)',
+                  boxShadow: '0 16px 36px rgba(13,71,161,0.08)'
                 },
                 '&::before': {
                   content: '""',
                   position: 'absolute',
-                  top: -50,
-                  right: -50,
-                  width: 300,
-                  height: 100,
-                  background: 'rgba(255,255,255,0.1)',
+                  top: -40,
+                  right: -40,
+                  width: 220,
+                  height: 80,
+                  background: 'rgba(21,101,192,0.04)',
                   borderRadius: '50%',
                   zIndex: 0
                 }
               }}
             >
               <Box sx={{ position: 'relative', zIndex: 1 }}>
-                <NotificationsIcon sx={{ fontSize: 48, color: 'white', mb: 2, opacity: 0.9 }} />
-                <Typography variant="h1" sx={{ fontWeight: 800, color: 'white', mb: 1, fontSize: '3.5rem', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                <NotificationsIcon sx={{ fontSize: 44, color: '#0d47a1', mb: 1.5, opacity: 0.95 }} />
+                <Typography variant="h1" sx={{ fontWeight: 700, color: '#0d47a1', mb: 0.5, fontSize: '2.6rem' }}>
                   {stats.total}
                 </Typography>
-                <Typography variant="h5" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 600, fontSize: '1.25rem' }}>
+                <Typography variant="h5" sx={{ color: '#133b6b', fontWeight: 600, fontSize: '1.05rem' }}>
                   Tổng số thông báo
                 </Typography>
               </Box>
@@ -401,34 +380,33 @@ const Notifications = () => {
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Paper
-              elevation={6}
+              elevation={2}
               sx={{
                 p: 4,
                 textAlign: 'center',
                 borderRadius: 4,
-                background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                border: '2px solid rgba(255,255,255,0.2)',
-                minHeight: 180,            
+                background: 'linear-gradient(135deg, #eef6ff 0%, #e8f6ff 100%)',
+                border: '1px solid rgba(13,71,161,0.06)',
+                minHeight: 160,
                 width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
                 position: 'relative',
                 overflow: 'hidden',
-                boxShadow: '0 20px 40px rgba(245, 87, 108, 0.3)',
+                boxShadow: '0 12px 30px rgba(13,71,161,0.06)',
                 '&:hover': {
-                  transform: 'translateY(-8px) scale(1.02)',
-                  boxShadow: '0 25px 50px rgba(245, 87, 108, 0.4)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                  transform: 'translateY(-6px) scale(1.01)',
+                  boxShadow: '0 16px 36px rgba(13,71,161,0.08)'
                 },
                 '&::before': {
                   content: '""',
                   position: 'absolute',
-                  top: -50,
-                  right: -50,
-                  width: 100,
-                  height: 100,
-                  background: 'rgba(255,255,255,0.1)',
+                  top: -40,
+                  right: -40,
+                  width: 120,
+                  height: 120,
+                  background: 'rgba(21,101,192,0.04)',
                   borderRadius: '50%',
                   zIndex: 0
                 }
@@ -437,25 +415,25 @@ const Notifications = () => {
               <Box sx={{ position: 'relative', zIndex: 1 }}>
                 <Badge
                   badgeContent="!"
-                  color="error"
+                  color="primary"
                   sx={{
                     '& .MuiBadge-badge': {
-                      fontSize: '1.2rem',
-                      fontWeight: 'bold',
-                      width: 28,
-                      height: 28,
+                      fontSize: '0.95rem',
+                      fontWeight: 700,
+                      width: 24,
+                      height: 24,
                       borderRadius: '50%',
-                      background: 'linear-gradient(45deg, #ff6b6b, #ee5a24)',
-                      boxShadow: '0 2px 8px rgba(255, 107, 107, 0.4)'
+                      background: 'linear-gradient(45deg, #1976d2, #42a5f5)',
+                      boxShadow: '0 1px 4px rgba(21,101,192,0.08)'
                     }
                   }}
                 >
-                  <NotificationsIcon sx={{ fontSize: 48, color: 'white', mb: 2, opacity: 0.9 }} />
+                  <NotificationsIcon sx={{ fontSize: 44, color: '#0d47a1', mb: 1.5, opacity: 0.95 }} />
                 </Badge>
-                <Typography variant="h1" sx={{ fontWeight: 800, color: 'white', mb: 1, fontSize: '3.5rem', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                <Typography variant="h1" sx={{ fontWeight: 700, color: '#0d47a1', mb: 0.5, fontSize: '2.6rem' }}>
                   {stats.unread}
                 </Typography>
-                <Typography variant="h5" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 600, fontSize: '1.25rem' }}>
+                <Typography variant="h5" sx={{ color: '#133b6b', fontWeight: 600, fontSize: '1.05rem' }}>
                   Chưa đọc
                 </Typography>
               </Box>
@@ -463,45 +441,44 @@ const Notifications = () => {
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Paper
-              elevation={6}
+              elevation={2}
               sx={{
                 p: 3.5,
                 textAlign: 'center',
                 borderRadius: 4,
-                background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                border: '2px solid rgba(255,255,255,0.2)',
-                minHeight: 180,
+                background: 'linear-gradient(135deg, #eef6ff 0%, #e4f7ff 100%)',
+                border: '1px solid rgba(13,71,161,0.06)',
+                minHeight: 160,
                 width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
                 position: 'relative',
                 overflow: 'hidden',
-                boxShadow: '0 20px 40px rgba(79, 172, 254, 0.3)',
+                boxShadow: '0 12px 30px rgba(13,71,161,0.06)',
                 '&:hover': {
-                  transform: 'translateY(-8px) scale(1.02)',
-                  boxShadow: '0 25px 50px rgba(79, 172, 254, 0.4)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                  transform: 'translateY(-6px) scale(1.01)',
+                  boxShadow: '0 16px 36px rgba(13,71,161,0.08)'
                 },
                 '&::before': {
                   content: '""',
                   position: 'absolute',
-                  top: -50,
-                  right: -50,
+                  top: -40,
+                  right: -40,
                   width: 100,
                   height: 100,
-                  background: 'rgba(255,255,255,0.1)',
+                  background: 'rgba(21,101,192,0.04)',
                   borderRadius: '50%',
                   zIndex: 0
                 }
               }}
             >
               <Box sx={{ position: 'relative', zIndex: 1 }}>
-                <OrdersIcon sx={{ fontSize: 48, color: 'white', mb: 2, opacity: 0.9 }} />
-                <Typography variant="h1" sx={{ fontWeight: 800, color: 'white', mb: 1, fontSize: '3.5rem', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                <OrdersIcon sx={{ fontSize: 44, color: '#0d47a1', mb: 1.5, opacity: 0.95 }} />
+                <Typography variant="h1" sx={{ fontWeight: 700, color: '#0d47a1', mb: 0.5, fontSize: '2.6rem' }}>
                   {stats.byType.orders}
                 </Typography>
-                <Typography variant="h5" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 600, fontSize: '1.25rem' }}>
+                <Typography variant="h5" sx={{ color: '#133b6b', fontWeight: 600, fontSize: '1.05rem' }}>
                   Đơn hàng
                 </Typography>
               </Box>
@@ -509,45 +486,44 @@ const Notifications = () => {
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Paper
-              elevation={6}
+              elevation={2}
               sx={{
                 p: 3.5,
                 textAlign: 'center',
                 borderRadius: 4,
-                background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-                border: '2px solid rgba(255,255,255,0.2)',
-                minHeight: 180,
+                background: 'linear-gradient(135deg, #eef6ff 0%, #e6f9ff 100%)',
+                border: '1px solid rgba(13,71,161,0.06)',
+                minHeight: 160,
                 width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
                 position: 'relative',
                 overflow: 'hidden',
-                boxShadow: '0 20px 40px rgba(67, 233, 123, 0.3)',
+                boxShadow: '0 12px 30px rgba(13,71,161,0.06)',
                 '&:hover': {
-                  transform: 'translateY(-8px) scale(1.02)',
-                  boxShadow: '0 25px 50px rgba(67, 233, 123, 0.4)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                  transform: 'translateY(-6px) scale(1.01)',
+                  boxShadow: '0 16px 36px rgba(13,71,161,0.08)'
                 },
                 '&::before': {
                   content: '""',
                   position: 'absolute',
-                  top: -50,
-                  right: -50,
+                  top: -40,
+                  right: -40,
                   width: 100,
                   height: 100,
-                  background: 'rgba(255,255,255,0.1)',
+                  background: 'rgba(21,101,192,0.04)',
                   borderRadius: '50%',
                   zIndex: 0
                 }
               }}
             >
               <Box sx={{ position: 'relative', zIndex: 1 }}>
-                <DeliveriesIcon sx={{ fontSize: 48, color: 'white', mb: 2, opacity: 0.9 }} />
-                <Typography variant="h1" sx={{ fontWeight: 800, color: 'white', mb: 1, fontSize: '3.5rem', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                <DeliveriesIcon sx={{ fontSize: 44, color: '#0d47a1', mb: 1.5, opacity: 0.95 }} />
+                <Typography variant="h1" sx={{ fontWeight: 700, color: '#0d47a1', mb: 0.5, fontSize: '2.6rem' }}>
                   {stats.byType.deliveries}
                 </Typography>
-                <Typography variant="h5" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 600, fontSize: '1.25rem' }}>
+                <Typography variant="h5" sx={{ color: '#133b6b', fontWeight: 600, fontSize: '1.05rem' }}>
                   Giao hàng
                 </Typography>
               </Box>
@@ -574,24 +550,58 @@ const Notifications = () => {
             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
               Bộ lọc:
             </Typography>
-            {notificationTypes.map((type) => (
-              <Chip
-                key={type.value}
-                label={`${type.icon} ${type.label}`}
-                onClick={() => setActiveFilter(type.value)}
-                variant={activeFilter === type.value ? 'filled' : 'outlined'}
-                color={activeFilter === type.value ? 'primary' : 'default'}
-                sx={{
-                  borderRadius: 3,
-                  fontWeight: 'medium',
-                  '&:hover': {
-                    transform: 'translateY(-1px)',
-                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-                  },
-                  transition: 'all 0.2s ease'
-                }}
-              />
-            ))}
+
+            <ToggleButtonGroup
+              value={activeFilter}
+              exclusive
+              onChange={(e, val) => { if (val !== null) setActiveFilter(val) }}
+              aria-label="Bộ lọc thông báo"
+              size="medium"
+              sx={{
+                ml: 1,
+                borderRadius: 0,
+                '& .MuiToggleButtonGroup-grouped': {
+                  margin: 0,
+                  border: 'none'
+                },
+                '& .MuiToggleButton-root': {
+                  textTransform: 'none'
+                }
+              }}
+            >
+              {notificationTypes.map((type) => (
+                <ToggleButton
+                  key={type.value}
+                  value={type.value}
+                  aria-label={type.label}
+                  sx={{
+                    borderRadius: 0,
+                    px: 2,
+                    py: 1,
+                    mr: 1,
+                    minWidth: 90,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    border: 'none',
+                    '&.Mui-selected': {
+                      bgcolor: 'primary.main',
+                      color: 'common.white',
+                      boxShadow: '0 8px 20px rgba(21,101,192,0.12)',
+                      '&:hover': {
+                        bgcolor: 'primary.dark'
+                      }
+                    },
+                    '&:hover': {
+                      bgcolor: 'rgba(13,71,161,0.04)'
+                    }
+                  }}
+                >
+                  <Box component="span" sx={{ fontSize: 18 }}>{type.icon}</Box>
+                  <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>{type.label}</Typography>
+                </ToggleButton>
+              ))}
+            </ToggleButtonGroup>
           </Box>
 
           <Box sx={{ display: 'flex', gap: 2 }}>

@@ -184,23 +184,7 @@ const NotificationPreferences = () => {
       <Container maxWidth="lg">
         {/* Breadcrumbs */}
         <Breadcrumbs sx={{ mb: 4, '& .MuiBreadcrumbs-separator': { color: '#666' } }}>
-          <Link
-            color="inherit"
-            href="#"
-            onClick={(e) => {
-              e.preventDefault()
-              navigate('/')
-            }}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              textDecoration: 'none',
-              '&:hover': { textDecoration: 'underline' }
-            }}
-          >
-            <HomeIcon sx={{ mr: 0.5, color: '#1976d2' }} fontSize="inherit" />
-            Trang chủ
-          </Link>
+          
           <Link
             color="inherit"
             href="#"
@@ -312,12 +296,12 @@ const NotificationPreferences = () => {
             <Card
               elevation={6}
               sx={{
-                borderRadius: 4,
+                borderRadius: 0,
                 overflow: 'hidden',
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%)',
+                background: 'linear-gradient(135deg, #f0f6ff 0%, #e8f3ff 100%)',
                 backdropFilter: 'blur(10px)',
                 border: '1px solid rgba(255,255,255,0.2)',
-                boxShadow: '0 25px 50px rgba(0,0,0,0.1)',
+                boxShadow: '0 18px 36px rgba(13,71,161,0.05)',
                 height: '100%',
                 position: 'relative',
                 '&::before': {
@@ -327,7 +311,7 @@ const NotificationPreferences = () => {
                   left: 0,
                   right: 0,
                   height: '4px',
-                  background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)'
+                  background: 'linear-gradient(90deg, #1565c0 0%, #2b8de6 100%)'
                 }
               }}
             >
@@ -335,11 +319,11 @@ const NotificationPreferences = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
                   <Avatar
                     sx={{
-                      bgcolor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      bgcolor: 'linear-gradient(135deg, #1565c0 0%, #2b8de6 100%)',
                       mr: 3,
                       width: 60,
                       height: 60,
-                      boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)'
+                      boxShadow: '0 8px 18px rgba(13,71,161,0.08)'
                     }}
                   >
                     <NotificationsIcon sx={{ fontSize: 28, color: 'white' }} />
@@ -356,34 +340,30 @@ const NotificationPreferences = () => {
 
                 <FormControl component="fieldset" sx={{ width: '100%' }}>
                   <FormGroup sx={{ gap: 3 }}>
-                    <Paper
-                      elevation={4}
-                      sx={{
-                        p: 4,
-                        borderRadius: 3,
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        border: '2px solid rgba(255,255,255,0.2)',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        boxShadow: '0 15px 35px rgba(102, 126, 234, 0.2)',
-                        '&:hover': {
-                          transform: 'translateY(-4px) scale(1.02)',
-                          boxShadow: '0 20px 45px rgba(102, 126, 234, 0.3)',
-                          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
-                        },
-                        '&::before': {
-                          content: '""',
-                          position: 'absolute',
-                          top: -50,
-                          right: -50,
-                          width: 120,
-                          height: 120,
-                          background: 'rgba(255,255,255,0.1)',
-                          borderRadius: '50%',
-                          zIndex: 0
-                        }
-                      }}
-                    >
+                    <Paper elevation={2} sx={{
+                      p: 4,
+                      borderRadius: 3,
+                      background: 'linear-gradient(135deg, #e6f1ff 0%, #dbeffc 100%)',
+                      border: '1px solid rgba(13,71,161,0.06)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      boxShadow: '0 10px 20px rgba(13,71,161,0.035)',
+                      '&:hover': {
+                        transform: 'translateY(-3px) scale(1.005)',
+                        boxShadow: '0 12px 26px rgba(13,71,161,0.05)'
+                      },
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: -36,
+                        right: -36,
+                        width: 92,
+                        height: 92,
+                        background: 'rgba(21,101,192,0.035)',
+                        borderRadius: '50%',
+                        zIndex: 0
+                      }
+                    }}>
                       <FormControlLabel
                         control={
                           <Switch
@@ -391,27 +371,30 @@ const NotificationPreferences = () => {
                             onChange={handleChannelChange('emailNotifications')}
                             sx={{
                               '& .MuiSwitch-switchBase.Mui-checked': {
-                                color: '#ffffff',
+                                color: '#0d47a1',
                                 '& + .MuiSwitch-track': {
-                                  backgroundColor: 'rgba(255,255,255,0.3)'
+                                  backgroundColor: 'rgba(21,101,192,0.18)'
                                 }
                               },
                               '& .MuiSwitch-switchBase': {
-                                color: 'rgba(255,255,255,0.7)'
+                                color: '#0d47a1'
+                              },
+                              '& .MuiSwitch-track': {
+                                backgroundColor: 'rgba(13,71,161,0.08)'
                               }
                             }}
                           />
                         }
                         label={
                           <Box sx={{ display: 'flex', alignItems: 'center', position: 'relative', zIndex: 1 }}>
-                            <Avatar sx={{ mr: 2, bgcolor: 'rgba(255,255,255,0.2)', width: 50, height: 50 }}>
-                              <EmailIcon sx={{ color: 'white', fontSize: 24 }} />
+                            <Avatar sx={{ mr: 2, bgcolor: '#cfe8ff', width: 50, height: 50 }}>
+                              <EmailIcon sx={{ color: '#07203a', fontSize: 24 }} />
                             </Avatar>
                             <Box>
-                              <Typography variant="h5" sx={{ fontWeight: 700, color: 'white', mb: 0.5 }}>
+                              <Typography variant="h5" sx={{ fontWeight: 700, color: '#07203a', mb: 0.5 }}>
                                 Email
                               </Typography>
-                              <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '1rem' }}>
+                              <Typography variant="body1" sx={{ color: '#0f3b63', fontSize: '1rem' }}>
                                 Nhận thông báo qua email
                               </Typography>
                             </Box>
@@ -421,34 +404,30 @@ const NotificationPreferences = () => {
                       />
                     </Paper>
 
-                    <Paper
-                      elevation={4}
-                      sx={{
-                        p: 4,
-                        borderRadius: 3,
-                        background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                        border: '2px solid rgba(255,255,255,0.2)',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        boxShadow: '0 15px 35px rgba(245, 87, 108, 0.2)',
-                        '&:hover': {
-                          transform: 'translateY(-4px) scale(1.02)',
-                          boxShadow: '0 20px 45px rgba(245, 87, 108, 0.3)',
-                          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
-                        },
-                        '&::before': {
-                          content: '""',
-                          position: 'absolute',
-                          top: -50,
-                          right: -50,
-                          width: 120,
-                          height: 120,
-                          background: 'rgba(255,255,255,0.1)',
-                          borderRadius: '50%',
-                          zIndex: 0
-                        }
-                      }}
-                    >
+                    <Paper elevation={2} sx={{
+                      p: 4,
+                      borderRadius: 3,
+                      background: 'linear-gradient(135deg, #e6f1ff 0%, #dbeffc 100%)',
+                      border: '1px solid rgba(13,71,161,0.06)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      boxShadow: '0 10px 20px rgba(13,71,161,0.035)',
+                      '&:hover': {
+                        transform: 'translateY(-3px) scale(1.005)',
+                        boxShadow: '0 12px 26px rgba(13,71,161,0.05)'
+                      },
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: -36,
+                        right: -36,
+                        width: 92,
+                        height: 92,
+                        background: 'rgba(21,101,192,0.035)',
+                        borderRadius: '50%',
+                        zIndex: 0
+                      }
+                    }}>
                       <FormControlLabel
                         control={
                           <Switch
@@ -456,27 +435,30 @@ const NotificationPreferences = () => {
                             onChange={handleChannelChange('smsNotifications')}
                             sx={{
                               '& .MuiSwitch-switchBase.Mui-checked': {
-                                color: '#ffffff',
+                                color: '#0d47a1',
                                 '& + .MuiSwitch-track': {
-                                  backgroundColor: 'rgba(255,255,255,0.3)'
+                                  backgroundColor: 'rgba(21,101,192,0.18)'
                                 }
                               },
                               '& .MuiSwitch-switchBase': {
-                                color: 'rgba(255,255,255,0.7)'
+                                color: '#0d47a1'
+                              },
+                              '& .MuiSwitch-track': {
+                                backgroundColor: 'rgba(13,71,161,0.08)'
                               }
                             }}
                           />
                         }
                         label={
                           <Box sx={{ display: 'flex', alignItems: 'center', position: 'relative', zIndex: 1 }}>
-                            <Avatar sx={{ mr: 2, bgcolor: 'rgba(255,255,255,0.2)', width: 50, height: 50 }}>
-                              <SmsIcon sx={{ color: 'white', fontSize: 24 }} />
+                            <Avatar sx={{ mr: 2, bgcolor: '#cfe8ff', width: 50, height: 50 }}>
+                              <SmsIcon sx={{ color: '#07203a', fontSize: 24 }} />
                             </Avatar>
                             <Box>
-                              <Typography variant="h5" sx={{ fontWeight: 700, color: 'white', mb: 0.5 }}>
+                              <Typography variant="h5" sx={{ fontWeight: 700, color: '#07203a', mb: 0.5 }}>
                                 SMS
                               </Typography>
-                              <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '1rem' }}>
+                              <Typography variant="body1" sx={{ color: '#0f3b63', fontSize: '1rem' }}>
                                 Nhận thông báo qua tin nhắn
                               </Typography>
                             </Box>
@@ -486,34 +468,30 @@ const NotificationPreferences = () => {
                       />
                     </Paper>
 
-                    <Paper
-                      elevation={4}
-                      sx={{
-                        p: 4,
-                        borderRadius: 3,
-                        background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                        border: '2px solid rgba(255,255,255,0.2)',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        boxShadow: '0 15px 35px rgba(79, 172, 254, 0.2)',
-                        '&:hover': {
-                          transform: 'translateY(-4px) scale(1.02)',
-                          boxShadow: '0 20px 45px rgba(79, 172, 254, 0.3)',
-                          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
-                        },
-                        '&::before': {
-                          content: '""',
-                          position: 'absolute',
-                          top: -50,
-                          right: -50,
-                          width: 120,
-                          height: 120,
-                          background: 'rgba(255,255,255,0.1)',
-                          borderRadius: '50%',
-                          zIndex: 0
-                        }
-                      }}
-                    >
+                    <Paper elevation={2} sx={{
+                      p: 4,
+                      borderRadius: 3,
+                      background: 'linear-gradient(135deg, #e6f1ff 0%, #dbeffc 100%)',
+                      border: '1px solid rgba(13,71,161,0.06)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      boxShadow: '0 10px 20px rgba(13,71,161,0.035)',
+                      '&:hover': {
+                        transform: 'translateY(-3px) scale(1.005)',
+                        boxShadow: '0 12px 26px rgba(13,71,161,0.05)'
+                      },
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: -36,
+                        right: -36,
+                        width: 92,
+                        height: 92,
+                        background: 'rgba(21,101,192,0.035)',
+                        borderRadius: '50%',
+                        zIndex: 0
+                      }
+                    }}>
                       <FormControlLabel
                         control={
                           <Switch
@@ -521,27 +499,30 @@ const NotificationPreferences = () => {
                             onChange={handleChannelChange('inAppNotifications')}
                             sx={{
                               '& .MuiSwitch-switchBase.Mui-checked': {
-                                color: '#ffffff',
+                                color: '#0d47a1',
                                 '& + .MuiSwitch-track': {
-                                  backgroundColor: 'rgba(255,255,255,0.3)'
+                                  backgroundColor: 'rgba(21,101,192,0.18)'
                                 }
                               },
                               '& .MuiSwitch-switchBase': {
-                                color: 'rgba(255,255,255,0.7)'
+                                color: '#0d47a1'
+                              },
+                              '& .MuiSwitch-track': {
+                                backgroundColor: 'rgba(13,71,161,0.08)'
                               }
                             }}
                           />
                         }
                         label={
                           <Box sx={{ display: 'flex', alignItems: 'center', position: 'relative', zIndex: 1 }}>
-                            <Avatar sx={{ mr: 2, bgcolor: 'rgba(255,255,255,0.2)', width: 50, height: 50 }}>
-                              <NotificationsIcon sx={{ color: 'white', fontSize: 24 }} />
+                            <Avatar sx={{ mr: 2, bgcolor: '#cfe8ff', width: 50, height: 50 }}>
+                              <NotificationsIcon sx={{ color: '#07203a', fontSize: 24 }} />
                             </Avatar>
                             <Box>
-                              <Typography variant="h5" sx={{ fontWeight: 700, color: 'white', mb: 0.5 }}>
+                              <Typography variant="h5" sx={{ fontWeight: 700, color: '#07203a', mb: 0.5 }}>
                                 Trong ứng dụng
                               </Typography>
-                              <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '1rem' }}>
+                              <Typography variant="body1" sx={{ color: '#0f3b63', fontSize: '1rem' }}>
                                 Hiển thị thông báo trong ứng dụng
                               </Typography>
                             </Box>
@@ -605,41 +586,31 @@ const NotificationPreferences = () => {
 
                 <FormControl component="fieldset" sx={{ width: '100%' }}>
                   <FormGroup sx={{ gap: 3 }}>
-                    {notificationTypeOptions.map((option, index) => {
-                      const gradients = [
-                        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                        'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                        'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-                        'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
-                      ]
-                      const colors = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a']
-
+                    {notificationTypeOptions.map((option) => {
                       return (
                         <Paper
                           key={option.key}
-                          elevation={4}
+                          elevation={2}
                           sx={{
                             p: 4,
                             borderRadius: 3,
-                            background: gradients[index % gradients.length],
-                            border: '2px solid rgba(255,255,255,0.2)',
+                            background: 'linear-gradient(135deg, #e6f1ff 0%, #dbeffc 100%)',
+                            border: '1px solid rgba(13,71,161,0.06)',
                             position: 'relative',
                             overflow: 'hidden',
-                            boxShadow: `0 15px 35px ${colors[index % colors.length]}33`,
+                            boxShadow: '0 10px 20px rgba(13,71,161,0.035)',
                             '&:hover': {
-                              transform: 'translateY(-4px) scale(1.02)',
-                              boxShadow: `0 20px 45px ${colors[index % colors.length]}4D`,
-                              transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+                              transform: 'translateY(-3px) scale(1.005)',
+                              boxShadow: '0 12px 26px rgba(13,71,161,0.05)'
                             },
                             '&::before': {
                               content: '""',
                               position: 'absolute',
-                              top: -50,
-                              right: -50,
-                              width: 120,
-                              height: 120,
-                              background: 'rgba(255,255,255,0.1)',
+                              top: -36,
+                              right: -36,
+                              width: 92,
+                              height: 92,
+                              background: 'rgba(21,101,192,0.035)',
                               borderRadius: '50%',
                               zIndex: 0
                             }
@@ -652,28 +623,24 @@ const NotificationPreferences = () => {
                                 onChange={handleTypeChange(option.key)}
                                 sx={{
                                   '&.Mui-checked': {
-                                    color: '#ffffff',
-                                    '& .MuiSvgIcon-root': {
-                                      backgroundColor: 'rgba(255,255,255,0.2)',
-                                      borderRadius: '50%'
-                                    }
+                                    color: '#0d47a1'
                                   },
                                   '& .MuiSvgIcon-root': {
-                                    color: 'rgba(255,255,255,0.8)'
+                                    color: '#0d47a1'
                                   }
                                 }}
                               />
                             }
                             label={
                               <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', position: 'relative', zIndex: 1 }}>
-                                <Avatar sx={{ mr: 3, bgcolor: 'rgba(255,255,255,0.2)', width: 50, height: 50 }}>
+                                <Avatar sx={{ mr: 3, bgcolor: '#cfe8ff', width: 50, height: 50 }}>
                                   {option.icon}
                                 </Avatar>
                                 <Box sx={{ flex: 1 }}>
-                                  <Typography variant="h5" sx={{ fontWeight: 700, color: 'white', mb: 0.5 }}>
+                                  <Typography variant="h5" sx={{ fontWeight: 700, color: '#07203a', mb: 0.5 }}>
                                     {option.label}
                                   </Typography>
-                                  <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '1rem' }}>
+                                  <Typography variant="body1" sx={{ color: '#0f3b63', fontSize: '1rem' }}>
                                     {option.description}
                                   </Typography>
                                 </Box>
