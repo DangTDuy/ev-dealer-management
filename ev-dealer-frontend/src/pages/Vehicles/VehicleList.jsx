@@ -46,6 +46,7 @@ import {
 } from '@mui/icons-material'
 
 import vehicleService from '../../services/vehicleService'
+import resolveImagePath from '../../utils/imageUtils'
 
 const VehicleList = () => {
   const navigate = useNavigate()
@@ -363,7 +364,7 @@ const VehicleList = () => {
               <CardMedia
                 component="img"
                 height="240"
-                image={vehicle.images?.[0] || '/placeholder-car.jpg'}
+                image={resolveImagePath(vehicle.images?.[0] || '/placeholder-car.jpg')}
                 alt={vehicle.model}
                 sx={{
                   objectFit: 'cover',
@@ -406,7 +407,7 @@ const VehicleList = () => {
                   position: 'absolute',
                   top: 12,
                   left: 12,
-                  bgcolor: 'rgba(255,255,255,0.95)',
+                  bgcolor: 'rgba(18, 180, 221, 0.95)',
                   backdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255,255,255,0.2)',
                   fontWeight: 'bold',
