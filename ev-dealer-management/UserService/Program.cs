@@ -65,6 +65,30 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<UserDbContext>();
     db.Database.Migrate();
+
+    // Check command line args for role update
+    var cmdArgs = Environment.GetCommandLineArgs();
+    if (cmdArgs.Length >= 4 && cmdArgs[1] == "--update-role")
+    {
+        var username = cmdArgs[2];
+        var newRole = cmdArgs[3];
+
+        var user = db.Users.FirstOrDefault(u => u.Username == username);
+        if (user != null)
+        {
+            user.Role = newRole;
+            user.UpdatedAt = DateTime.UtcNow;
+            db.SaveChanges();
+            Console.WriteLine($"Updated user {username} role to {newRole}");
+        }
+        else
+        {
+            Console.WriteLine($"User {username} not found");
+        }
+
+        // Exit after update
+        Environment.Exit(0);
+    }
 }
 
 // Configure middleware
