@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using System.Text;
+using MailKit.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,6 +60,7 @@ builder.Services.AddAuthentication(options =>
 
 // Add minimal services
 builder.Services.AddScoped<IUserService, UserServiceImpl>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 var app = builder.Build();
 
@@ -113,6 +117,20 @@ app.MapPost("/api/auth/login", async (LoginRequest req, IUserService userService
 {
     var result = await userService.LoginAsync(req);
     return result.Success ? Results.Ok(result) : Results.Unauthorized();
+});
+
+app.MapPost("/api/auth/forgot-password", async ([FromBody] ForgotPasswordRequest req, IUserService userService) =>
+{
+    Console.WriteLine($"[DEBUG] Endpoint /api/auth/forgot-password called");
+    var result = await userService.ForgotPasswordAsync(req);
+    Console.WriteLine($"[DEBUG] Result: {result.Success}, {result.Message}");
+    return Results.Ok(result);
+});
+
+app.MapPost("/api/auth/reset-password", async ([FromBody] ResetPasswordRequest req, IUserService userService) =>
+{
+    var result = await userService.ResetPasswordAsync(req);
+    return result.Success ? Results.Ok(result) : Results.BadRequest(result);
 });
 
 app.MapGet("/api/users/me", [Microsoft.AspNetCore.Authorization.Authorize] async (System.Security.Claims.ClaimsPrincipal user, IUserService userService) =>
@@ -179,6 +197,8 @@ app.Run();
 // DTOs and minimal implementations
 public record RegisterRequest(string Username, string Email, string FullName, string Password, string Role = "DealerStaff");
 public record LoginRequest(string Username, string Password);
+public record ForgotPasswordRequest([property: JsonPropertyName("email")] string Email);
+public record ResetPasswordRequest([property: JsonPropertyName("token")] string Token, [property: JsonPropertyName("newPassword")] string NewPassword);
 public record UserDto(int Id, string Username, string Email, string FullName, string Role, bool IsActive, DateTime CreatedAt, DateTime UpdatedAt);
 public record UpdateUserRequest(string Email, string FullName);
 public record ChangeRoleRequest(string Role);
@@ -186,12 +206,14 @@ public record ChangeRoleRequest(string Role);
 public record AuthResult(bool Success, string Message, string? Token = null, int? UserId = null);
 public record UserListResult(bool Success, string Message, IEnumerable<UserDto>? Users = null);
 public record UserResult(bool Success, string Message, UserDto? User = null);
+public record PasswordResetResult(bool Success, string Message);
 
 // EF Core DbContext and entities
 public class UserDbContext : DbContext
 {
     public UserDbContext(DbContextOptions<UserDbContext> options) : base(options) { }
     public DbSet<User> Users => Set<User>();
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -199,6 +221,18 @@ public class UserDbContext : DbContext
         {
             eb.HasKey(u => u.Id);
             eb.HasIndex(u => u.Username).IsUnique();
+            eb.HasIndex(u => u.Email);
+        });
+
+        modelBuilder.Entity<PasswordResetToken>(eb =>
+        {
+            eb.HasKey(t => t.Id);
+            eb.HasIndex(t => t.Token);
+            eb.HasIndex(t => t.UserId);
+            eb.HasOne<User>()
+              .WithMany()
+              .HasForeignKey(t => t.UserId)
+              .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }
@@ -216,6 +250,17 @@ public class User
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
 
+public class PasswordResetToken
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public string Token { get; set; } = null!;
+    public DateTime ExpiresAt { get; set; }
+    public bool IsUsed { get; set; } = false;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UsedAt { get; set; }
+}
+
 public interface IUserService
 {
     Task<AuthResult> RegisterAsync(RegisterRequest request);
@@ -225,16 +270,21 @@ public interface IUserService
     Task<UserResult> UpdateUserAsync(int id, UpdateUserRequest request, string currentUserRole, int currentUserId);
     Task<UserResult> DeleteUserAsync(int id, string currentUserRole);
     Task<UserResult> ChangeUserRoleAsync(int id, ChangeRoleRequest request, string currentUserRole);
+    Task<PasswordResetResult> ForgotPasswordAsync(ForgotPasswordRequest request);
+    Task<PasswordResetResult> ResetPasswordAsync(ResetPasswordRequest request);
 }
 
 public class UserServiceImpl : IUserService
 {
     private readonly UserDbContext _db;
     private readonly IConfiguration _cfg;
-    public UserServiceImpl(UserDbContext db, IConfiguration cfg)
+    private readonly IEmailService _emailService;
+
+    public UserServiceImpl(UserDbContext db, IConfiguration cfg, IEmailService emailService)
     {
         _db = db;
         _cfg = cfg;
+        _emailService = emailService;
     }
 
     public async Task<AuthResult> RegisterAsync(RegisterRequest request)
@@ -388,5 +438,231 @@ public class UserServiceImpl : IUserService
 
         var userDto = new UserDto(user.Id, user.Username, user.Email, user.FullName, user.Role, user.IsActive, user.CreatedAt, user.UpdatedAt);
         return new UserResult(true, "User role updated successfully", userDto);
+    }
+
+    public async Task<PasswordResetResult> ForgotPasswordAsync(ForgotPasswordRequest request)
+    {
+        Console.WriteLine($"[DEBUG] ForgotPasswordAsync called with email: {request.Email}");
+
+        if (string.IsNullOrWhiteSpace(request.Email))
+            return new PasswordResetResult(false, "Email is required");
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.Email && u.IsActive);
+
+        Console.WriteLine($"[DEBUG] User found: {user != null}");
+
+        // Always return success to prevent email enumeration attacks
+        if (user == null)
+        {
+            Console.WriteLine("[DEBUG] User is null, returning early");
+            return new PasswordResetResult(true, "If the email exists, a password reset link has been sent");
+        }
+
+        // Generate secure random token
+        var tokenBytes = new byte[32];
+        using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
+        {
+            rng.GetBytes(tokenBytes);
+        }
+        var token = Convert.ToBase64String(tokenBytes).Replace("+", "-").Replace("/", "_").Replace("=", "");
+
+        Console.WriteLine($"[DEV-DEBUG] Generated Password Reset Token: {token}");
+
+        // Invalidate any existing tokens for this user
+        var existingTokens = await _db.PasswordResetTokens
+            .Where(t => t.UserId == user.Id && !t.IsUsed && t.ExpiresAt > DateTime.UtcNow)
+            .ToListAsync();
+
+        foreach (var t in existingTokens)
+        {
+            t.IsUsed = true;
+            t.UsedAt = DateTime.UtcNow;
+        }
+
+        // Create new reset token (expires in 1 hour)
+        var resetToken = new PasswordResetToken
+        {
+            UserId = user.Id,
+            Token = token,
+            ExpiresAt = DateTime.UtcNow.AddHours(1),
+            IsUsed = false,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _db.PasswordResetTokens.Add(resetToken);
+        await _db.SaveChangesAsync();
+
+        // Send email with reset link
+        var frontendUrl = _cfg.GetValue<string>("FrontendUrl") ?? "http://localhost:5173";
+        var resetLink = $"{frontendUrl}/reset-password?token={token}";
+
+        Console.WriteLine($"[DEBUG] About to send email to {user.Email}");
+        Console.WriteLine($"[DEBUG] Reset link: {resetLink}");
+
+        try
+        {
+            await _emailService.SendPasswordResetEmailAsync(user.Email, user.FullName, resetLink);
+            Console.WriteLine("[DEBUG] Email service called successfully");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] Email service failed: {ex.Message}");
+        }
+
+        return new PasswordResetResult(true, "If the email exists, a password reset link has been sent");
+    }
+
+    public async Task<PasswordResetResult> ResetPasswordAsync(ResetPasswordRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.NewPassword))
+            return new PasswordResetResult(false, "Token and new password are required");
+
+        if (request.NewPassword.Length < 6)
+            return new PasswordResetResult(false, "Password must be at least 6 characters");
+
+        // Find valid token
+        var resetToken = await _db.PasswordResetTokens
+            .FirstOrDefaultAsync(t => t.Token == request.Token && !t.IsUsed && t.ExpiresAt > DateTime.UtcNow);
+
+        if (resetToken == null)
+            return new PasswordResetResult(false, "Invalid or expired reset token");
+
+        // Get user
+        var user = await _db.Users.FindAsync(resetToken.UserId);
+        if (user == null || !user.IsActive)
+            return new PasswordResetResult(false, "User not found");
+
+        // Update password
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        user.UpdatedAt = DateTime.UtcNow;
+
+        // Mark token as used
+        resetToken.IsUsed = true;
+        resetToken.UsedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+
+        return new PasswordResetResult(true, "Password has been reset successfully");
+    }
+}
+
+// Email Service Interface and Implementation
+public interface IEmailService
+{
+    Task SendPasswordResetEmailAsync(string toEmail, string userName, string resetLink);
+}
+
+public class EmailService : IEmailService
+{
+    private readonly IConfiguration _cfg;
+    private readonly ILogger<EmailService> _logger;
+
+    public EmailService(IConfiguration cfg, ILogger<EmailService> logger)
+    {
+        _cfg = cfg;
+        _logger = logger;
+    }
+
+    public async Task SendPasswordResetEmailAsync(string toEmail, string userName, string resetLink)
+    {
+        var emailSettings = _cfg.GetSection("EmailSettings");
+        var smtpHost = emailSettings.GetValue<string>("SmtpHost");
+        var smtpPort = emailSettings.GetValue<int>("SmtpPort");
+        var smtpUser = emailSettings.GetValue<string>("SmtpUser");
+        var smtpPassword = emailSettings.GetValue<string>("SmtpPassword");
+        var fromEmail = emailSettings.GetValue<string>("FromEmail") ?? smtpUser;
+        var fromName = emailSettings.GetValue<string>("FromName") ?? "EV Dealer Management";
+        var enableSsl = emailSettings.GetValue<bool>("EnableSsl", true);
+
+        // If SMTP not configured, log instead of sending
+        if (string.IsNullOrEmpty(smtpHost) || string.IsNullOrEmpty(smtpUser))
+        {
+            Console.WriteLine("\n=== PASSWORD RESET EMAIL ===");
+            Console.WriteLine($"To: {toEmail}");
+            Console.WriteLine($"Subject: Password Reset Request");
+            Console.WriteLine($"Reset Link: {resetLink}");
+            Console.WriteLine("============================\n");
+            _logger.LogInformation("SMTP not configured. Password reset link logged to console for {Email}", toEmail);
+            return;
+        }
+
+        try
+        {
+            using var client = new MailKit.Net.Smtp.SmtpClient();
+            await client.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.StartTls);
+            await client.AuthenticateAsync(smtpUser, smtpPassword);
+
+            var message = new MimeKit.MimeMessage();
+            message.From.Add(new MimeKit.MailboxAddress(fromName, fromEmail));
+            message.To.Add(new MimeKit.MailboxAddress(userName, toEmail));
+            message.Subject = "Reset Your Password - EV Dealer Management";
+
+            var bodyBuilder = new MimeKit.BodyBuilder
+            {
+                HtmlBody = $@"
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <style>
+                            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                            .header {{ background-color: #4CAF50; color: white; padding: 20px; text-align: center; }}
+                            .content {{ background-color: #f9f9f9; padding: 30px; border-radius: 5px; margin-top: 20px; }}
+                            .button {{ display: inline-block; padding: 12px 30px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
+                            .footer {{ text-align: center; margin-top: 30px; font-size: 12px; color: #666; }}
+                        </style>
+                    </head>
+                    <body>
+                        <div class='container'>
+                            <div class='header'>
+                                <h1>Password Reset Request</h1>
+                            </div>
+                            <div class='content'>
+                                <p>Hello {userName},</p>
+                                <p>We received a request to reset your password for your EV Dealer Management account.</p>
+                                <p>Click the button below to reset your password:</p>
+                                <p style='text-align: center;'>
+                                    <a href='{resetLink}' class='button'>Reset Password</a>
+                                </p>
+                                <p>Or copy and paste this link into your browser:</p>
+                                <p style='word-break: break-all; color: #666;'>{resetLink}</p>
+                                <p><strong>This link will expire in 1 hour.</strong></p>
+                                <p>If you didn't request a password reset, please ignore this email or contact support if you have concerns.</p>
+                            </div>
+                            <div class='footer'>
+                                <p>&copy; 2024 EV Dealer Management System. All rights reserved.</p>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                ",
+                TextBody = $@"
+Hello {userName},
+
+We received a request to reset your password for your EV Dealer Management account.
+
+Click the link below to reset your password:
+{resetLink}
+
+This link will expire in 1 hour.
+
+If you didn't request a password reset, please ignore this email or contact support if you have concerns.
+
+© 2024 EV Dealer Management System. All rights reserved.
+                "
+            };
+
+            message.Body = bodyBuilder.ToMessageBody();
+
+            await client.SendAsync(message);
+            await client.DisconnectAsync(true);
+
+            _logger.LogInformation("Password reset email sent successfully to {Email}", toEmail);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send password reset email to {Email}", toEmail);
+            throw new Exception("Failed to send email. Please try again later.");
+        }
     }
 }

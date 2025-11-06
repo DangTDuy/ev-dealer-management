@@ -150,7 +150,9 @@ C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\UserService\
 C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\UserService\bin\Debug\net8.0\UserService.dll
 C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\UserService\bin\Debug\net8.0\UserService.pdb
 C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\UserService\bin\Debug\net8.0\BCrypt.Net-Next.dll
+C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\UserService\bin\Debug\net8.0\BouncyCastle.Cryptography.dll
 C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\UserService\bin\Debug\net8.0\Humanizer.dll
+C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\UserService\bin\Debug\net8.0\MailKit.dll
 C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\UserService\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\UserService\bin\Debug\net8.0\Microsoft.AspNetCore.OpenApi.dll
 C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\UserService\bin\Debug\net8.0\Microsoft.Bcl.AsyncInterfaces.dll
@@ -178,6 +180,7 @@ C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\UserService\
 C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\UserService\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
 C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\UserService\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll
 C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\UserService\bin\Debug\net8.0\Microsoft.OpenApi.dll
+C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\UserService\bin\Debug\net8.0\MimeKit.dll
 C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\UserService\bin\Debug\net8.0\Mono.TextTemplating.dll
 C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\UserService\bin\Debug\net8.0\SQLitePCLRaw.batteries_v2.dll
 C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\UserService\bin\Debug\net8.0\SQLitePCLRaw.core.dll
