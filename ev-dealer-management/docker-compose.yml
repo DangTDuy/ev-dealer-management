@@ -5,7 +5,7 @@ services:
     image: evdealer/userservice:local
     container_name: evm_userservice
     ports:
-      - "5001:80"
+      - "5223:80"
     volumes:
       - ./UserService/data:/app/data
     environment:
@@ -14,4 +14,12 @@ services:
       - Jwt__Key=ReplaceThisWithASecretKeyForDevelopment
       - Jwt__Issuer=evm.local
       - Jwt__Audience=evm.local
+      - FrontendUrl=http://localhost:5173
+      - EmailSettings__SmtpHost=smtp.gmail.com
+      - EmailSettings__SmtpPort=587
+      - EmailSettings__SmtpUser=bata79892@gmail.com
+      - EmailSettings__SmtpPassword=rgiksegnoxayweeo
+      - EmailSettings__FromEmail=bata79892@gmail.com
+      - EmailSettings__FromName=EV Dealer
+      - EmailSettings__EnableSsl=true
     restart: unless-stopped
