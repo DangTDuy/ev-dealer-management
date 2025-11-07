@@ -29,6 +29,7 @@ import {
   Cell,
 } from "recharts";
 import { PageHeader, ModernCard } from "../../components/common";
+import * as reportService from "../../services/reportService";
 
 // Mock data
 const mockRegionalData = [
@@ -42,23 +43,53 @@ const COLORS = ["#8884d8", "#82ca9d", "#ffc658"];
 const Reports = () => {
   const [reportType, setReportType] = useState("sales");
   const [loading, setLoading] = useState(false);
+  const [regionalData, setRegionalData] = useState(mockRegionalData);
+  const [summary, setSummary] = useState(null);
+  const [topVehicles, setTopVehicles] = useState([]);
 
   // derived values for donut chart (sales share)
   const pieData = useMemo(
-    () => mockRegionalData.map((d) => ({ name: d.region, value: d.sales })),
-    []
+    () => regionalData.map((d) => ({ name: d.region, value: d.sales })),
+    [regionalData]
   );
 
-  const handleGenerateReport = () => {
+  const handleGenerateReport = async () => {
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const [summaryRes, regionsRes, topRes] = await Promise.all([
+        reportService.getSummary(),
+        reportService.getSalesByRegion(),
+        reportService.getTopVehicles({ limit: 5 }),
+      ]);
+      if (summaryRes) setSummary(summaryRes);
+      if (regionsRes) setRegionalData(regionsRes);
+      if (topRes) setTopVehicles(topRes);
+    } catch (err) {
+      console.error("Error generating report:", err);
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
-  const handleExport = (type) => {
-    // placeholder - integrate real export logic later
-    alert(`Exporting ${type}...`);
+  const handleExport = async (type) => {
+    setLoading(true);
+    try {
+      const blob = await reportService.exportReport({ type });
+      // create a download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      // prefer csv filename returned by backend — fallback
+      a.download = `report_${type}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Export failed:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -164,7 +195,7 @@ const Reports = () => {
           <Grid item xs={12} md={3}>
             <ModernCard
               title="Tổng doanh số"
-              value="1,350"
+              value={summary ? summary.totalSales : "1,350"}
               subtitle="Số lượng xe"
               icon={<ChartIcon />}
               color="primary"
@@ -173,7 +204,11 @@ const Reports = () => {
           <Grid item xs={12} md={3}>
             <ModernCard
               title="Doanh thu"
-              value="36.5B VNĐ"
+              value={
+                summary
+                  ? `${(summary.totalRevenue / 1000000000).toFixed(1)}B VNĐ`
+                  : "36.5B VNĐ"
+              }
               subtitle="Tổng doanh thu"
               icon={<ChartIcon />}
               color="success"
@@ -182,7 +217,7 @@ const Reports = () => {
           <Grid item xs={12} md={3}>
             <ModernCard
               title="Đại lý hoạt động"
-              value="24/30"
+              value={summary ? `${summary.activeDealers}` : "24/30"}
               subtitle="Số lượng đại lý"
               icon={<ChartIcon />}
               color="warning"
@@ -191,7 +226,7 @@ const Reports = () => {
           <Grid item xs={12} md={3}>
             <ModernCard
               title="Tỷ lệ chuyển đổi"
-              value="5.2%"
+              value={summary ? `${summary.conversionRate}%` : "5.2%"}
               subtitle="Trung bình"
               icon={<ChartIcon />}
               color="info"
@@ -211,7 +246,7 @@ const Reports = () => {
               </Typography>
               <ResponsiveContainer width="100%" height={360}>
                 <BarChart
-                  data={mockRegionalData}
+                  data={regionalData}
                   margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
@@ -263,7 +298,7 @@ const Reports = () => {
                   flexWrap: "wrap",
                 }}
               >
-                {mockRegionalData.map((d, i) => (
+                {regionalData.map((d, i) => (
                   <Box
                     key={d.region}
                     sx={{ display: "flex", alignItems: "center", gap: 1 }}
