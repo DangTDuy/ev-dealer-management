@@ -23,3 +23,16 @@ services:
       - EmailSettings__FromName=EV Dealer
       - EmailSettings__EnableSsl=true
     restart: unless-stopped
+
+  vehicleservice:
+    build: ./VehicleService
+    image: evdealer/vehicleservice:local
+    container_name: evm_vehicleservice
+    ports:
+      - "5224:80"
+    volumes:
+      - ./VehicleService/data:/app/data
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/vehicles.db
+    restart: unless-stopped

@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj": {}
+    "D:\\Nam_3\\TestXDPM\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj": {
+    "D:\\Nam_3\\TestXDPM\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj",
+        "projectUniqueName": "D:\\Nam_3\\TestXDPM\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj",
         "projectName": "VehicleService",
-        "projectPath": "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj",
-        "packagesPath": "C:\\Users\\Lenovo\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\VehicleService\\obj\\",
+        "projectPath": "D:\\Nam_3\\TestXDPM\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj",
+        "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+        "outputPath": "D:\\Nam_3\\TestXDPM\\ev-dealer-management\\ev-dealer-management\\VehicleService\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -45,11 +45,25 @@
           "dependencies": {
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
-              "version": "[8.0.20, )"
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.Sqlite": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.Tools": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.0, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
-              "version": "[6.6.2, )"
+              "version": "[6.4.0, )"
             }
           },
           "imports": [

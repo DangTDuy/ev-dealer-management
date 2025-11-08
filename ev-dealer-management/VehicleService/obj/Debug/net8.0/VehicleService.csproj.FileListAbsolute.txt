@@ -32,3 +32,14 @@ C:\Users\Trung\Downloads\XD\ev-dealer-management\VehicleService\obj\Debug\net8.0
 C:\Users\Trung\Downloads\XD\ev-dealer-management\VehicleService\obj\Debug\net8.0\VehicleService.pdb
 C:\Users\Trung\Downloads\XD\ev-dealer-management\VehicleService\obj\Debug\net8.0\VehicleService.genruntimeconfig.cache
 C:\Users\Trung\Downloads\XD\ev-dealer-management\VehicleService\obj\Debug\net8.0\ref\VehicleService.dll
+D:\Nam_3\TestXDPM\ev-dealer-management\ev-dealer-management\VehicleService\obj\Debug\net8.0\VehicleService.csproj.AssemblyReference.cache
+D:\Nam_3\TestXDPM\ev-dealer-management\ev-dealer-management\VehicleService\obj\Debug\net8.0\VehicleService.GeneratedMSBuildEditorConfig.editorconfig
+D:\Nam_3\TestXDPM\ev-dealer-management\ev-dealer-management\VehicleService\obj\Debug\net8.0\VehicleService.AssemblyInfoInputs.cache
+D:\Nam_3\TestXDPM\ev-dealer-management\ev-dealer-management\VehicleService\obj\Debug\net8.0\VehicleService.AssemblyInfo.cs
+D:\Nam_3\TestXDPM\ev-dealer-management\ev-dealer-management\VehicleService\obj\Debug\net8.0\VehicleService.csproj.CoreCompileInputs.cache
+D:\Nam_3\TestXDPM\ev-dealer-management\ev-dealer-management\VehicleService\obj\Debug\net8.0\VehicleService.MvcApplicationPartsAssemblyInfo.cs
+D:\Nam_3\TestXDPM\ev-dealer-management\ev-dealer-management\VehicleService\obj\Debug\net8.0\VehicleService.MvcApplicationPartsAssemblyInfo.cache
+D:\Nam_3\TestXDPM\ev-dealer-management\ev-dealer-management\VehicleService\obj\Debug\net8.0\VehicleService.sourcelink.json
+D:\Nam_3\TestXDPM\ev-dealer-management\ev-dealer-management\VehicleService\obj\Debug\net8.0\VehicleService.dll
+D:\Nam_3\TestXDPM\ev-dealer-management\ev-dealer-management\VehicleService\obj\Debug\net8.0\refint\VehicleService.dll
+D:\Nam_3\TestXDPM\ev-dealer-management\ev-dealer-management\VehicleService\obj\Debug\net8.0\VehicleService.pdb
