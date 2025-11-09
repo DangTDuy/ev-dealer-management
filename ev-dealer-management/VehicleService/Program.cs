@@ -9,12 +9,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add controllers
+builder.Services.AddControllers();
+
 // Add DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add services
-builder.Services.AddScoped<IVehicleService, VehicleService>();
+builder.Services.AddScoped<IVehicleService, VehicleService.Services.VehicleService>();
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -40,6 +43,9 @@ app.UseHttpsRedirection();
 
 // Use CORS
 app.UseCors("AllowAll");
+
+// Map controllers
+app.MapControllers();
 
 // Ensure database is created and migrated
 using (var scope = app.Services.CreateScope())
