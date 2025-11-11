@@ -116,7 +116,7 @@ app.MapPost("/api/auth/register", async (RegisterRequest req, IUserService userS
 app.MapPost("/api/auth/login", async (LoginRequest req, IUserService userService) =>
 {
     var result = await userService.LoginAsync(req);
-    return result.Success ? Results.Ok(result) : Results.Unauthorized();
+    return result.Success ? Results.Ok(result) : Results.BadRequest(result);
 });
 
 app.MapPost("/api/auth/forgot-password", async ([FromBody] ForgotPasswordRequest req, IUserService userService) =>
@@ -319,10 +319,10 @@ public class UserServiceImpl : IUserService
     public async Task<AuthResult> LoginAsync(LoginRequest request)
     {
         var user = await _db.Users.SingleOrDefaultAsync(u => u.Username == request.Username);
-        if (user == null) return new AuthResult(false, "Invalid credentials");
+        if (user == null) return new AuthResult(false, "Tên đăng nhập hoặc mật khẩu không đúng.");
 
         if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
-            return new AuthResult(false, "Invalid credentials");
+            return new AuthResult(false, "Tên đăng nhập hoặc mật khẩu không đúng.");
 
         // create token
         var jwt = _cfg.GetSection("Jwt");

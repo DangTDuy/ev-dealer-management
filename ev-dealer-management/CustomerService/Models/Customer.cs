@@ -1,0 +1,36 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace CustomerService.Models;
+
+public class Customer
+{
+    public int Id { get; set; }
+
+    [Required]
+    [StringLength(100)]
+    public string Name { get; set; } = string.Empty;
+
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; } = string.Empty;
+
+    [Phone]
+    public string? Phone { get; set; }
+
+    public string? Address { get; set; }
+
+    public string? Status { get; set; } // e.g., "active", "inactive", "pending"
+
+    public DateTime JoinDate { get; set; } = DateTime.UtcNow;
+
+    public ICollection<Purchase> Purchases { get; set; } = new List<Purchase>();
+}
+
+public class Purchase
+{
+    public int Id { get; set; }
+    public int CustomerId { get; set; }
+    public string Vehicle { get; set; } = string.Empty;
+    public decimal Amount { get; set; }
+    public DateTime PurchaseDate { get; set; }
+}
