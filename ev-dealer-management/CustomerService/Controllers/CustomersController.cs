@@ -1,34 +1,26 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CustomerService.Data;
 using CustomerService.Models;
-using CustomerService.Services;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using CustomerService.DTOs;
 
 namespace CustomerService.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class CustomersController : ControllerBase
     {
         private readonly CustomerDbContext _context;
-        private readonly IMessageProducer _messageProducer;
-        private readonly ILogger<CustomersController> _logger;
 
-        public CustomersController(CustomerDbContext context, IMessageProducer messageProducer, ILogger<CustomersController> logger)
+        public CustomersController(CustomerDbContext context)
         {
             _context = context;
-            _messageProducer = messageProducer;
-            _logger = logger;
         }
 
         // GET: api/Customers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Customer>>> GetCustomers()
         {
-            _logger.LogInformation("Fetching all customers.");
             return await _context.Customers.ToListAsync();
         }
 
@@ -36,12 +28,10 @@ namespace CustomerService.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Customer>> GetCustomer(int id)
         {
-            _logger.LogInformation("Fetching customer with ID: {CustomerId}", id);
             var customer = await _context.Customers.FindAsync(id);
 
             if (customer == null)
             {
-                _logger.LogWarning("Customer with ID: {CustomerId} not found.", id);
                 return NotFound();
             }
 
@@ -49,43 +39,50 @@ namespace CustomerService.Controllers
         }
 
         // POST: api/Customers
-        [Authorize(Roles = "DealerStaff,DealerManager")]
         [HttpPost]
-        public async Task<ActionResult<Customer>> PostCustomer(Customer customer)
+        public async Task<ActionResult<Customer>> PostCustomer(CreateCustomerDto createCustomerDto)
         {
-            _logger.LogInformation("Creating new customer: {CustomerName}", customer.Name);
+            var customer = new Customer
+            {
+                Name = createCustomerDto.Name,
+                Email = createCustomerDto.Email,
+                Phone = createCustomerDto.Phone,
+                Address = createCustomerDto.Address,
+                Status = createCustomerDto.Status,
+                JoinDate = DateTime.UtcNow
+            };
+
             _context.Customers.Add(customer);
             await _context.SaveChangesAsync();
-
-            _messageProducer.PublishMessage(customer, "customer.created");
-            _logger.LogInformation("Customer created and message published for customer ID: {CustomerId}", customer.Id);
 
             return CreatedAtAction(nameof(GetCustomer), new { id = customer.Id }, customer);
         }
 
         // PUT: api/Customers/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCustomer(int id, Customer customer)
+        public async Task<IActionResult> PutCustomer(int id, UpdateCustomerDto updateCustomerDto)
         {
-            if (id != customer.Id)
+            var customer = await _context.Customers.FindAsync(id);
+            if (customer == null)
             {
-                _logger.LogWarning("Mismatched customer ID in PUT request. Route ID: {RouteId}, Customer ID: {CustomerId}", id, customer.Id);
-                return BadRequest();
+                return NotFound();
             }
 
-            _context.Entry(customer).State = EntityState.Modified;
+            customer.Name = updateCustomerDto.Name;
+            customer.Email = updateCustomerDto.Email;
+            customer.Phone = updateCustomerDto.Phone;
+            customer.Address = updateCustomerDto.Address;
+            customer.Status = updateCustomerDto.Status;
+            customer.UpdatedAt = DateTime.UtcNow;
 
             try
             {
                 await _context.SaveChangesAsync();
-                _messageProducer.PublishMessage(customer, "customer.updated");
-                _logger.LogInformation("Customer with ID: {CustomerId} updated and message published.", customer.Id);
             }
             catch (DbUpdateConcurrencyException)
             {
                 if (!CustomerExists(id))
                 {
-                    _logger.LogWarning("Customer with ID: {CustomerId} not found during update.", id);
                     return NotFound();
                 }
                 else
@@ -101,19 +98,14 @@ namespace CustomerService.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCustomer(int id)
         {
-            _logger.LogInformation("Deleting customer with ID: {CustomerId}", id);
             var customer = await _context.Customers.FindAsync(id);
             if (customer == null)
             {
-                _logger.LogWarning("Customer with ID: {CustomerId} not found for deletion.", id);
                 return NotFound();
             }
 
             _context.Customers.Remove(customer);
             await _context.SaveChangesAsync();
-
-            _messageProducer.PublishMessage(new { CustomerId = id, EventType = "Deleted" }, "customer.deleted");
-            _logger.LogInformation("Customer with ID: {CustomerId} deleted and message published.", id);
 
             return NoContent();
         }

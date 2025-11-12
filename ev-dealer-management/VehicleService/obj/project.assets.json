@@ -3013,19 +3013,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Admin\\.nuget\\packages\\": {}
+    "C:\\Users\\Lenovo\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Nam_3\\TestXDPM\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj",
+      "projectUniqueName": "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj",
       "projectName": "VehicleService",
-      "projectPath": "D:\\Nam_3\\TestXDPM\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj",
-      "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
-      "outputPath": "D:\\Nam_3\\TestXDPM\\ev-dealer-management\\ev-dealer-management\\VehicleService\\obj\\",
+      "projectPath": "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj",
+      "packagesPath": "C:\\Users\\Lenovo\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\VehicleService\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\Lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"

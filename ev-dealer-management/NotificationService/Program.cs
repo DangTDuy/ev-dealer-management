@@ -5,6 +5,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Register RabbitMQ Consumer Service
+builder.Services.AddSingleton<NotificationService.Services.IMessageConsumer, NotificationService.Services.RabbitMQConsumerService>();
+builder.Services.AddHostedService<NotificationService.Services.RabbitMQConsumerHostedService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

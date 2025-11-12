@@ -22,6 +22,7 @@ public class Customer
     public string? Status { get; set; } // e.g., "active", "inactive", "pending"
 
     public DateTime JoinDate { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; } // Track the last update time
 
     public ICollection<Purchase> Purchases { get; set; } = new List<Purchase>();
 }

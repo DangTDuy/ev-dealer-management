@@ -6,11 +6,11 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5223
+          "Port": 7001
         }
       ],
       "UpstreamPathTemplate": "/api/auth/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": null,
         "AllowedScopes": []
@@ -22,15 +22,39 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5223
+          "Port": 7001
         }
       ],
       "UpstreamPathTemplate": "/api/users/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": null,
         "AllowedScopes": []
       }
+    },
+    {
+      "DownstreamPathTemplate": "/api/Customer/create",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5039
+        }
+      ],
+      "UpstreamPathTemplate": "/api/customers/create",
+      "UpstreamHttpMethod": ["POST"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/customers/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5039
+        }
+      ],
+      "UpstreamPathTemplate": "/api/customers/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"]
     }
   ],
   "GlobalConfiguration": {

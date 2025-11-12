@@ -8,8 +8,8 @@ namespace CustomerService.Services
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<RabbitMQProducerService> _logger;
-        private IConnection _connection;
-        private IModel _channel;
+        private IConnection? _connection = null;
+        private IModel? _channel = null;
 
         public RabbitMQProducerService(IConfiguration configuration, ILogger<RabbitMQProducerService> logger)
         {
@@ -81,8 +81,4 @@ namespace CustomerService.Services
         }
     }
 
-    public interface IMessageProducer
-    {
-        void PublishMessage<T>(T message, string routingKey = "");
-    }
 }

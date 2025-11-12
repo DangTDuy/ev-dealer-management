@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Box, Container } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Container, CircularProgress, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader, DataTable } from '../../components/common';
 import {
@@ -11,69 +11,33 @@ import {
   TrendingUp as TrendingUpIcon,
   ShoppingCart as ShoppingCartIcon
 } from '@mui/icons-material';
+import axios from 'axios';
 
-// Mock Data
-const mockCustomers = [
-  { 
-    id: 1, 
-    name: 'Nguyễn Văn An', 
-    email: 'nguyen.van.an@example.com', 
-    phone: '0123-456-789', 
-    purchases: 5, 
-    status: 'active',
-    avatar: { src: '', alt: 'NVA' },
-    joinDate: '2023-01-15',
-    lastPurchase: '2024-01-10'
-  },
-  { 
-    id: 2, 
-    name: 'Trần Thị Bình', 
-    email: 'tran.thi.binh@example.com', 
-    phone: '0987-654-321', 
-    purchases: 2, 
-    status: 'active',
-    avatar: { src: '', alt: 'TTB' },
-    joinDate: '2023-03-20',
-    lastPurchase: '2024-01-05'
-  },
-  { 
-    id: 3, 
-    name: 'Lê Văn Cường', 
-    email: 'le.van.cuong@example.com', 
-    phone: '0555-555-555', 
-    purchases: 0, 
-    status: 'inactive',
-    avatar: { src: '', alt: 'LVC' },
-    joinDate: '2023-02-10',
-    lastPurchase: null
-  },
-  { 
-    id: 4, 
-    name: 'Phạm Thị Dung', 
-    email: 'pham.thi.dung@example.com', 
-    phone: '0111-222-333', 
-    purchases: 10, 
-    status: 'active',
-    avatar: { src: '', alt: 'PTD' },
-    joinDate: '2022-12-01',
-    lastPurchase: '2024-01-12'
-  },
-  { 
-    id: 5, 
-    name: 'Hoàng Văn Em', 
-    email: 'hoang.van.em@example.com', 
-    phone: '0444-777-888', 
-    purchases: 3, 
-    status: 'pending',
-    avatar: { src: '', alt: 'HVE' },
-    joinDate: '2023-11-15',
-    lastPurchase: '2023-12-20'
-  },
-];
+const API_BASE_URL = 'http://localhost:5036'; // API Gateway URL
 
 const CustomerList = () => {
   const navigate = useNavigate();
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('list');
+
+  const fetchCustomers = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_BASE_URL}/api/customers`);
+      setCustomers(response.data);
+    } catch (err) {
+      setError('Failed to fetch customers. Please try again later.');
+      console.error('Error fetching customers:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
 
   const columns = [
     {
@@ -93,7 +57,7 @@ const CustomerList = () => {
       width: 150
     },
     {
-      field: 'purchases',
+      field: 'purchases', // This field might need adjustment based on actual backend data
       headerName: 'Tổng mua hàng',
       type: 'number',
       width: 120
@@ -133,7 +97,7 @@ const CustomerList = () => {
     {
       icon: <DeleteIcon />,
       tooltip: 'Xóa',
-      onClick: (row) => console.log('Delete customer:', row.id),
+      onClick: (row) => console.log('Delete customer:', row.id), // Implement actual delete logic later
       color: 'error.main'
     }
   ];
@@ -156,19 +120,19 @@ const CustomerList = () => {
   const stats = [
     {
       icon: <PeopleIcon />,
-      value: '1,234',
+      value: customers.length.toString(), // Dynamic count
       label: 'Tổng khách hàng',
       color: 'primary.main'
     },
     {
       icon: <TrendingUpIcon />,
-      value: '+12%',
+      value: 'N/A', // Placeholder, implement actual logic if needed
       label: 'Tăng trưởng',
       color: 'success.main'
     },
     {
       icon: <ShoppingCartIcon />,
-      value: '89',
+      value: 'N/A', // Placeholder, implement actual logic if needed
       label: 'Đơn hàng hôm nay',
       color: 'warning.main'
     }
@@ -179,7 +143,7 @@ const CustomerList = () => {
   };
 
   const handleRefresh = () => {
-    console.log('Refreshing customer data...');
+    fetchCustomers();
   };
 
   return (
@@ -196,16 +160,30 @@ const CustomerList = () => {
         onViewModeChange={setViewMode}
       />
 
-      <DataTable
-        columns={columns}
-        data={mockCustomers}
-        searchable={true}
-        pagination={true}
-        selectable={true}
-        actions={actions}
-        onRowClick={handleRowClick}
-        title="Danh sách khách hàng"
-      />
+      {loading && (
+        <Box display="flex" justifyContent="center" mt={4}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      {error && (
+        <Box mt={4}>
+          <Alert severity="error">{error}</Alert>
+        </Box>
+      )}
+
+      {!loading && !error && (
+        <DataTable
+          columns={columns}
+          data={customers}
+          searchable={true}
+          pagination={true}
+          selectable={true}
+          actions={actions}
+          onRowClick={handleRowClick}
+          title="Danh sách khách hàng"
+        />
+      )}
     </Container>
   );
 };

@@ -11,6 +11,8 @@ public class CustomerDbContext : DbContext
     public DbSet<CustomerService.Models.Customer> Customers { get; set; }
     public DbSet<CustomerService.Models.Purchase> Purchases { get; set; }
     public DbSet<CustomerService.Models.TestDrive> TestDrives { get; set; }
+    public DbSet<CustomerService.Models.Complaint> Complaints { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
