@@ -1,19 +1,21 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace CustomerService.DTOs;
-
-public class CreateTestDriveRequest
+namespace CustomerService.DTOs
 {
-    [Required]
-    public int VehicleId { get; set; } // Assuming this ID is sufficient
+    public class CreateTestDriveRequest
+    {
+        [Required]
+        public int CustomerId { get; set; }
 
-    [Required]
-    public int DealerId { get; set; }     // Assuming this ID is sufficient
+        [Required]
+        public int VehicleId { get; set; }
 
-    [Required]
-    public DateTime AppointmentDate { get; set; }
+        [Required]
+        public int DealerId { get; set; }
 
-    public string? Notes { get; set; }
-    public string? Status { get; set; }
+        [Required]
+        public DateTime AppointmentDate { get; set; }
+
+        public string? Notes { get; set; }
+    }
 }

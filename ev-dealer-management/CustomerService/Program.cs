@@ -12,6 +12,19 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddControllers();
 
+// Add CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin",
+        builder =>
+        {
+            builder.WithOrigins("http://localhost:5173") // Frontend URL
+                   .AllowAnyHeader()
+                   .AllowAnyMethod()
+                   .WithExposedHeaders("Location"); // Expose the Location header for 201 Created responses
+        });
+});
+
 // Add JWT Authentication
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSection.GetValue<string>("Key") ?? "ReplaceThisWithASecretKeyForDevelopment";
@@ -35,14 +48,29 @@ builder.Services.AddAuthentication("JwtBearer")
 // Add Authorization
 builder.Services.AddAuthorization();
 
-// Register DbContext
+// Register DbContext with an absolute path
+var contentRoot = builder.Environment.ContentRootPath;
+var dbPath = Path.Combine(contentRoot, "customers.db");
 builder.Services.AddDbContext<CustomerService.Data.CustomerDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlite($"Data Source={dbPath}"));
+
+// Register Custom Services
+builder.Services.AddScoped<CustomerService.Services.ICustomerService, CustomerService.Services.CustomerService>();
 
 // Register RabbitMQ Producer Service
 builder.Services.AddSingleton<CustomerService.Services.IMessageProducer, CustomerService.Services.RabbitMQProducerService>();
 
 var app = builder.Build();
+
+// Automatically apply migrations on startup (for development)
+if (app.Environment.IsDevelopment())
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<CustomerService.Data.CustomerDbContext>();
+        dbContext.Database.Migrate();
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -51,7 +79,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
+
+// Use CORS policy
+app.UseCors("AllowSpecificOrigin");
 
 // Enable Authentication and Authorization
 app.UseAuthentication();

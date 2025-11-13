@@ -17,6 +17,9 @@ public class CreateCustomerRequest
 
     public string? Address { get; set; }
 
+    [Required]
+    public int DealerId { get; set; }
+
     public string? Status { get; set; } // e.g., "active", "inactive", "pending"
 
     // Optional: Add DateOfBirth if needed based on detailed requirements

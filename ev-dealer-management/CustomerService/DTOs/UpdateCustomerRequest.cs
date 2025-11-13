@@ -15,6 +15,8 @@ public class UpdateCustomerRequest
 
     public string? Address { get; set; }
 
+    public int? DealerId { get; set; } // Made nullable for updates
+
     public string? Status { get; set; } // e.g., "active", "inactive", "pending"
 
     // Optional: Add DateOfBirth if needed based on detailed requirements

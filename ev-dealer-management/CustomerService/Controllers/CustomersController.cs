@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using CustomerService.Data;
-using CustomerService.Models;
+using CustomerService.Services;
 using CustomerService.DTOs;
+using CustomerService.Models; // Required for the event model if it's not in DTOs
 
 namespace CustomerService.Controllers
 {
@@ -10,109 +9,120 @@ namespace CustomerService.Controllers
     [Route("api/[controller]")]
     public class CustomersController : ControllerBase
     {
-        private readonly CustomerDbContext _context;
+        private readonly ICustomerService _customerService;
+        private readonly IMessageProducer _messageProducer;
+        private readonly ILogger<CustomersController> _logger;
 
-        public CustomersController(CustomerDbContext context)
+        public CustomersController(ICustomerService customerService, IMessageProducer messageProducer, ILogger<CustomersController> logger)
         {
-            _context = context;
+            _customerService = customerService;
+            _messageProducer = messageProducer;
+            _logger = logger;
         }
 
         // GET: api/Customers
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Customer>>> GetCustomers()
+        public async Task<ActionResult<IEnumerable<CustomerDto>>> GetCustomers()
         {
-            return await _context.Customers.ToListAsync();
+            var customers = await _customerService.GetAllCustomersAsync();
+            return Ok(customers);
         }
 
         // GET: api/Customers/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Customer>> GetCustomer(int id)
+        public async Task<ActionResult<CustomerDto>> GetCustomer(int id)
         {
-            var customer = await _context.Customers.FindAsync(id);
+            var customer = await _customerService.GetCustomerByIdAsync(id);
 
             if (customer == null)
             {
                 return NotFound();
             }
 
-            return customer;
+            return Ok(customer);
         }
 
         // POST: api/Customers
         [HttpPost]
-        public async Task<ActionResult<Customer>> PostCustomer(CreateCustomerDto createCustomerDto)
+        public async Task<ActionResult<CustomerDto>> PostCustomer(CreateCustomerRequest createCustomerRequest)
         {
-            var customer = new Customer
+            try
             {
-                Name = createCustomerDto.Name,
-                Email = createCustomerDto.Email,
-                Phone = createCustomerDto.Phone,
-                Address = createCustomerDto.Address,
-                Status = createCustomerDto.Status,
-                JoinDate = DateTime.UtcNow
-            };
+                var createdCustomer = await _customerService.CreateCustomerAsync(createCustomerRequest);
 
-            _context.Customers.Add(customer);
-            await _context.SaveChangesAsync();
+                /*
+                // Safely create and publish the event - DISABLED FOR NOW TO PREVENT TIMEOUTS
+                try
+                {
+                    // Create a deterministic GUID from the integer customer ID to satisfy the event model
+                    byte[] idBytes = new byte[16];
+                    BitConverter.GetBytes(createdCustomer.Id).CopyTo(idBytes, 0);
+                    var customerGuid = new Guid(idBytes);
 
-            return CreatedAtAction(nameof(GetCustomer), new { id = customer.Id }, customer);
+                    var customerCreatedEvent = new CustomerCreatedEvent
+                    {
+                        CustomerId = customerGuid, // Use the generated GUID
+                        Name = createdCustomer.Name,
+                        Email = createdCustomer.Email,
+                        Timestamp = DateTime.UtcNow
+                    };
+
+                    _messageProducer.PublishMessage(customerCreatedEvent, "customer.created");
+                    _logger.LogInformation("CustomerCreatedEvent published for customer: {CustomerName}", createdCustomer.Name);
+                }
+                catch (Exception ex)
+                {
+                    // Log the failure to publish the event, but don't let it crash the whole operation
+                    _logger.LogWarning(ex, "Failed to publish CustomerCreatedEvent for customer: {CustomerName}", createCustomerRequest.Name);
+                }
+                */
+
+                return Ok(createdCustomer);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Customer creation failed: {Message}", ex.Message);
+                return Conflict(new { message = ex.Message }); // e.g., email already exists
+            }
+            catch (Exception ex)
+            {
+                // This will now only catch errors from the customer creation itself
+                _logger.LogError(ex, "Error creating customer: {CustomerName}", createCustomerRequest.Name);
+                return StatusCode(500, "Internal server error");
+            }
         }
 
         // PUT: api/Customers/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCustomer(int id, UpdateCustomerDto updateCustomerDto)
+        public async Task<IActionResult> PutCustomer(int id, UpdateCustomerRequest updateCustomerRequest)
         {
-            var customer = await _context.Customers.FindAsync(id);
-            if (customer == null)
-            {
-                return NotFound();
-            }
-
-            customer.Name = updateCustomerDto.Name;
-            customer.Email = updateCustomerDto.Email;
-            customer.Phone = updateCustomerDto.Phone;
-            customer.Address = updateCustomerDto.Address;
-            customer.Status = updateCustomerDto.Status;
-            customer.UpdatedAt = DateTime.UtcNow;
-
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CustomerExists(id))
+                var updatedCustomer = await _customerService.UpdateCustomerAsync(id, updateCustomerRequest);
+                if (updatedCustomer == null)
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+                return NoContent();
             }
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating customer with ID: {CustomerId}", id);
+                return StatusCode(500, "Internal server error");
+            }
         }
 
         // DELETE: api/Customers/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCustomer(int id)
         {
-            var customer = await _context.Customers.FindAsync(id);
-            if (customer == null)
+            var result = await _customerService.DeleteCustomerAsync(id);
+            if (!result)
             {
                 return NotFound();
             }
 
-            _context.Customers.Remove(customer);
-            await _context.SaveChangesAsync();
-
             return NoContent();
-        }
-
-        private bool CustomerExists(int id)
-        {
-            return _context.Customers.Any(e => e.Id == id);
         }
     }
 }

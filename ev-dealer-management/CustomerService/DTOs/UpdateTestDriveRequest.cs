@@ -1,14 +1,14 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace CustomerService.DTOs;
-
-public class UpdateTestDriveRequest
+namespace CustomerService.DTOs
 {
-    public DateTime? AppointmentDate { get; set; }
+    public class UpdateTestDriveRequest
+    {
+        public DateTime? AppointmentDate { get; set; }
 
-    [StringLength(50)]
-    public string? Status { get; set; } // e.g., Scheduled, Completed, Canceled
+        [StringLength(50)]
+        public string? Status { get; set; } // e.g., "Scheduled", "Completed", "Cancelled"
 
-    public string? Notes { get; set; }
+        public string? Notes { get; set; }
+    }
 }

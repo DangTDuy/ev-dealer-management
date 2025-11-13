@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace CustomerService.DTOs;
 
@@ -11,4 +12,7 @@ public class CustomerDto
     public string? Address { get; set; }
     public string? Status { get; set; }
     public DateTime JoinDate { get; set; }
+
+    public ICollection<PurchaseDto> Purchases { get; set; } = new List<PurchaseDto>();
+    public ICollection<TestDriveDto> TestDrives { get; set; } = new List<TestDriveDto>();
 }

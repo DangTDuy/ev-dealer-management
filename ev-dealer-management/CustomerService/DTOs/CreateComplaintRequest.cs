@@ -1,17 +1,17 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace CustomerService.DTOs;
-
-public class CreateComplaintRequest
+namespace CustomerService.DTOs
 {
-    [Required]
-    [StringLength(200)]
-    public string Title { get; set; } = string.Empty;
+    public class CreateComplaintRequest
+    {
+        [Required]
+        public int CustomerId { get; set; }
 
-    [Required]
-    public string Description { get; set; } = string.Empty;
+        [Required]
+        [StringLength(200)]
+        public string Title { get; set; } = string.Empty;
 
-    // Status is usually set by the system upon creation (e.g., "Open")
-    // public string Status { get; set; } = "Open";
+        [Required]
+        public string Description { get; set; } = string.Empty;
+    }
 }

@@ -1,84 +1,27 @@
-using RabbitMQ.Client;
-using System.Text;
-using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 namespace CustomerService.Services
 {
+    /// <summary>
+    /// A no-operation message producer that does nothing.
+    /// This is used in development environments where RabbitMQ is not available.
+    /// It implements the IMessageProducer interface so the application can run without errors.
+    /// </summary>
     public class RabbitMQProducerService : IMessageProducer
     {
-        private readonly IConfiguration _configuration;
         private readonly ILogger<RabbitMQProducerService> _logger;
-        private IConnection? _connection = null;
-        private IModel? _channel = null;
 
-        public RabbitMQProducerService(IConfiguration configuration, ILogger<RabbitMQProducerService> logger)
+        public RabbitMQProducerService(ILogger<RabbitMQProducerService> logger)
         {
-            _configuration = configuration;
             _logger = logger;
-            InitializeRabbitMQ();
-        }
-
-        private void InitializeRabbitMQ()
-        {
-            try
-            {
-                var factory = new ConnectionFactory()
-                {
-                    HostName = _configuration["RabbitMQ:HostName"],
-                    Port = int.Parse(_configuration["RabbitMQ:Port"] ?? "5672"),
-                    UserName = _configuration["RabbitMQ:UserName"],
-                    Password = _configuration["RabbitMQ:Password"]
-                };
-
-                _connection = factory.CreateConnection();
-                _channel = _connection.CreateModel();
-
-                _channel.ExchangeDeclare(exchange: "customer_exchange", type: ExchangeType.Fanout);
-
-                _logger.LogInformation("RabbitMQ connection and channel initialized successfully.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Could not connect to RabbitMQ. Check connection settings.");
-                // Optionally, implement a retry mechanism here
-            }
+            _logger.LogInformation("Using No-Op RabbitMQProducerService. Messages will not be published.");
         }
 
         public void PublishMessage<T>(T message, string routingKey = "")
         {
-            if (_channel == null || !_channel.IsOpen)
-            {
-                _logger.LogWarning("RabbitMQ channel is not open. Attempting to re-initialize.");
-                InitializeRabbitMQ(); // Attempt to re-initialize
-                if (_channel == null || !_channel.IsOpen)
-                {
-                    _logger.LogError("Failed to publish message: RabbitMQ channel is still not open.");
-                    return;
-                }
-            }
-
-            var json = JsonSerializer.Serialize(message);
-            var body = Encoding.UTF8.GetBytes(json);
-
-            try
-            {
-                _channel.BasicPublish(exchange: "customer_exchange",
-                                     routingKey: routingKey,
-                                     basicProperties: null,
-                                     body: body);
-                _logger.LogInformation("Message published to RabbitMQ: {MessageType}", typeof(T).Name);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error publishing message to RabbitMQ.");
-            }
-        }
-
-        public void Dispose()
-        {
-            _channel?.Close();
-            _connection?.Close();
+            // This is a no-op implementation. It does nothing.
+            // We log the intent to publish for debugging purposes.
+            _logger.LogInformation($"NO-OP: Would have published message of type {typeof(T).Name} with routing key '{routingKey}'.");
         }
     }
-
 }

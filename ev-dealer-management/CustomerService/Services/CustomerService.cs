@@ -24,36 +24,75 @@ public class CustomerService : ICustomerService
     public async Task<IEnumerable<CustomerDto>> GetAllCustomersAsync()
     {
         var customers = await _context.Customers
-            .Select(c => new CustomerDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Email = c.Email,
-                Phone = c.Phone,
-                Address = c.Address,
-                Status = c.Status,
-                JoinDate = c.JoinDate
-            })
+            .Include(c => c.Purchases) // Eagerly load purchases
+            .AsNoTracking()
             .ToListAsync();
-        return customers;
+
+        // Map entities to DTOs
+        return customers.Select(c => new CustomerDto
+        {
+            Id = c.Id,
+            Name = c.Name,
+            Email = c.Email,
+            Phone = c.Phone,
+            Address = c.Address,
+            Status = c.Status,
+            JoinDate = c.JoinDate,
+            Purchases = c.Purchases.Select(p => new PurchaseDto
+            {
+                Id = p.Id,
+                CustomerId = p.CustomerId,
+                Vehicle = p.Vehicle,
+                Amount = p.Amount,
+                PurchaseDate = p.PurchaseDate
+            }).ToList(),
+            TestDrives = new List<TestDriveDto>() // No need to load test drives for the list view
+        }).ToList();
     }
 
     public async Task<CustomerDto?> GetCustomerByIdAsync(int id)
     {
         var customer = await _context.Customers
-            .Where(c => c.Id == id)
-            .Select(c => new CustomerDto
+            .Include(c => c.Purchases)
+            .Include(c => c.TestDrives)
+            .AsNoTracking() // Use AsNoTracking for read-only queries to improve performance
+            .FirstOrDefaultAsync(c => c.Id == id);
+
+        if (customer == null)
+        {
+            return null;
+        }
+
+        // Manual mapping from the entity to the DTO
+        return new CustomerDto
+        {
+            Id = customer.Id,
+            Name = customer.Name,
+            Email = customer.Email,
+            Phone = customer.Phone,
+            Address = customer.Address,
+            Status = customer.Status,
+            JoinDate = customer.JoinDate,
+            Purchases = customer.Purchases.Select(p => new PurchaseDto
             {
-                Id = c.Id,
-                Name = c.Name,
-                Email = c.Email,
-                Phone = c.Phone,
-                Address = c.Address,
-                Status = c.Status,
-                JoinDate = c.JoinDate
-            })
-            .FirstOrDefaultAsync();
-        return customer;
+                Id = p.Id,
+                CustomerId = p.CustomerId,
+                Vehicle = p.Vehicle,
+                Amount = p.Amount,
+                PurchaseDate = p.PurchaseDate
+            }).ToList(),
+            TestDrives = customer.TestDrives.Select(td => new TestDriveDto
+            {
+                Id = td.Id,
+                CustomerId = td.CustomerId,
+                VehicleId = td.VehicleId,
+                DealerId = td.DealerId,
+                AppointmentDate = td.AppointmentDate,
+                Status = td.Status,
+                Notes = td.Notes,
+                CreatedAt = td.CreatedAt
+            }).ToList()
+        };
     }
 
     public async Task<CustomerDto> CreateCustomerAsync(CreateCustomerRequest request)
@@ -191,7 +230,7 @@ public class CustomerService : ICustomerService
             VehicleId = request.VehicleId,
             DealerId = request.DealerId,
             AppointmentDate = request.AppointmentDate,
-            Status = request.Status ?? "Scheduled",
+            Status = "Scheduled",
             Notes = request.Notes,
             CreatedAt = DateTime.UtcNow
         };
@@ -325,7 +364,7 @@ public class CustomerService : ICustomerService
         if (request.Description != null) complaint.Description = request.Description;
         if (request.Status != null) complaint.Status = request.Status;
         if (request.Resolution != null) complaint.Resolution = request.Resolution;
-        if (request.ResolvedDate.HasValue) complaint.ResolvedAt = request.ResolvedDate.Value;
+
 
 
         await _context.SaveChangesAsync();

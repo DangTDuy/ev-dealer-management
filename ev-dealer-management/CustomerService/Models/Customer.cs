@@ -19,12 +19,17 @@ public class Customer
 
     public string? Address { get; set; }
 
+    [Required] // Assuming DealerId is always required based on the migration
+    public int DealerId { get; set; }
+
     public string? Status { get; set; } // e.g., "active", "inactive", "pending"
 
     public DateTime JoinDate { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; } // Track the last update time
 
     public ICollection<Purchase> Purchases { get; set; } = new List<Purchase>();
+    public ICollection<TestDrive> TestDrives { get; set; } = new List<TestDrive>();
+    public ICollection<Complaint> Complaints { get; set; } = new List<Complaint>();
 }
 
 public class Purchase
