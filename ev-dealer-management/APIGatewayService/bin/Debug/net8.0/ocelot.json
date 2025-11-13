@@ -32,18 +32,7 @@
         "AllowedScopes": []
       }
     },
-    {
-      "DownstreamPathTemplate": "/api/Customer/create",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 5039
-        }
-      ],
-      "UpstreamPathTemplate": "/api/customers/create",
-      "UpstreamHttpMethod": ["POST"]
-    },
+
     {
       "DownstreamPathTemplate": "/api/customers/{everything}",
       "DownstreamScheme": "http",
@@ -54,7 +43,8 @@
         }
       ],
       "UpstreamPathTemplate": "/api/customers/{everything}",
-      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"]
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "DownstreamHttpVersion": "1.1"
     }
   ],
   "GlobalConfiguration": {

@@ -1,52 +1,83 @@
-import React, { useState } from 'react';
-import { Container, Typography, Box, Alert } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { PageHeader } from '../../components/common';
-import CustomerForm from '../../components/forms/CustomerForm';
-import { customerService } from '../../services/customerService';
+import React, { useState } from "react";
+import {
+  Container,
+  Box,
+  Alert,
+  Paper,
+  Typography,
+  Snackbar,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import CustomerForm from "./CustomerForm"; // Corrected import path
+import { customerService } from "../../services/customerService";
 
 const CustomerNew = () => {
   const navigate = useNavigate();
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-
-  const breadcrumbs = [
-    { label: 'Trang chủ', href: '/dashboard' },
-    { label: 'Quản lý khách hàng', href: '/customers' },
-    { label: 'Thêm khách hàng mới', href: '/customers/new' },
-  ];
+  const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   const handleSubmit = async (customerData) => {
+    setLoading(true);
     try {
-      setError(null);
-      setSuccess(null);
       await customerService.createCustomer(customerData);
-      setSuccess('Khách hàng đã được thêm thành công!');
+      setSnackbar({
+        open: true,
+        message: "Customer created successfully!",
+        severity: "success",
+      });
       setTimeout(() => {
-        navigate('/customers');
+        navigate("/customers", { state: { refresh: true } });
       }, 1500);
-    } catch (err) {
-      setError(err.message || 'Đã xảy ra lỗi khi thêm khách hàng.');
+    } catch (error) {
+      console.error("Error creating customer:", error);
+      const errorMessage =
+        error.response?.data?.message || "Failed to create customer.";
+      setSnackbar({ open: true, message: errorMessage, severity: "error" });
+      setLoading(false);
     }
   };
 
   const handleCancel = () => {
-    navigate('/customers');
+    if (!loading) {
+      navigate("/customers");
+    }
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
     <Container maxWidth="xl">
-      <PageHeader
-        title="Thêm khách hàng mới"
-        subtitle="Điền thông tin chi tiết để tạo khách hàng mới"
-        breadcrumbs={breadcrumbs}
-      />
-
-      <Box sx={{ mt: 4 }}>
-        {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-        <CustomerForm onSubmit={handleSubmit} onCancel={handleCancel} />
-      </Box>
+      <Typography variant="h4" gutterBottom>
+        Create New Customer
+      </Typography>
+      <Paper elevation={3} sx={{ p: 4 }}>
+        <CustomerForm
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          loading={loading}
+          isEdit={false}
+        />
+      </Paper>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
