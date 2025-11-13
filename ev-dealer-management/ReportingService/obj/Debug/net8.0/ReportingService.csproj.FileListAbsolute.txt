@@ -130,3 +130,5 @@ D:\gitclone\ev-dealer-management\ev-dealer-management\ReportingService\obj\Debug
 D:\gitclone\ev-dealer-management\ev-dealer-management\ReportingService\obj\Debug\net8.0\ReportingService.pdb
 D:\gitclone\ev-dealer-management\ev-dealer-management\ReportingService\obj\Debug\net8.0\ReportingService.genruntimeconfig.cache
 D:\gitclone\ev-dealer-management\ev-dealer-management\ReportingService\obj\Debug\net8.0\ref\ReportingService.dll
+D:\gitclone\ev-dealer-management\ev-dealer-management\ReportingService\bin\Debug\net8.0\Npgsql.dll
+D:\gitclone\ev-dealer-management\ev-dealer-management\ReportingService\bin\Debug\net8.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll

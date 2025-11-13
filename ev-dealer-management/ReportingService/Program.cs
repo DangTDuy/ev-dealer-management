@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using ev_dealer_reporting.Data;
 using System.IO;
 using ev_dealer_reporting.Models;
@@ -33,11 +34,46 @@ builder.Services.AddCors(options =>
     });
 });
 
-// DbContext - use SQLite file. Connection string comes from configuration or defaults to local file
-var defaultConn = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=reporting.db";
-builder.Services.AddDbContext<ReportingDbContext>(options =>
-    options.UseSqlite(defaultConn)
-);
+// DbContext: prefer PostgreSQL from configuration, but fallback to SQLite for local testing
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+bool useSqlite = false;
+
+// Allow explicit override via environment variable USE_SQLITE=true
+var envUseSqlite = Environment.GetEnvironmentVariable("USE_SQLITE");
+if (!string.IsNullOrEmpty(envUseSqlite) && envUseSqlite.Trim().ToLowerInvariant() == "true")
+{
+    useSqlite = true;
+}
+else
+{
+    // Try to detect whether Postgres is reachable. If not, fall back to SQLite.
+    try
+    {
+        // Try opening a short-lived Npgsql connection to validate connectivity
+        using var conn = new Npgsql.NpgsqlConnection(connectionString);
+        conn.Open();
+        conn.Close();
+    }
+    catch
+    {
+        useSqlite = true;
+        Console.Error.WriteLine("Info: Postgres not reachable, falling back to SQLite for local testing. Set USE_SQLITE=false to require Postgres.");
+    }
+}
+
+if (useSqlite)
+{
+    // Use a local file-based SQLite DB for quick local testing
+    var sqlitePath = Path.Combine(AppContext.BaseDirectory, "reporting_dev.db");
+    var sqliteConn = $"Data Source={sqlitePath}";
+    builder.Services.AddDbContext<ReportingDbContext>(options =>
+        options.UseSqlite(sqliteConn));
+}
+else
+{
+    builder.Services.AddDbContext<ReportingDbContext>(options =>
+        options.UseNpgsql(connectionString));
+}
 
 var app = builder.Build();
 
@@ -51,31 +87,18 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 
-// Ensure DB directory exists when using a file path
-try
-{
-    var conn = app.Services.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>().GetConnectionString("DefaultConnection");
-    if (!string.IsNullOrEmpty(conn) && conn.Contains("Data Source="))
-    {
-        var path = conn.Split('=')[1].Trim();
-        var dir = Path.GetDirectoryName(path);
-        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
-    }
-}
-catch { /* best-effort only */ }
-
-// Apply database creation (EnsureCreated for initial MVP — safe and won't drop existing DB)
+// Apply database migrations and ensure database is created
 using (var scope = app.Services.CreateScope())
 {
     try
     {
         var db = scope.ServiceProvider.GetRequiredService<ReportingDbContext>();
-        db.Database.EnsureCreated();
+        db.Database.Migrate();
     }
     catch (Exception ex)
     {
-        // Log or ignore for now — creating DB is best-effort in this patch
-        Console.Error.WriteLine($"Warning: could not ensure reporting DB created: {ex.Message}");
+        // Log or ignore for now
+        Console.Error.WriteLine($"Warning: could not apply database migrations: {ex.Message}");
     }
 }
 
@@ -211,6 +234,187 @@ app.MapPost("/api/reports/export", async (HttpRequest req, ReportingDbContext? d
 })
 .WithName("ExportReport")
 .WithOpenApi();
+
+// ============================================================================
+// NEW API ENDPOINTS FOR SALES SUMMARY AND INVENTORY SUMMARY
+// ============================================================================
+
+// GET /api/reports/sales-summary - Lấy tất cả dữ liệu tổng hợp doanh số
+app.MapGet("/api/reports/sales-summary", async (ReportingDbContext db, DateTime? fromDate, DateTime? toDate, Guid? dealerId) =>
+{
+    try
+    {
+        var query = db.SalesSummaries.AsQueryable();
+        
+        if (fromDate.HasValue)
+            query = query.Where(s => s.Date >= fromDate.Value);
+        
+        if (toDate.HasValue)
+            query = query.Where(s => s.Date <= toDate.Value);
+        
+        if (dealerId.HasValue)
+            query = query.Where(s => s.DealerId == dealerId.Value);
+        
+        var results = await query.OrderByDescending(s => s.Date).ToListAsync();
+        
+        return Results.Json(new
+        {
+            success = true,
+            count = results.Count,
+            data = results
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"Error in GET /api/reports/sales-summary: {ex.Message}");
+        return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
+    }
+})
+.WithName("GetSalesSummary")
+.WithOpenApi()
+.Produces(200)
+.Produces(500);
+
+// GET /api/reports/sales-summary/{id} - Lấy chi tiết một doanh số
+app.MapGet("/api/reports/sales-summary/{id}", async (Guid id, ReportingDbContext db) =>
+{
+    try
+    {
+        var salesSummary = await db.SalesSummaries.FirstOrDefaultAsync(s => s.Id == id);
+        
+        if (salesSummary == null)
+            return Results.NotFound(new { message = "Sales summary not found" });
+        
+        return Results.Json(new { success = true, data = salesSummary });
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"Error in GET /api/reports/sales-summary/{id}: {ex.Message}");
+        return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
+    }
+})
+.WithName("GetSalesSummaryById")
+.WithOpenApi()
+.Produces(200)
+.Produces(404)
+.Produces(500);
+
+// GET /api/reports/inventory-summary - Lấy tất cả dữ liệu tồn kho tổng hợp
+app.MapGet("/api/reports/inventory-summary", async (ReportingDbContext db, Guid? dealerId, Guid? vehicleId) =>
+{
+    try
+    {
+        var query = db.InventorySummaries.AsQueryable();
+        
+        if (dealerId.HasValue)
+            query = query.Where(i => i.DealerId == dealerId.Value);
+        
+        if (vehicleId.HasValue)
+            query = query.Where(i => i.VehicleId == vehicleId.Value);
+        
+        var results = await query.OrderByDescending(i => i.LastUpdatedAt).ToListAsync();
+        
+        return Results.Json(new
+        {
+            success = true,
+            count = results.Count,
+            data = results
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"Error in GET /api/reports/inventory-summary: {ex.Message}");
+        return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
+    }
+})
+.WithName("GetInventorySummary")
+.WithOpenApi()
+.Produces(200)
+.Produces(500);
+
+// GET /api/reports/inventory-summary/{id} - Lấy chi tiết một tồn kho
+app.MapGet("/api/reports/inventory-summary/{id}", async (Guid id, ReportingDbContext db) =>
+{
+    try
+    {
+        var inventorySummary = await db.InventorySummaries.FirstOrDefaultAsync(i => i.Id == id);
+        
+        if (inventorySummary == null)
+            return Results.NotFound(new { message = "Inventory summary not found" });
+        
+        return Results.Json(new { success = true, data = inventorySummary });
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"Error in GET /api/reports/inventory-summary/{id}: {ex.Message}");
+        return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
+    }
+})
+.WithName("GetInventorySummaryById")
+.WithOpenApi()
+.Produces(200)
+.Produces(404)
+.Produces(500);
+
+// POST /api/reports/sales-summary - Thêm dữ liệu tổng hợp doanh số mới (cho test)
+app.MapPost("/api/reports/sales-summary", async (ReportingDbContext db, SalesSummary salesSummary) =>
+{
+    try
+    {
+        if (string.IsNullOrWhiteSpace(salesSummary.DealerName) || string.IsNullOrWhiteSpace(salesSummary.SalespersonName))
+            return Results.BadRequest(new { message = "DealerName and SalespersonName are required" });
+        
+        salesSummary.Id = Guid.NewGuid();
+        salesSummary.LastUpdatedAt = DateTime.UtcNow;
+        
+        db.SalesSummaries.Add(salesSummary);
+        await db.SaveChangesAsync();
+        
+        return Results.Created($"/api/reports/sales-summary/{salesSummary.Id}", new { success = true, data = salesSummary });
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"Error in POST /api/reports/sales-summary: {ex.Message}");
+        return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
+    }
+})
+.WithName("CreateSalesSummary")
+.WithOpenApi()
+.Produces(201)
+.Produces(400)
+.Produces(500);
+
+// POST /api/reports/inventory-summary - Thêm dữ liệu tồn kho mới (cho test)
+app.MapPost("/api/reports/inventory-summary", async (ReportingDbContext db, InventorySummary inventorySummary) =>
+{
+    try
+    {
+        if (string.IsNullOrWhiteSpace(inventorySummary.VehicleName) || string.IsNullOrWhiteSpace(inventorySummary.DealerName))
+            return Results.BadRequest(new { message = "VehicleName and DealerName are required" });
+        
+        inventorySummary.Id = Guid.NewGuid();
+        inventorySummary.LastUpdatedAt = DateTime.UtcNow;
+        
+        db.InventorySummaries.Add(inventorySummary);
+        await db.SaveChangesAsync();
+        
+        return Results.Created($"/api/reports/inventory-summary/{inventorySummary.Id}", new { success = true, data = inventorySummary });
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"Error in POST /api/reports/inventory-summary: {ex.Message}");
+        return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
+    }
+})
+.WithName("CreateInventorySummary")
+.WithOpenApi()
+.Produces(201)
+.Produces(400)
+.Produces(500);
+
+// ============================================================================
+// END OF NEW API ENDPOINTS
+// ============================================================================
 
 // Keep the sample weather endpoint for parity with template
 var summaries = new[]
