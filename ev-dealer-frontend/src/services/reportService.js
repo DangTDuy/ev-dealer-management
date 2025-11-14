@@ -1,59 +1,110 @@
-const BASE =
-  import.meta.env.VITE_REPORTING_SERVICE_URL || "http://localhost:5006";
+import axios from "axios";
 
-async function getJson(url) {
-  const res = await fetch(url, { credentials: "same-origin" });
-  if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-  return res.json();
-}
+// Create axios instance for ReportingService (different port)
+const reportingApi = axios.create({
+  baseURL: import.meta.env.VITE_REPORTING_SERVICE_URL || "http://localhost:5208/api/reports",
+  timeout: 10000,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-export async function getSalesByRegion({ from, to } = {}) {
-  const qs = new URLSearchParams();
-  if (from) qs.set("from", from);
-  if (to) qs.set("to", to);
-  const url = `${BASE}/api/reports/sales-by-region${
-    qs.toString() ? "?" + qs.toString() : ""
-  }`;
-  return getJson(url);
-}
+// Response interceptor - Handle errors
+reportingApi.interceptors.response.use(
+  (response) => {
+    return response.data;
+  },
+  (error) => {
+    if (error.response) {
+      const { status, data } = error.response;
+      console.error("Reporting API Error:", data);
+      return Promise.reject(data.message || data.error || "An error occurred");
+    } else if (error.request) {
+      return Promise.reject("Network error. Please check your connection.");
+    } else {
+      return Promise.reject(error.message);
+    }
+  }
+);
 
-export async function getSummary({ from, to, type = "sales" } = {}) {
-  const qs = new URLSearchParams();
-  if (from) qs.set("from", from);
-  if (to) qs.set("to", to);
-  if (type) qs.set("type", type);
-  const url = `${BASE}/api/reports/summary${
-    qs.toString() ? "?" + qs.toString() : ""
-  }`;
-  return getJson(url);
-}
+export const reportService = {
+  getSummary: async (params = {}) => {
+    try {
+      const { from, to, type = "sales" } = params;
+      const queryParams = new URLSearchParams();
+      if (from) queryParams.append("from", from);
+      if (to) queryParams.append("to", to);
+      if (type) queryParams.append("type", type);
+      
+      const url = `/summary${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
+      const response = await reportingApi.get(url);
+      return response.metrics || response;
+    } catch (error) {
+      console.error("Error fetching summary:", error);
+      throw error;
+    }
+  },
 
-export async function getTopVehicles({ from, to, limit = 5 } = {}) {
-  const qs = new URLSearchParams();
-  if (from) qs.set("from", from);
-  if (to) qs.set("to", to);
-  if (limit) qs.set("limit", limit.toString());
-  const url = `${BASE}/api/reports/top-vehicles${
-    qs.toString() ? "?" + qs.toString() : ""
-  }`;
-  return getJson(url);
-}
+  getSalesByRegion: async (params = {}) => {
+    try {
+      const { from, to } = params;
+      const queryParams = new URLSearchParams();
+      if (from) queryParams.append("from", from);
+      if (to) queryParams.append("to", to);
+      
+      const url = `/sales-by-region${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
+      const response = await reportingApi.get(url);
+      return Array.isArray(response) ? response : response.data || [];
+    } catch (error) {
+      console.error("Error fetching sales by region:", error);
+      throw error;
+    }
+  },
 
-export async function exportReport(payload = {}) {
-  const url = `${BASE}/api/reports/export`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) throw new Error(`Export failed: ${res.status}`);
-  const blob = await res.blob();
-  return blob;
-}
+  getSalesProportion: async (params = {}) => {
+    try {
+      const { from, to } = params;
+      const queryParams = new URLSearchParams();
+      if (from) queryParams.append("from", from);
+      if (to) queryParams.append("to", to);
+      
+      const url = `/sales-proportion${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
+      const response = await reportingApi.get(url);
+      return Array.isArray(response) ? response : response.data || [];
+    } catch (error) {
+      console.error("Error fetching sales proportion:", error);
+      throw error;
+    }
+  },
 
-export default {
-  getSalesByRegion,
-  getSummary,
-  getTopVehicles,
-  exportReport,
+  getTopVehicles: async (params = {}) => {
+    try {
+      const { from, to, limit = 5 } = params;
+      const queryParams = new URLSearchParams();
+      if (from) queryParams.append("from", from);
+      if (to) queryParams.append("to", to);
+      if (limit) queryParams.append("limit", limit.toString());
+      
+      const url = `/top-vehicles${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
+      const response = await reportingApi.get(url);
+      return Array.isArray(response) ? response : response.data || [];
+    } catch (error) {
+      console.error("Error fetching top vehicles:", error);
+      throw error;
+    }
+  },
+
+  exportReport: async (payload = {}) => {
+    try {
+      const response = await reportingApi.post("/export", payload, {
+        responseType: "blob",
+      });
+      return response;
+    } catch (error) {
+      console.error("Error exporting report:", error);
+      throw error;
+    }
+  },
 };
+
+export default reportService;

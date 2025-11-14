@@ -52,6 +52,7 @@ curl -X GET "https://localhost:5214/api/reports/sales-summary?dealerId=550e8400-
       "date": "2025-01-15T00:00:00Z",
       "dealerId": "550e8400-e29b-41d4-a716-446655440000",
       "dealerName": "Dealer Hà Nội",
+      "region": "Miền Bắc",
       "salespersonId": "550e8400-e29b-41d4-a716-446655440002",
       "salespersonName": "Nguyễn Văn A",
       "totalOrders": 5,
@@ -88,6 +89,7 @@ curl -X GET "https://localhost:5214/api/reports/sales-summary/550e8400-e29b-41d4
     "date": "2025-01-15T00:00:00Z",
     "dealerId": "550e8400-e29b-41d4-a716-446655440000",
     "dealerName": "Dealer Hà Nội",
+    "region": "Miền Bắc",
     "salespersonId": "550e8400-e29b-41d4-a716-446655440002",
     "salespersonName": "Nguyễn Văn A",
     "totalOrders": 5,
@@ -118,6 +120,7 @@ Thêm một dữ liệu tổng hợp doanh số mới (dùng cho test).
   "date": "2025-01-15T00:00:00Z",
   "dealerId": "550e8400-e29b-41d4-a716-446655440000",
   "dealerName": "Dealer Hà Nội",
+  "region": "Miền Bắc",
   "salespersonId": "550e8400-e29b-41d4-a716-446655440002",
   "salespersonName": "Nguyễn Văn A",
   "totalOrders": 5,
@@ -153,6 +156,7 @@ curl -X POST "https://localhost:5214/api/reports/sales-summary" `
     "date": "2025-01-15T00:00:00Z",
     "dealerId": "550e8400-e29b-41d4-a716-446655440000",
     "dealerName": "Dealer Hà Nội",
+    "region": "Miền Bắc",
     "salespersonId": "550e8400-e29b-41d4-a716-446655440002",
     "salespersonName": "Nguyễn Văn A",
     "totalOrders": 5,
@@ -290,6 +294,129 @@ curl -X POST "https://localhost:5214/api/reports/inventory-summary" `
     "lastUpdatedAt": "2025-01-15T10:30:00Z"
   }
 }
+```
+
+---
+
+### 3. Report Endpoints (Báo cáo)
+
+#### GET /api/reports/summary
+
+Lấy tổng hợp metrics báo cáo.
+
+**Query Parameters:**
+
+- `type` (optional): Loại báo cáo (default: "sales")
+- `from` (optional): Từ ngày (string)
+- `to` (optional): Đến ngày (string)
+
+**Example:**
+
+```bash
+curl -X GET "https://localhost:5214/api/reports/summary"
+curl -X GET "https://localhost:5214/api/reports/summary?from=2025-01-01&to=2025-01-31"
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "type": "sales",
+  "from": null,
+  "to": null,
+  "metrics": {
+    "totalSales": 48,
+    "totalRevenue": 18000000000,
+    "activeDealers": 3,
+    "totalDealers": 30,
+    "conversionRate": 0.1234
+  }
+}
+```
+
+---
+
+#### GET /api/reports/sales-by-region
+
+Lấy doanh số group theo Region (Miền Bắc, Miền Trung, Miền Nam).
+
+**Query Parameters:**
+
+- `from` (optional): Từ ngày (string)
+- `to` (optional): Đến ngày (string)
+
+**Example:**
+
+```bash
+curl -X GET "https://localhost:5214/api/reports/sales-by-region"
+curl -X GET "https://localhost:5214/api/reports/sales-by-region?from=2025-01-01&to=2025-01-31"
+```
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "region": "Miền Nam",
+    "sales": 22,
+    "revenue": 6600000000
+  },
+  {
+    "region": "Miền Bắc",
+    "sales": 19,
+    "revenue": 5700000000
+  },
+  {
+    "region": "Miền Trung",
+    "sales": 7,
+    "revenue": 2100000000
+  }
+]
+```
+
+---
+
+#### GET /api/reports/sales-proportion
+
+Lấy tỷ trọng doanh số theo Region (cho donut chart).
+
+**Query Parameters:**
+
+- `from` (optional): Từ ngày (string)
+- `to` (optional): Đến ngày (string)
+
+**Example:**
+
+```bash
+curl -X GET "https://localhost:5214/api/reports/sales-proportion"
+```
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "region": "Miền Nam",
+    "sales": 22,
+    "revenue": 6600000000,
+    "salesPercentage": 45.8,
+    "revenuePercentage": 45.8
+  },
+  {
+    "region": "Miền Bắc",
+    "sales": 19,
+    "revenue": 5700000000,
+    "salesPercentage": 39.6,
+    "revenuePercentage": 39.6
+  },
+  {
+    "region": "Miền Trung",
+    "sales": 7,
+    "revenue": 2100000000,
+    "salesPercentage": 14.6,
+    "revenuePercentage": 14.6
+  }
+]
 ```
 
 ---

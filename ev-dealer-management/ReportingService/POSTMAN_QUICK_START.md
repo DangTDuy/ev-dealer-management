@@ -42,6 +42,7 @@ Value: application/json
   "date": "2025-01-15T00:00:00Z",
   "dealerId": "550e8400-e29b-41d4-a716-446655440000",
   "dealerName": "Dealer Hà Nội",
+  "region": "Miền Bắc",
   "salespersonId": "550e8400-e29b-41d4-a716-446655440002",
   "salespersonName": "Nguyễn Văn A",
   "totalOrders": 5,

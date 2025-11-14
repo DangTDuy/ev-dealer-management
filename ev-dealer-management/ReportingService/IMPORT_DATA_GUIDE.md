@@ -42,6 +42,7 @@ Content-Type: application/json
   "date": "2025-01-15T00:00:00Z",
   "dealerId": "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d",
   "dealerName": "Dealer Hà Nội",
+  "region": "Miền Bắc",
   "salespersonId": "11111111-2222-3333-4444-555555555551",
   "salespersonName": "Nguyễn Văn A",
   "totalOrders": 5,
@@ -58,6 +59,7 @@ Click **Send** → Kết quả: `201 Created`
   "date": "2025-01-20T00:00:00Z",
   "dealerId": "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d",
   "dealerName": "Dealer Hà Nội",
+  "region": "Miền Bắc",
   "salespersonId": "11111111-2222-3333-4444-555555555552",
   "salespersonName": "Trần Thị B",
   "totalOrders": 8,
@@ -72,6 +74,7 @@ Click **Send** → Kết quả: `201 Created`
   "date": "2025-01-10T00:00:00Z",
   "dealerId": "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e",
   "dealerName": "Dealer TP.HCM",
+  "region": "Miền Nam",
   "salespersonId": "22222222-3333-4444-5555-666666666661",
   "salespersonName": "Lê Văn C",
   "totalOrders": 12,
@@ -86,6 +89,7 @@ Click **Send** → Kết quả: `201 Created`
   "date": "2025-01-25T00:00:00Z",
   "dealerId": "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e",
   "dealerName": "Dealer TP.HCM",
+  "region": "Miền Nam",
   "salespersonId": "22222222-3333-4444-5555-666666666662",
   "salespersonName": "Phạm Thị D",
   "totalOrders": 10,
@@ -100,6 +104,7 @@ Click **Send** → Kết quả: `201 Created`
   "date": "2025-01-12T00:00:00Z",
   "dealerId": "c3d4e5f6-a7b8-4c5d-0e1f-3a4b5c6d7e8f",
   "dealerName": "Dealer Đà Nẵng",
+  "region": "Miền Trung",
   "salespersonId": "33333333-4444-5555-6666-777777777771",
   "salespersonName": "Hoàng Văn E",
   "totalOrders": 7,
@@ -114,6 +119,7 @@ Click **Send** → Kết quả: `201 Created`
   "date": "2025-02-08T00:00:00Z",
   "dealerId": "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d",
   "dealerName": "Dealer Hà Nội",
+  "region": "Miền Bắc",
   "salespersonId": "11111111-2222-3333-4444-555555555551",
   "salespersonName": "Nguyễn Văn A",
   "totalOrders": 6,
@@ -163,6 +169,7 @@ Click **Send** → Kết quả: `201 Created`
   "vehicleName": "Tesla Model 3",
   "dealerId": "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d",
   "dealerName": "Dealer Hà Nội",
+  "region": "Miền Bắc",
   "stockCount": 15
 }
 ```
@@ -175,6 +182,7 @@ Click **Send** → Kết quả: `201 Created`
   "vehicleName": "BMW i3",
   "dealerId": "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d",
   "dealerName": "Dealer Hà Nội",
+  "region": "Miền Bắc",
   "stockCount": 8
 }
 ```
@@ -187,6 +195,7 @@ Click **Send** → Kết quả: `201 Created`
   "vehicleName": "Audi e-tron",
   "dealerId": "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e",
   "dealerName": "Dealer TP.HCM",
+  "region": "Miền Nam",
   "stockCount": 12
 }
 ```
@@ -199,6 +208,7 @@ Click **Send** → Kết quả: `201 Created`
   "vehicleName": "Mercedes EQC",
   "dealerId": "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e",
   "dealerName": "Dealer TP.HCM",
+  "region": "Miền Nam",
   "stockCount": 10
 }
 ```
@@ -211,6 +221,7 @@ Click **Send** → Kết quả: `201 Created`
   "vehicleName": "Porsche Taycan",
   "dealerId": "c3d4e5f6-a7b8-4c5d-0e1f-3a4b5c6d7e8f",
   "dealerName": "Dealer Đà Nẵng",
+  "region": "Miền Trung",
   "stockCount": 5
 }
 ```
@@ -360,6 +371,7 @@ $salesData = @(
         date = "2025-01-15T00:00:00Z"
         dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"
         dealerName = "Dealer Hà Nội"
+        region = "Miền Bắc"
         salespersonId = "11111111-2222-3333-4444-555555555551"
         salespersonName = "Nguyễn Văn A"
         totalOrders = 5
@@ -369,6 +381,7 @@ $salesData = @(
         date = "2025-01-20T00:00:00Z"
         dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"
         dealerName = "Dealer Hà Nội"
+        region = "Miền Bắc"
         salespersonId = "11111111-2222-3333-4444-555555555552"
         salespersonName = "Trần Thị B"
         totalOrders = 8

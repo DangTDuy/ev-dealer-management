@@ -15,26 +15,25 @@
 │                        POSTMAN                              │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  Sidebar (trái)              │  Main Area (giữa)           │
-│  ├─ Collections              │  ┌───────────────────────┐  │
-│  │  └─ ReportingService      │  │ POST / GET dropdown   │  │
-│  │     ├─ Create Sales       │  ├───────────────────────┤  │
-│  │     ├─ Get Sales          │  │ URL: https://...      │  │
-│  │     └─ Create Inventory   │  ├───────────────────────┤  │
-│  ├─ History                  │  │ Tabs: Params Headers  │  │
-│  │                           │  │       Body Auth       │  │
-│  └─ Environments             │  ├───────────────────────┤  │
-│                              │  │  [Send]  [Save] ...   │  │
-│                              │  └───────────────────────┘  │
-│                              │                             │
-│                              │  Response Area (dưới)       │
-│                              │  ┌───────────────────────┐  │
-│                              │  │ Status: 201 Created   │  │
-│                              │  │ {                     │  │
-│                              │  │   "success": true,    │  │
-│                              │  │   "data": { ... }     │  │
-│                              │  │ }                     │  │
-│                              │  └───────────────────────┘  │
+│  Sidebar (trái)              │  Main Area (giữa)            │
+│  ├─ Collections              │  ┌───────────────────────┐   │
+│  │  └─ ReportingService      │  │ POST / GET dropdown   │   │
+│  │     ├─ Create Sales       │  ├───────────────────────┤   │
+│  │     ├─ Get Sales          │  │ URL: https://...      │   │
+│  │     └─ Create Inventory   │  ├───────────────────────┤   │
+│  ├─ History                  │  │ Tabs: Params Headers  │   │
+│  │                           │  │       Body Auth       │   │
+│  └─ Environments             │  ├───────────────────────┤   │
+│                              │  │  [Send]  [Save] ...   │   │
+│                              │  └───────────────────────┘   │
+│                              │                              │
+│                              │  Response Area (dưới)        │
+│                              │  ┌───────────────────────┐   │
+│                              │  │ Status: 201 Created   │   │
+│                              │  │   "success": true,    │   │
+│                              │  │   "data": { ... }     │   │
+│                              │  │ }                     │   │
+│                              │  └───────────────────────┘   │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -154,6 +153,7 @@ POST http://localhost:5208/api/reports/inventory-summary
   "vehicleName": "Tesla Model 3",
   "dealerId": "550e8400-e29b-41d4-a716-446655440000",
   "dealerName": "Dealer Hà Nội",
+  "region": "Miền Bắc",
   "stockCount": 15
 }
 ```
@@ -230,6 +230,7 @@ Postman tự động lưu request. Để sử dụng lại:
   "date": "2025-01-15T00:00:00Z",
   "dealerId": "550e8400-e29b-41d4-a716-446655440000",
   "dealerName": "Dealer Hà Nội",
+  "region": "Miền Bắc",
   "salespersonId": "550e8400-e29b-41d4-a716-446655440002",
   "salespersonName": "Nguyễn Văn A",
   "totalOrders": 5,
@@ -242,6 +243,7 @@ Postman tự động lưu request. Để sử dụng lại:
   "date": "2025-01-16T00:00:00Z",
   "dealerId": "550e8400-e29b-41d4-a716-446655440000",
   "dealerName": "Dealer Hà Nội",
+  "region": "Miền Bắc",
   "salespersonId": "550e8400-e29b-41d4-a716-446655440002",
   "salespersonName": "Nguyễn Văn A",
   "totalOrders": 3,
@@ -254,6 +256,7 @@ Postman tự động lưu request. Để sử dụng lại:
   "date": "2025-01-17T00:00:00Z",
   "dealerId": "550e8400-e29b-41d4-a716-446655440000",
   "dealerName": "Dealer Hà Nội",
+  "region": "Miền Bắc",
   "salespersonId": "550e8400-e29b-41d4-a716-446655440002",
   "salespersonName": "Nguyễn Văn A",
   "totalOrders": 7,

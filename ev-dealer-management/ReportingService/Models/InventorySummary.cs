@@ -20,6 +20,8 @@ public class InventorySummary
     
     public required string DealerName { get; set; } // Denormalized data
 
+    public required string Region { get; set; } // Miền Bắc, Miền Trung, Miền Nam
+
     public int StockCount { get; set; }
     
     public DateTime LastUpdatedAt { get; set; }

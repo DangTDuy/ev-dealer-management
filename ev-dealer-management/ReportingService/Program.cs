@@ -102,103 +102,310 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// --- Mock data used by reporting endpoints (MVP) ---
-var regionalData = new[]
-{
-    new { region = "Miền Bắc", sales = 450, revenue = 12500000000L },
-    new { region = "Miền Trung", sales = 280, revenue = 8000000000L },
-    new { region = "Miền Nam", sales = 620, revenue = 16000000000L }
-};
+// ============================================================================
+// REPORT ENDPOINTS - Using Real Data from Database
+// ============================================================================
 
-var topVehicles = new[]
+// Summary endpoint - Tính toán từ dữ liệu thật trong database
+app.MapGet("/api/reports/summary", async (ReportingDbContext db, string? type, string? from, string? to) =>
 {
-    new { model = "Tesla Model 3", sales = 45, revenue = "1.2B VNĐ" },
-    new { model = "BMW i3", sales = 32, revenue = "800M VNĐ" },
-    new { model = "Audi e-tron", sales = 28, revenue = "1.5B VNĐ" },
-    new { model = "Mercedes EQC", sales = 25, revenue = "1.8B VNĐ" },
-    new { model = "Porsche Taycan", sales = 18, revenue = "2.1B VNĐ" }
-};
-
-// Simple summary endpoint
-app.MapGet("/api/reports/summary", (string? type, string? from, string? to) =>
-{
-    var metrics = new
+    try
     {
-        totalSales = 1350,
-        totalRevenue = 36500000000L,
-        activeDealers = 24,
-        conversionRate = 0.052
-    };
+        DateTime? fromDate = null;
+        DateTime? toDate = null;
+        
+        if (!string.IsNullOrEmpty(from) && DateTime.TryParse(from, out var fd))
+            fromDate = fd;
+        if (!string.IsNullOrEmpty(to) && DateTime.TryParse(to, out var td))
+            toDate = td;
 
-    var result = new
+        // Query SalesSummaries với filter date nếu có
+        var salesQuery = db.SalesSummaries.AsQueryable();
+        if (fromDate.HasValue)
+            salesQuery = salesQuery.Where(s => s.Date >= fromDate.Value);
+        if (toDate.HasValue)
+            salesQuery = salesQuery.Where(s => s.Date <= toDate.Value);
+        
+        var salesData = await salesQuery.ToListAsync();
+        
+        // Tính toán metrics từ dữ liệu thật
+        var totalSales = salesData.Sum(s => s.TotalOrders);
+        var totalRevenue = salesData.Sum(s => s.TotalRevenue);
+        
+        // Đếm số đại lý unique từ SalesSummaries và InventorySummaries
+        var activeDealersFromSales = await salesQuery.Select(s => s.DealerId).Distinct().CountAsync();
+        var activeDealersFromInventory = await db.InventorySummaries.Select(i => i.DealerId).Distinct().CountAsync();
+        var activeDealers = Math.Max(activeDealersFromSales, activeDealersFromInventory);
+        
+        // Tổng số dealer: lấy từ tất cả unique dealers trong cả 2 bảng
+        var allDealerIds = await db.SalesSummaries.Select(s => s.DealerId)
+            .Union(db.InventorySummaries.Select(i => i.DealerId))
+            .Distinct()
+            .CountAsync();
+        var totalDealers = allDealerIds; // Lấy giá trị thực tế từ database
+        
+        // Conversion rate: tính dựa trên tổng số orders và số lượng inventory (ước tính)
+        var totalInventory = await db.InventorySummaries.SumAsync(i => i.StockCount);
+        var conversionRate = totalInventory > 0 ? (double)totalSales / (totalSales + totalInventory) : 0.0;
+
+        var metrics = new
+        {
+            totalSales,
+            totalRevenue = (long)totalRevenue,
+            activeDealers,
+            totalDealers,
+            conversionRate = Math.Round(conversionRate, 4)
+        };
+
+        var result = new
+        {
+            type = type ?? "sales",
+            from,
+            to,
+            metrics
+        };
+
+        return Results.Json(result);
+    }
+    catch (Exception ex)
     {
-        type = type ?? "sales",
-        from,
-        to,
-        metrics
-    };
-
-    return Results.Json(result);
+        Console.Error.WriteLine($"Error in GET /api/reports/summary: {ex.Message}");
+        return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
+    }
 })
 .WithName("GetReportSummary")
-.WithOpenApi();
+.WithOpenApi()
+.Produces(200)
+.Produces(500);
 
-// Sales by region (for bar chart)
-app.MapGet("/api/reports/sales-by-region", (string? from, string? to) =>
+// Sales by region (grouped by Region) - for bar chart
+app.MapGet("/api/reports/sales-by-region", async (ReportingDbContext db, string? from, string? to) =>
 {
-    // In a real implementation we'd call SalesService or query a reporting DB and filter by dates.
-    return Results.Json(regionalData);
+    try
+    {
+        DateTime? fromDate = null;
+        DateTime? toDate = null;
+        
+        if (!string.IsNullOrEmpty(from) && DateTime.TryParse(from, out var fd))
+            fromDate = fd;
+        if (!string.IsNullOrEmpty(to) && DateTime.TryParse(to, out var td))
+            toDate = td;
+
+        var query = db.SalesSummaries.AsQueryable();
+        if (fromDate.HasValue)
+            query = query.Where(s => s.Date >= fromDate.Value);
+        if (toDate.HasValue)
+            query = query.Where(s => s.Date <= toDate.Value);
+
+        // Group by Region và tính tổng (bỏ qua records có Region null)
+        var salesByRegion = await query
+            .Where(s => !string.IsNullOrWhiteSpace(s.Region))
+            .GroupBy(s => s.Region)
+            .Select(g => new
+            {
+                region = g.Key,
+                sales = g.Sum(s => s.TotalOrders),
+                revenue = (long)g.Sum(s => s.TotalRevenue)
+            })
+            .OrderByDescending(x => x.revenue)
+            .ToListAsync();
+
+        return Results.Json(salesByRegion);
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"Error in GET /api/reports/sales-by-region: {ex.Message}");
+        return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
+    }
 })
 .WithName("GetSalesByRegion")
-.WithOpenApi();
+.WithOpenApi()
+.Produces(200)
+.Produces(500);
 
-// Top vehicles
-app.MapGet("/api/reports/top-vehicles", (int? limit) =>
+// Sales proportion by region - for donut chart
+app.MapGet("/api/reports/sales-proportion", async (ReportingDbContext db, string? from, string? to) =>
 {
-    var l = limit.HasValue && limit.Value > 0 ? Math.Min(limit.Value, topVehicles.Length) : topVehicles.Length;
-    return Results.Json(topVehicles.Take(l));
+    try
+    {
+        DateTime? fromDate = null;
+        DateTime? toDate = null;
+        
+        if (!string.IsNullOrEmpty(from) && DateTime.TryParse(from, out var fd))
+            fromDate = fd;
+        if (!string.IsNullOrEmpty(to) && DateTime.TryParse(to, out var td))
+            toDate = td;
+
+        var query = db.SalesSummaries.AsQueryable();
+        if (fromDate.HasValue)
+            query = query.Where(s => s.Date >= fromDate.Value);
+        if (toDate.HasValue)
+            query = query.Where(s => s.Date <= toDate.Value);
+
+        // Bỏ qua records có Region null
+        var salesByRegion = await query
+            .Where(s => !string.IsNullOrWhiteSpace(s.Region))
+            .GroupBy(s => s.Region)
+            .Select(g => new
+            {
+                region = g.Key,
+                sales = g.Sum(s => s.TotalOrders),
+                revenue = (long)g.Sum(s => s.TotalRevenue)
+            })
+            .ToListAsync();
+
+        var totalSales = salesByRegion.Sum(x => x.sales);
+        var totalRevenue = salesByRegion.Sum(x => x.revenue);
+
+        var result = salesByRegion.Select(x => new
+        {
+            region = x.region,
+            sales = x.sales,
+            revenue = x.revenue,
+            salesPercentage = totalSales > 0 ? Math.Round((double)x.sales / totalSales * 100, 1) : 0,
+            revenuePercentage = totalRevenue > 0 ? Math.Round((double)x.revenue / totalRevenue * 100, 1) : 0
+        }).OrderByDescending(x => x.sales).ToList();
+
+        return Results.Json(result);
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"Error in GET /api/reports/sales-proportion: {ex.Message}");
+        return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
+    }
+})
+.WithName("GetSalesProportion")
+.WithOpenApi()
+.Produces(200)
+.Produces(500);
+
+// Top vehicles - Lấy từ InventorySummaries, sắp xếp theo StockCount
+app.MapGet("/api/reports/top-vehicles", async (ReportingDbContext db, int? limit) =>
+{
+    try
+    {
+        // Tính average revenue per order từ SalesSummaries để ước tính revenue cho vehicles
+        var totalOrders = await db.SalesSummaries.SumAsync(s => (long)s.TotalOrders);
+        var totalRevenue = await db.SalesSummaries.SumAsync(s => (long)s.TotalRevenue);
+        var avgRevenuePerOrder = totalOrders > 0 ? (double)totalRevenue / totalOrders : 0;
+
+        var query = db.InventorySummaries
+            .GroupBy(i => i.VehicleName)
+            .Select(g => new
+            {
+                model = g.Key,
+                sales = g.Sum(i => i.StockCount), // Tổng stock count cho vehicle đó
+                revenue = (long)(g.Sum(i => i.StockCount) * avgRevenuePerOrder) // Tính revenue dựa trên average revenue per order
+            })
+            .OrderByDescending(x => x.sales);
+
+        var l = limit.HasValue && limit.Value > 0 ? limit.Value : 10;
+        var topVehicles = await query.Take(l).ToListAsync();
+
+        return Results.Json(topVehicles);
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"Error in GET /api/reports/top-vehicles: {ex.Message}");
+        return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
+    }
 })
 .WithName("GetTopVehicles")
-.WithOpenApi();
+.WithOpenApi()
+.Produces(200)
+.Produces(500);
 
-// Simple export endpoint (returns CSV) - synchronous small export for MVP
-app.MapPost("/api/reports/export", async (HttpRequest req, ReportingDbContext? db) =>
+// Export endpoint - Export dữ liệu thật từ database
+app.MapPost("/api/reports/export", async (HttpRequest req, ReportingDbContext db) =>
 {
-    using var sr = new StreamReader(req.Body, Encoding.UTF8);
-    var body = await sr.ReadToEndAsync();
-    // Try to parse payload for type/format (best-effort)
-    string type = "sales";
-    string format = "csv";
-    DateTime? fromDate = null;
-    DateTime? toDate = null;
     try
     {
-        var doc = JsonDocument.Parse(body);
-        if (doc.RootElement.TryGetProperty("type", out var t)) type = t.GetString() ?? type;
-        if (doc.RootElement.TryGetProperty("format", out var f)) format = f.GetString() ?? format;
-        if (doc.RootElement.TryGetProperty("from", out var fr) && fr.GetString() is string frs && DateTime.TryParse(frs, out var fd)) fromDate = fd;
-        if (doc.RootElement.TryGetProperty("to", out var toEl) && toEl.GetString() is string tos && DateTime.TryParse(tos, out var td)) toDate = td;
-    }
-    catch
-    {
-        // ignore parse errors and use defaults
-    }
+        using var sr = new StreamReader(req.Body, Encoding.UTF8);
+        var body = await sr.ReadToEndAsync();
+        
+        // Parse payload for type/format
+        string type = "sales";
+        string format = "csv";
+        DateTime? fromDate = null;
+        DateTime? toDate = null;
+        
+        try
+        {
+            if (!string.IsNullOrEmpty(body))
+            {
+                var doc = JsonDocument.Parse(body);
+                if (doc.RootElement.TryGetProperty("type", out var t)) type = t.GetString() ?? type;
+                if (doc.RootElement.TryGetProperty("format", out var f)) format = f.GetString() ?? format;
+                if (doc.RootElement.TryGetProperty("from", out var fr) && fr.GetString() is string frs && DateTime.TryParse(frs, out var fd)) fromDate = fd;
+                if (doc.RootElement.TryGetProperty("to", out var toEl) && toEl.GetString() is string tos && DateTime.TryParse(tos, out var td)) toDate = td;
+            }
+        }
+        catch
+        {
+            // ignore parse errors and use defaults
+        }
 
-    // For MVP create a simple CSV from topVehicles
-    var csvBuilder = new StringBuilder();
-    csvBuilder.AppendLine("model,sales,revenue");
-    foreach (var v in topVehicles)
-    {
-        csvBuilder.AppendLine($"{v.model},{v.sales},{v.revenue}");
-    }
+        var csvBuilder = new StringBuilder();
+        byte[] bytes;
+        string filename;
 
-    var bytes = Encoding.UTF8.GetBytes(csvBuilder.ToString());
-    var filename = $"report_{type}_{DateTime.UtcNow:yyyyMMddHHmmss}.csv";
+        if (type.ToLower() == "sales")
+        {
+            // Export sales data
+            var salesQuery = db.SalesSummaries.AsQueryable();
+            if (fromDate.HasValue)
+                salesQuery = salesQuery.Where(s => s.Date >= fromDate.Value);
+            if (toDate.HasValue)
+                salesQuery = salesQuery.Where(s => s.Date <= toDate.Value);
 
-    // If a DB is available, persist a ReportRequest and ReportExport record (best-effort)
-    try
-    {
-        if (db != null)
+            var salesData = await salesQuery.OrderByDescending(s => s.Date).ToListAsync();
+
+            csvBuilder.AppendLine("Date,DealerName,SalespersonName,TotalOrders,TotalRevenue");
+            foreach (var s in salesData)
+            {
+                csvBuilder.AppendLine($"{s.Date:yyyy-MM-dd},\"{s.DealerName}\",\"{s.SalespersonName}\",{s.TotalOrders},{s.TotalRevenue}");
+            }
+
+            filename = $"sales_report_{DateTime.UtcNow:yyyyMMddHHmmss}.csv";
+        }
+        else if (type.ToLower() == "inventory")
+        {
+            // Export inventory data
+            var inventoryData = await db.InventorySummaries
+                .OrderByDescending(i => i.LastUpdatedAt)
+                .ToListAsync();
+
+            csvBuilder.AppendLine("VehicleName,DealerName,StockCount,LastUpdatedAt");
+            foreach (var i in inventoryData)
+            {
+                csvBuilder.AppendLine($"{i.VehicleName},\"{i.DealerName}\",{i.StockCount},{i.LastUpdatedAt:yyyy-MM-dd HH:mm:ss}");
+            }
+
+            filename = $"inventory_report_{DateTime.UtcNow:yyyyMMddHHmmss}.csv";
+        }
+        else
+        {
+            // Default: export both
+            var salesData = await db.SalesSummaries.OrderByDescending(s => s.Date).ToListAsync();
+            var inventoryData = await db.InventorySummaries.OrderByDescending(i => i.LastUpdatedAt).ToListAsync();
+
+            csvBuilder.AppendLine("Type,Date,DealerName,Details,Count,Revenue");
+            foreach (var s in salesData)
+            {
+                csvBuilder.AppendLine($"Sales,{s.Date:yyyy-MM-dd},\"{s.DealerName}\",\"{s.SalespersonName}\",{s.TotalOrders},{s.TotalRevenue}");
+            }
+            foreach (var i in inventoryData)
+            {
+                csvBuilder.AppendLine($"Inventory,{i.LastUpdatedAt:yyyy-MM-dd},\"{i.DealerName}\",\"{i.VehicleName}\",{i.StockCount},0");
+            }
+
+            filename = $"full_report_{DateTime.UtcNow:yyyyMMddHHmmss}.csv";
+        }
+
+        bytes = Encoding.UTF8.GetBytes(csvBuilder.ToString());
+
+        // Persist ReportRequest and ReportExport record
+        try
         {
             var reqEntity = new ReportRequest
             {
@@ -224,16 +431,23 @@ app.MapPost("/api/reports/export", async (HttpRequest req, ReportingDbContext? d
             db.ReportExports.Add(exportEntity);
             await db.SaveChangesAsync();
         }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Warning: failed to save export metadata: {ex.Message}");
+        }
+
+        return Results.File(bytes, "text/csv", filename);
     }
     catch (Exception ex)
     {
-        Console.Error.WriteLine($"Warning: failed to save export metadata: {ex.Message}");
+        Console.Error.WriteLine($"Error in POST /api/reports/export: {ex.Message}");
+        return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
     }
-
-    return Results.File(bytes, "text/csv", filename);
 })
 .WithName("ExportReport")
-.WithOpenApi();
+.WithOpenApi()
+.Produces(200)
+.Produces(500);
 
 // ============================================================================
 // NEW API ENDPOINTS FOR SALES SUMMARY AND INVENTORY SUMMARY
@@ -364,6 +578,9 @@ app.MapPost("/api/reports/sales-summary", async (ReportingDbContext db, SalesSum
         if (string.IsNullOrWhiteSpace(salesSummary.DealerName) || string.IsNullOrWhiteSpace(salesSummary.SalespersonName))
             return Results.BadRequest(new { message = "DealerName and SalespersonName are required" });
         
+        if (string.IsNullOrWhiteSpace(salesSummary.Region))
+            return Results.BadRequest(new { message = "Region is required (Miền Bắc, Miền Trung, or Miền Nam)" });
+        
         salesSummary.Id = Guid.NewGuid();
         salesSummary.LastUpdatedAt = DateTime.UtcNow;
         
@@ -391,6 +608,9 @@ app.MapPost("/api/reports/inventory-summary", async (ReportingDbContext db, Inve
     {
         if (string.IsNullOrWhiteSpace(inventorySummary.VehicleName) || string.IsNullOrWhiteSpace(inventorySummary.DealerName))
             return Results.BadRequest(new { message = "VehicleName and DealerName are required" });
+        
+        if (string.IsNullOrWhiteSpace(inventorySummary.Region))
+            return Results.BadRequest(new { message = "Region is required (Miền Bắc, Miền Trung, or Miền Nam)" });
         
         inventorySummary.Id = Guid.NewGuid();
         inventorySummary.LastUpdatedAt = DateTime.UtcNow;

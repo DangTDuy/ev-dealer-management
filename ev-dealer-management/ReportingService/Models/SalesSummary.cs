@@ -18,6 +18,8 @@ public class SalesSummary
     
     public required string DealerName { get; set; } // Denormalized data
 
+    public required string Region { get; set; } // Miền Bắc, Miền Trung, Miền Nam
+
     public Guid SalespersonId { get; set; }
     
     public required string SalespersonName { get; set; } // Denormalized data
