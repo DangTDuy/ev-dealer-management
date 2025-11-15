@@ -1,6 +1,6 @@
 /**
- * Vehicle Form (Add/Edit)
- * Supports both create and update modes
+ * Vehicle Form (Thêm/Sửa Xe) - Giao diện hiện đại
+ * Giao diện trực quan với màu xanh dương nhạt
  */
 
 import { useState, useEffect } from 'react'
@@ -24,7 +24,13 @@ import {
   IconButton,
   Paper,
   Chip,
-  Divider
+  Divider,
+  Stepper,
+  Step,
+  StepLabel,
+  Avatar,
+  Fade,
+  Slide
 } from '@mui/material'
 import {
   Save as SaveIcon,
@@ -38,8 +44,13 @@ import {
   Description as DescriptionIcon,
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
+  CalendarToday as CalendarIcon,
+  Speed as SpeedIcon,
+  LocalOffer as TagIcon,
+  DirectionsCar as CarModelIcon,
+  Person as PersonIcon,
   Info as InfoIcon,
-  CalendarToday as CalendarIcon
+  Check as CheckIcon
 } from '@mui/icons-material'
 
 import vehicleService from '../../services/vehicleService'
@@ -51,13 +62,14 @@ const VehicleForm = () => {
 
   // Form state
   const [formData, setFormData] = useState({
-    vehicleName: '',
-    brand: '',
     model: '',
-    year: new Date().getFullYear(),
+    type: 'sedan',
     price: '',
-    status: 'Available',
+    batteryCapacity: '',
+    range: '',
+    stockQuantity: '',
     description: '',
+    dealerId: '',
     image: null
   })
 
@@ -67,8 +79,31 @@ const VehicleForm = () => {
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
   const [imagePreview, setImagePreview] = useState(null)
+  const [dealers, setDealers] = useState([])
+  const [vehicleTypes, setVehicleTypes] = useState([])
+  const [activeStep, setActiveStep] = useState(0)
 
-  // Options
+  // Color scheme - Màu xanh dương nhạt hiện đại
+  const colors = {
+    primary: '#2196f3', // Xanh dương chính
+    secondary: '#64b5f6', // Xanh dương nhạt hơn
+    accent: '#e3f2fd', // Xanh dương rất nhạt
+    success: '#4caf50',
+    warning: '#ff9800',
+    error: '#f44336',
+    background: '#fafafa',
+    card: '#ffffff',
+    text: '#212121',
+    textLight: '#757575'
+  }
+
+  const steps = [
+    { label: 'Thông tin cơ bản', icon: PersonIcon, description: 'Nhập thông tin xe cơ bản' },
+    { label: 'Thông số kỹ thuật', icon: SpeedIcon, description: 'Thêm thông số kỹ thuật' },
+    { label: 'Xem lại & hoàn tất', icon: CheckIcon, description: 'Kiểm tra và lưu' }
+  ]
+
+  // Options - Các tùy chọn
   const brands = [
     'Tesla', 'Toyota', 'Honda', 'Ford', 'Chevrolet',
     'BMW', 'Mercedes-Benz', 'Audi', 'Volkswagen', 'Nissan',
@@ -76,10 +111,10 @@ const VehicleForm = () => {
   ]
 
   const statuses = [
-    { value: 'Available', label: 'Available', color: 'success' },
-    { value: 'Sold', label: 'Sold', color: 'error' },
-    { value: 'In Maintenance', label: 'In Maintenance', color: 'warning' },
-    { value: 'Reserved', label: 'Reserved', color: 'info' }
+    { value: 'Available', label: 'Có sẵn', color: 'success', icon: CheckCircleIcon },
+    { value: 'Sold', label: 'Đã bán', color: 'error', icon: ErrorIcon },
+    { value: 'In Maintenance', label: 'Đang bảo dưỡng', color: 'warning', icon: BuildIcon },
+    { value: 'Reserved', label: 'Đã đặt cọc', color: 'info', icon: InfoIcon }
   ]
 
   // Load data on mount
@@ -107,8 +142,8 @@ const VehicleForm = () => {
         setImagePreview(vehicle.images[0])
       }
     } catch (err) {
-      setError(err.message || 'Failed to load vehicle')
-      console.error('Error loading vehicle:', err)
+      setError(err.message || 'Không thể tải thông tin xe')
+      console.error('Lỗi tải xe:', err)
     } finally {
       setLoading(false)
     }
@@ -133,12 +168,32 @@ const VehicleForm = () => {
     setImagePreview(null)
   }
 
+  const handleNext = () => {
+    setActiveStep((prev) => prev + 1)
+  }
+
+  const handleBack = () => {
+    setActiveStep((prev) => prev - 1)
+  }
+
+  const validateStep = (step) => {
+    switch (step) {
+      case 0:
+        return formData.vehicleName && formData.brand && formData.model
+      case 1:
+        return formData.price
+      default:
+        return true
+    }
+  }
+
   const handleSubmit = async (event) => {
     event.preventDefault()
 
-    // Basic validation
+    // Validation
     if (!formData.vehicleName || !formData.brand || !formData.model || !formData.price) {
-      setError('Please fill in all required fields')
+      setError('Vui lòng điền đầy đủ thông tin bắt buộc')
+      setActiveStep(0)
       return
     }
 
@@ -164,8 +219,8 @@ const VehicleForm = () => {
       }, 1500)
 
     } catch (err) {
-      setError(err.message || 'Failed to save vehicle')
-      console.error('Error saving vehicle:', err)
+      setError(err.message || 'Không thể lưu xe')
+      console.error('Lỗi lưu xe:', err)
     } finally {
       setSaving(false)
     }
@@ -177,11 +232,18 @@ const VehicleForm = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-          <CircularProgress size={60} />
-          <Typography variant="h6" sx={{ ml: 2 }}>
-            Loading vehicle...
+      <Container maxWidth="md" sx={{ py: 4, background: colors.background, minHeight: '100vh' }}>
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '50vh',
+          flexDirection: 'column',
+          gap: 3
+        }}>
+          <CircularProgress size={60} sx={{ color: colors.primary }} />
+          <Typography variant="h6" sx={{ color: colors.text }}>
+            Đang tải thông tin xe...
           </Typography>
         </Box>
       </Container>
@@ -189,7 +251,7 @@ const VehicleForm = () => {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Container maxWidth="md" sx={{ py: 4, background: colors.background, minHeight: '100vh' }}>
       {/* Header */}
       <Box sx={{ mb: 4, textAlign: 'center', position: 'relative' }}>
         <IconButton
@@ -197,122 +259,168 @@ const VehicleForm = () => {
           sx={{
             position: 'absolute',
             left: 0,
-            top: 0,
-            backgroundColor: 'rgba(255,255,255,0.9)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(0,0,0,0.1)',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            backgroundColor: 'white',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             '&:hover': {
-              backgroundColor: 'white',
-              transform: 'scale(1.1)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+              backgroundColor: colors.accent,
+              transform: 'translateY(-50%) scale(1.05)',
             },
             transition: 'all 0.2s ease'
           }}
         >
           <ArrowBackIcon />
         </IconButton>
+
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-          <CarIcon sx={{ fontSize: 40, color: '#1976d2', mr: 2 }} />
-          <Typography
-            variant="h3"
-            component="h1"
-            sx={{
-              fontWeight: 'bold',
-              background: 'linear-gradient(45deg, #1976d2, #42a5f5)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              textShadow: '0 2px 4px rgba(0,0,0,0.1)'
-            }}
-          >
-            {isEditMode ? 'Edit Vehicle' : 'Add New Vehicle'}
-          </Typography>
+          <Avatar sx={{
+            width: 60,
+            height: 60,
+            background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
+            boxShadow: '0 4px 20px rgba(33, 150, 243, 0.3)',
+            mr: 2
+          }}>
+            <CarIcon sx={{ fontSize: 32, color: 'white' }} />
+          </Avatar>
+          <Box textAlign="left">
+            <Typography
+              variant="h4"
+              component="h1"
+              sx={{
+                fontWeight: '700',
+                color: colors.text,
+                background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              {isEditMode ? 'Chỉnh sửa xe' : 'Thêm xe mới'}
+            </Typography>
+            <Typography variant="subtitle1" sx={{ color: colors.textLight, fontWeight: 400 }}>
+              {isEditMode ? 'Cập nhật thông tin xe của bạn' : 'Thêm xe mới vào kho'}
+            </Typography>
+          </Box>
         </Box>
-        <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 300 }}>
-          {isEditMode ? 'Update vehicle information with modern interface' : 'Create a new vehicle entry with rich details'}
-        </Typography>
+      </Box>
+
+      {/* Progress Stepper */}
+      <Box sx={{ mb: 4 }}>
+        <Stepper activeStep={activeStep} alternativeLabel>
+          {steps.map((step, index) => (
+            <Step key={step.label}>
+              <StepLabel
+                StepIconComponent={() => (
+                  <Avatar sx={{
+                    width: 40,
+                    height: 40,
+                    backgroundColor: activeStep >= index ? colors.primary : colors.textLight,
+                    color: 'white'
+                  }}>
+                    <step.icon />
+                  </Avatar>
+                )}
+                sx={{
+                  '& .MuiStepLabel-label': {
+                    color: colors.text,
+                    fontWeight: activeStep >= index ? 600 : 400,
+                    mt: 1,
+                    fontSize: '0.9rem'
+                  },
+                  '& .MuiStepLabel-description': {
+                    color: colors.textLight,
+                    fontSize: '0.8rem'
+                  }
+                }}
+              >
+                {step.label}
+                <br />
+                <Typography variant="caption" sx={{ color: colors.textLight }}>
+                  {step.description}
+                </Typography>
+              </StepLabel>
+            </Step>
+          ))}
+        </Stepper>
       </Box>
 
       {/* Success Message */}
       {success && (
-        <Alert
-          severity="success"
-          sx={{
-            mb: 3,
-            borderRadius: 3,
-            boxShadow: '0 4px 12px rgba(76, 175, 80, 0.2)',
-            border: '1px solid rgba(76, 175, 80, 0.3)'
-          }}
-          icon={<CheckCircleIcon />}
-        >
-          <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-            Vehicle {isEditMode ? 'updated' : 'created'} successfully! Redirecting to vehicle list...
-          </Typography>
-        </Alert>
+        <Fade in={success}>
+          <Alert
+            severity="success"
+            sx={{
+              mb: 3,
+              borderRadius: 3,
+              boxShadow: '0 4px 12px rgba(76, 175, 80, 0.2)',
+              border: `1px solid ${colors.success}33`,
+              backgroundColor: `${colors.success}15`
+            }}
+            icon={<CheckCircleIcon />}
+          >
+            <Typography variant="body1" sx={{ fontWeight: '600' }}>
+              Xe {isEditMode ? 'đã được cập nhật' : 'đã được tạo'} thành công! Đang chuyển hướng...
+            </Typography>
+          </Alert>
+        </Fade>
       )}
 
       {/* Error Message */}
       {error && (
-        <Alert
-          severity="error"
-          sx={{
-            mb: 3,
-            borderRadius: 3,
-            boxShadow: '0 4px 12px rgba(244, 67, 54, 0.2)',
-            border: '1px solid rgba(244, 67, 54, 0.3)'
-          }}
-          icon={<ErrorIcon />}
-        >
-          <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-            {error}
-          </Typography>
-        </Alert>
+        <Fade in={!!error}>
+          <Alert
+            severity="error"
+            sx={{
+              mb: 3,
+              borderRadius: 3,
+              boxShadow: '0 4px 12px rgba(244, 67, 54, 0.2)',
+              border: `1px solid ${colors.error}33`,
+              backgroundColor: `${colors.error}15`
+            }}
+            icon={<ErrorIcon />}
+          >
+            <Typography variant="body1" sx={{ fontWeight: '600' }}>
+              {error}
+            </Typography>
+          </Alert>
+        </Fade>
       )}
 
-      {/* Form Card */}
+      {/* Form Container */}
       <Card
         sx={{
-          maxWidth: 1200,
-          mx: 'auto',
           borderRadius: 4,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-          background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f0f7ff 100%)',
-          border: '2px solid rgba(25, 118, 210, 0.1)',
-          transition: 'all 0.3s ease',
-          '&:hover': {
-            boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
-            transform: 'translateY(-2px)'
-          }
+          boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+          background: colors.card,
+          border: `1px solid ${colors.accent}`,
+          overflow: 'visible'
         }}
       >
-        <CardContent sx={{ p: 6 }}>
+        <CardContent sx={{ p: 0 }}>
           <form onSubmit={handleSubmit}>
-            <Grid container spacing={4}>
-              
-              {/* Row 1: Vehicle Identity */}
-              <Grid item xs={12}>
-                <Paper
-                  elevation={0}
-                  sx={{
-                    p: 4,
-                    borderRadius: 3,
-                    background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.05), rgba(66, 165, 245, 0.05))',
-                    border: '2px solid rgba(25, 118, 210, 0.1)',
-                    borderLeft: '6px solid #1976d2'
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <BuildIcon sx={{ color: '#1976d2', mr: 2, fontSize: 32 }} />
-                    <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
-                      Vehicle Identity
-                    </Typography>
-                  </Box>
+            {/* Step 1: Thông tin cơ bản */}
+            {activeStep === 0 && (
+              <Slide direction="right" in={activeStep === 0} mountOnEnter unmountOnExit>
+                <Box sx={{ p: 4 }}>
+                  <Typography variant="h5" sx={{
+                    mb: 4,
+                    color: colors.text,
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}>
+                    <PersonIcon sx={{ color: colors.primary }} />
+                    Thông tin cơ bản
+                  </Typography>
+
                   <Grid container spacing={3}>
-                    <Grid size={{ xs: 12, md: 6 }}>
+                    <Grid item xs={12}>
                       <TextField
                         fullWidth
-                        label="Vehicle Name"
-                        placeholder="e.g., Tesla Model S Plaid, BMW i8, Toyota Prius"
+                        label="Tên xe"
+                        placeholder="Ví dụ: Tesla Model S Plaid"
                         value={formData.vehicleName}
                         onChange={(e) => handleInputChange('vehicleName', e.target.value)}
                         required
@@ -320,89 +428,61 @@ const VehicleForm = () => {
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             borderRadius: 2,
-                            fontSize: '1rem',
-                            backgroundColor: 'rgba(255,255,255,0.9)',
+                            backgroundColor: `${colors.background}`,
                             '& fieldset': {
-                              borderWidth: 2,
-                              borderColor: 'rgba(25, 118, 210, 0.3)'
+                              borderColor: colors.accent,
                             },
                             '&:hover fieldset': {
-                              borderColor: '#1976d2'
+                              borderColor: colors.primary,
                             },
                             '&.Mui-focused fieldset': {
-                              borderColor: '#1976d2',
-                              borderWidth: 3
+                              borderColor: colors.primary,
+                              borderWidth: 2
                             }
                           },
                           '& .MuiInputLabel-root': {
-                            fontSize: '1rem',
-                            fontWeight: 600
+                            color: colors.textLight,
                           }
                         }}
                       />
                     </Grid>
-                    <Grid size={{ xs: 12, md: 6 }}>
+
+                    <Grid item xs={12} md={6}>
                       <FormControl fullWidth required>
-                        <InputLabel sx={{ fontSize: '1rem', fontWeight: 600 }}>Brand</InputLabel>
+                        <InputLabel sx={{ color: colors.textLight }}>Hãng xe</InputLabel>
                         <Select
                           value={formData.brand}
-                          label="Brand"
+                          label="Hãng xe"
                           onChange={(e) => handleInputChange('brand', e.target.value)}
                           sx={{
                             borderRadius: 2,
-                            fontSize: '1rem',
-                            backgroundColor: 'rgba(255,255,255,0.9)',
+                            backgroundColor: `${colors.background}`,
                             '& .MuiOutlinedInput-notchedOutline': {
-                              borderWidth: 2,
-                              borderColor: 'rgba(25, 118, 210, 0.3)'
+                              borderColor: colors.accent,
                             },
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#1976d2'
+                              borderColor: colors.primary,
                             },
                             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#1976d2',
-                              borderWidth: 3
+                              borderColor: colors.primary,
+                              borderWidth: 2
                             }
                           }}
                         >
                           {brands.map((brand) => (
-                            <MenuItem key={brand} value={brand} sx={{ fontSize: '1rem' }}>
+                            <MenuItem key={brand} value={brand} sx={{ color: colors.text }}>
                               {brand}
                             </MenuItem>
                           ))}
                         </Select>
                       </FormControl>
                     </Grid>
-                  </Grid>
-                </Paper>
-              </Grid>
 
-              {/* Row 2: Model, Year, Price */}
-              <Grid item xs={12}>
-                <Grid container spacing={3}>
-                  {/* Model */}
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        p: 3,
-                        borderRadius: 3,
-                        background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.05), rgba(129, 199, 132, 0.05))',
-                        border: '2px solid rgba(76, 175, 80, 0.1)',
-                        borderLeft: '4px solid #4caf50',
-                        height: '100%'
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <CarIcon sx={{ color: '#4caf50', mr: 1.5, fontSize: 24 }} />
-                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#4caf50' }}>
-                          Model
-                        </Typography>
-                      </Box>
+                    <Grid item xs={12} md={6}>
                       <TextField
                         fullWidth
-                        label="Model Name"
-                        placeholder="e.g., Model 3, i8, Prius"
+                        label="Model"
+                        placeholder="Ví dụ: Model 3"
                         value={formData.model}
                         onChange={(e) => handleInputChange('model', e.target.value)}
                         required
@@ -410,101 +490,78 @@ const VehicleForm = () => {
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             borderRadius: 2,
-                            fontSize: '1rem',
-                            backgroundColor: 'rgba(255,255,255,0.9)',
+                            backgroundColor: `${colors.background}`,
                             '& fieldset': {
-                              borderWidth: 2,
-                              borderColor: 'rgba(76, 175, 80, 0.3)'
+                              borderColor: colors.accent,
                             },
                             '&:hover fieldset': {
-                              borderColor: '#4caf50'
+                              borderColor: colors.primary,
                             },
                             '&.Mui-focused fieldset': {
-                              borderColor: '#4caf50',
+                              borderColor: colors.primary,
                               borderWidth: 2
                             }
                           }
                         }}
                       />
-                    </Paper>
-                  </Grid>
+                    </Grid>
 
-                  {/* Year */}
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        p: 3,
-                        borderRadius: 3,
-                        background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.05), rgba(255, 183, 77, 0.05))',
-                        border: '2px solid rgba(255, 152, 0, 0.1)',
-                        borderLeft: '4px solid #ff9800',
-                        height: '100%'
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <CalendarIcon sx={{ color: '#ff9800', mr: 1.5, fontSize: 24 }} />
-                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#ff9800' }}>
-                          Year
-                        </Typography>
-                      </Box>
+                    <Grid item xs={12}>
                       <TextField
                         fullWidth
-                        label="Manufacturing Year"
+                        label="Năm sản xuất"
                         type="number"
-                        placeholder="2025"
                         value={formData.year}
                         onChange={(e) => handleInputChange('year', e.target.value)}
-                        inputProps={{ 
-                          min: 1900, 
-                          max: new Date().getFullYear() + 1,
-                          step: 1
+                        inputProps={{
+                          min: 1900,
+                          max: new Date().getFullYear() + 1
                         }}
                         variant="outlined"
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             borderRadius: 2,
-                            fontSize: '1rem',
-                            backgroundColor: 'rgba(255,255,255,0.9)',
+                            backgroundColor: `${colors.background}`,
                             '& fieldset': {
-                              borderWidth: 2,
-                              borderColor: 'rgba(255, 152, 0, 0.3)'
+                              borderColor: colors.accent,
                             },
                             '&:hover fieldset': {
-                              borderColor: '#ff9800'
+                              borderColor: colors.primary,
                             },
                             '&.Mui-focused fieldset': {
-                              borderColor: '#ff9800',
+                              borderColor: colors.primary,
                               borderWidth: 2
                             }
                           }
                         }}
                       />
-                    </Paper>
+                    </Grid>
                   </Grid>
+                </Box>
+              </Slide>
+            )}
 
-                  {/* Price */}
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        p: 3,
-                        borderRadius: 3,
-                        background: 'linear-gradient(135deg, rgba(156, 39, 176, 0.05), rgba(186, 104, 200, 0.05))',
-                        border: '2px solid rgba(156, 39, 176, 0.1)',
-                        borderLeft: '4px solid #9c27b0',
-                        height: '100%'
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <MoneyIcon sx={{ color: '#9c27b0', mr: 1.5, fontSize: 24 }} />
-                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#9c27b0' }}>
-                          Price
-                        </Typography>
-                      </Box>
+            {/* Step 2: Chi tiết & giá */}
+            {activeStep === 1 && (
+              <Slide direction="left" in={activeStep === 1} mountOnEnter unmountOnExit>
+                <Box sx={{ p: 4 }}>
+                  <Typography variant="h5" sx={{
+                    mb: 4,
+                    color: colors.text,
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}>
+                    <MoneyIcon sx={{ color: colors.primary }} />
+                    Chi tiết & Giá cả
+                  </Typography>
+
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} md={6}>
                       <TextField
                         fullWidth
-                        label="Vehicle Price"
+                        label="Giá xe"
                         type="number"
                         placeholder="45000"
                         value={formData.price}
@@ -513,7 +570,7 @@ const VehicleForm = () => {
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
-                              <strong style={{ fontSize: '1rem' }}>$</strong>
+                              <Typography sx={{ color: colors.textLight, fontWeight: 600 }}>₫</Typography>
                             </InputAdornment>
                           ),
                         }}
@@ -521,114 +578,67 @@ const VehicleForm = () => {
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             borderRadius: 2,
-                            fontSize: '1rem',
-                            backgroundColor: 'rgba(255,255,255,0.9)',
+                            backgroundColor: `${colors.background}`,
                             '& fieldset': {
-                              borderWidth: 2,
-                              borderColor: 'rgba(156, 39, 176, 0.3)'
+                              borderColor: colors.accent,
                             },
                             '&:hover fieldset': {
-                              borderColor: '#9c27b0'
+                              borderColor: colors.primary,
                             },
                             '&.Mui-focused fieldset': {
-                              borderColor: '#9c27b0',
+                              borderColor: colors.primary,
                               borderWidth: 2
                             }
                           }
                         }}
                       />
-                    </Paper>
-                  </Grid>
-                </Grid>
-              </Grid>
+                    </Grid>
 
-              {/* Row 3: Status and Description - Cùng hàng */}
-              <Grid item xs={12}>
-                <Grid container spacing={2}>
-                  {/* Status - Cột trái */}
-                  <Grid size={{ xs: 40, md: 8 }}>
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        p: 3,
-                        borderRadius: 3,
-                        background: 'linear-gradient(135deg, rgba(244, 67, 54, 0.05), rgba(229, 115, 115, 0.05))',
-                        border: '2px solid rgba(244, 67, 54, 0.1)',
-                        borderLeft: '4px solid #f44336',
-                        height: '100%'
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <CheckCircleIcon sx={{ color: '#f44336', mr: 1.5, fontSize: 24 }} />
-                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#f44336' }}>
-                          Status
-                        </Typography>
-                      </Box>
+                    <Grid item xs={12} md={6}>
                       <FormControl fullWidth>
-                        <InputLabel sx={{ fontSize: '1rem', fontWeight: 600 }}>Current Status</InputLabel>
+                        <InputLabel sx={{ color: colors.textLight }}>Trạng thái</InputLabel>
                         <Select
                           value={formData.status}
-                          label="Current Status"
+                          label="Trạng thái"
                           onChange={(e) => handleInputChange('status', e.target.value)}
                           sx={{
                             borderRadius: 2,
-                            fontSize: '1rem',
-                            backgroundColor: 'rgba(255,255,255,0.9)',
+                            backgroundColor: `${colors.background}`,
                             '& .MuiOutlinedInput-notchedOutline': {
-                              borderWidth: 2,
-                              borderColor: 'rgba(244, 67, 54, 0.3)'
+                              borderColor: colors.accent,
                             },
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#f44336'
+                              borderColor: colors.primary,
                             },
                             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#f44336',
+                              borderColor: colors.primary,
                               borderWidth: 2
                             }
                           }}
                         >
                           {statuses.map((status) => (
-                            <MenuItem key={status.value} value={status.value} sx={{ fontSize: '1rem' }}>
-                              <Chip 
-                                label={status.label}
-                                color={status.color}
-                                size="medium"
-                                variant="filled"
-                                sx={{ 
-                                  fontWeight: 'bold',
-                                  minWidth: 120
-                                }}
-                              />
+                            <MenuItem key={status.value} value={status.value}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <status.icon sx={{ color: `${status.color}.main`, fontSize: 20 }} />
+                                <Chip
+                                  label={status.label}
+                                  color={status.color}
+                                  size="small"
+                                  variant="filled"
+                                  sx={{ fontWeight: 'bold' }}
+                                />
+                              </Box>
                             </MenuItem>
                           ))}
                         </Select>
                       </FormControl>
-                    </Paper>
-                  </Grid>
+                    </Grid>
 
-                  {/* Description - Cột phải */}
-                  <Grid size={{ xs: 40, md: 10 }}>
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        p: 3,
-                        borderRadius: 3,
-                        background: 'linear-gradient(135deg, rgba(0, 188, 212, 0.05), rgba(77, 208, 225, 0.05))',
-                        border: '2px solid rgba(0, 188, 212, 0.1)',
-                        borderLeft: '4px solid #00bcd4',
-                        height: '100%'
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <DescriptionIcon sx={{ color: '#00bcd4', mr: 2, fontSize: 24 }} />
-                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#00bcd4' }}>
-                          Description
-                        </Typography>
-                      </Box>
+                    <Grid item xs={12}>
                       <TextField
                         fullWidth
-                        label="Vehicle Description"
-                        placeholder="Describe the vehicle's features, condition, specifications, and any special notes..."
+                        label="Mô tả chi tiết"
+                        placeholder="Mô tả tính năng, tình trạng và thông số kỹ thuật của xe..."
                         value={formData.description}
                         onChange={(e) => handleInputChange('description', e.target.value)}
                         multiline
@@ -637,190 +647,248 @@ const VehicleForm = () => {
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             borderRadius: 2,
-                            fontSize: '1rem',
-                            backgroundColor: 'rgba(255,255,255,0.9)',
+                            backgroundColor: `${colors.background}`,
                             '& fieldset': {
-                              borderWidth: 2,
-                              borderColor: 'rgba(0, 188, 212, 0.3)'
+                              borderColor: colors.accent,
                             },
                             '&:hover fieldset': {
-                              borderColor: '#00bcd4'
+                              borderColor: colors.primary,
                             },
                             '&.Mui-focused fieldset': {
-                              borderColor: '#00bcd4',
+                              borderColor: colors.primary,
                               borderWidth: 2
                             }
-                          },
-                          '& .MuiInputLabel-root': {
-                            fontSize: '1rem',
-                            fontWeight: 600
                           }
                         }}
                       />
-                    </Paper>
+                    </Grid>
                   </Grid>
-                </Grid>
-              </Grid>
+                </Box>
+              </Slide>
+            )}
 
-              {/* Row 4: Vehicle Image - Riêng hàng */}
-              <Grid item xs={12}>
-                <Paper
-                  elevation={0}
+            {/* Step 3: Xem lại & hoàn tất */}
+            {activeStep === 2 && (
+              <Slide direction="up" in={activeStep === 2} mountOnEnter unmountOnExit>
+                <Box sx={{ p: 4 }}>
+                  <Typography variant="h5" sx={{
+                    mb: 4,
+                    color: colors.text,
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}>
+                    <CheckIcon sx={{ color: colors.primary }} />
+                    Xem lại & Hoàn tất
+                  </Typography>
+
+                  <Grid container spacing={4}>
+                    <Grid item xs={12} md={7}>
+                      <Paper sx={{
+                        p: 3,
+                        borderRadius: 3,
+                        backgroundColor: `${colors.background}`,
+                        border: `1px solid ${colors.accent}`
+                      }}>
+                        <Typography variant="h6" sx={{ mb: 3, color: colors.text, fontWeight: 600 }}>
+                          Tóm tắt thông tin xe
+                        </Typography>
+
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography sx={{ color: colors.textLight }}>Tên xe:</Typography>
+                            <Typography sx={{ color: colors.text, fontWeight: 500 }}>{formData.vehicleName}</Typography>
+                          </Box>
+                          <Divider />
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography sx={{ color: colors.textLight }}>Hãng:</Typography>
+                            <Typography sx={{ color: colors.text, fontWeight: 500 }}>{formData.brand}</Typography>
+                          </Box>
+                          <Divider />
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography sx={{ color: colors.textLight }}>Model:</Typography>
+                            <Typography sx={{ color: colors.text, fontWeight: 500 }}>{formData.model}</Typography>
+                          </Box>
+                          <Divider />
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography sx={{ color: colors.textLight }}>Năm:</Typography>
+                            <Typography sx={{ color: colors.text, fontWeight: 500 }}>{formData.year}</Typography>
+                          </Box>
+                          <Divider />
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography sx={{ color: colors.textLight }}>Giá:</Typography>
+                            <Typography sx={{ color: colors.text, fontWeight: 500 }}>₫{formData.price}</Typography>
+                          </Box>
+                          <Divider />
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography sx={{ color: colors.textLight }}>Trạng thái:</Typography>
+                            {(() => {
+                              const status = statuses.find(s => s.value === formData.status)
+                              return (
+                                <Chip
+                                  label={status?.label}
+                                  color={status?.color}
+                                  size="small"
+                                  icon={<status.icon />}
+                                />
+                              )
+                            })()}
+                          </Box>
+                        </Box>
+                      </Paper>
+                    </Grid>
+
+                    <Grid item xs={12} md={5}>
+                      <Paper sx={{
+                        p: 3,
+                        borderRadius: 3,
+                        backgroundColor: `${colors.background}`,
+                        border: `1px solid ${colors.accent}`,
+                        textAlign: 'center'
+                      }}>
+                        <Typography variant="h6" sx={{ mb: 3, color: colors.text, fontWeight: 600 }}>
+                          Hình ảnh xe
+                        </Typography>
+
+                        <input
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          id="image-upload"
+                          type="file"
+                          onChange={handleImageUpload}
+                        />
+                        <label htmlFor="image-upload">
+                          <Button
+                            variant="outlined"
+                            component="span"
+                            startIcon={<PhotoCameraIcon />}
+                            sx={{
+                              borderRadius: 2,
+                              border: `2px dashed ${colors.primary}`,
+                              color: colors.primary,
+                              px: 3,
+                              py: 2,
+                              mb: 2,
+                              '&:hover': {
+                                backgroundColor: `${colors.primary}08`,
+                                borderColor: colors.secondary
+                              }
+                            }}
+                          >
+                            Chọn hình ảnh
+                          </Button>
+                        </label>
+
+                        {imagePreview && (
+                          <Box sx={{ mt: 3, position: 'relative' }}>
+                            <Box
+                              component="img"
+                              src={imagePreview}
+                              alt="Xem trước xe"
+                              sx={{
+                                width: '100%',
+                                maxHeight: 200,
+                                objectFit: 'cover',
+                                borderRadius: 2,
+                                border: `1px solid ${colors.accent}`
+                              }}
+                            />
+                            <IconButton
+                              onClick={handleRemoveImage}
+                              sx={{
+                                position: 'absolute',
+                                top: 8,
+                                right: 8,
+                                backgroundColor: 'rgba(255,255,255,0.9)',
+                                '&:hover': {
+                                  backgroundColor: 'white'
+                                }
+                              }}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Box>
+                        )}
+                      </Paper>
+                    </Grid>
+                  </Grid>
+                </Box>
+              </Slide>
+            )}
+
+            {/* Navigation Buttons */}
+            <Box sx={{ p: 3, borderTop: `1px solid ${colors.accent}` }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Button
+                  onClick={activeStep === 0 ? handleCancel : handleBack}
+                  startIcon={activeStep === 0 ? <CancelIcon /> : <ArrowBackIcon />}
                   sx={{
-                    p:3,
-                    borderRadius: 3,
-                    background: 'linear-gradient(135deg, rgba(103, 58, 183, 0.05), rgba(149, 117, 205, 0.05))',
-                    border: '2px solid rgba(103, 58, 183, 0.1)',
-                    borderLeft: '4px solid #673ab7'
+                    color: colors.textLight,
+                    fontWeight: 600,
+                    '&:hover': {
+                      color: colors.primary,
+                      backgroundColor: `${colors.primary}08`
+                    }
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <PhotoCameraIcon sx={{ color: '#673ab7', mr: 2, fontSize: 28 }} />
-                    <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#673ab7' }}>
-                      Vehicle Image
-                    </Typography>
-                  </Box>
+                  {activeStep === 0 ? 'Hủy' : 'Quay lại'}
+                </Button>
 
-                  <Box sx={{ mb: 3 }}>
-                    <input
-                      accept="image/*"
-                      style={{ display: 'none' }}
-                      id="image-upload"
-                      type="file"
-                      onChange={handleImageUpload}
-                    />
-                    <label htmlFor="image-upload">
-                      <Button
-                        variant="outlined"
-                        component="span"
-                        startIcon={<PhotoCameraIcon />}
-                        sx={{
-                          borderRadius: 3,
-                          border: '2px dashed #673ab7',
-                          color: '#673ab7',
-                          py: 2,
-                          px: 4,
-                          fontSize: '1rem',
-                          fontWeight: 'bold',
-                          '&:hover': {
-                            borderColor: '#5e35b1',
-                            backgroundColor: 'rgba(103, 58, 183, 0.04)',
-                            transform: 'translateY(-1px)'
-                          },
-                          transition: 'all 0.2s ease'
-                        }}
-                      >
-                        Choose Vehicle Image
-                      </Button>
-                    </label>
-                  </Box>
-
-                  {imagePreview && (
-                    <Box sx={{ position: 'relative', display: 'flex', justifyContent: 'center', mt: 2 }}>
-                      <Box
-                        component="img"
-                        src={imagePreview}
-                        alt="Vehicle preview"
-                        sx={{
-                          width: '100%',
-                          maxWidth: 1200,
-                          height:  600,
-                          objectFit: 'cover',
-                          borderRadius: 3,
-                          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                          border: '3px solid rgba(103, 58, 183, 0.3)'
-                        }}
-                      />
-                      <IconButton
-                        size="large"
-                        onClick={handleRemoveImage}
-                        sx={{
-                          position: 'absolute',
-                          top: 24,
-                          right: 24,
-                          backgroundColor: 'rgba(244, 67, 54, 0.95)',
-                          color: 'white',
-                          border: '2px solid white',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                          '&:hover': {
-                            backgroundColor: '#d32f2f',
-                            transform: 'scale(1.1)'
-                          },
-                          transition: 'all 0.2s ease'
-                        }}
-                      >
-                        <DeleteIcon fontSize="large" />
-                      </IconButton>
-                    </Box>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  {activeStep < 2 && (
+                    <Button
+                      onClick={handleNext}
+                      disabled={!validateStep(activeStep)}
+                      variant="contained"
+                      sx={{
+                        backgroundColor: colors.primary,
+                        borderRadius: 2,
+                        px: 4,
+                        fontWeight: 600,
+                        '&:hover': {
+                          backgroundColor: colors.secondary,
+                          transform: 'translateY(-1px)',
+                          boxShadow: `0 4px 12px ${colors.primary}33`
+                        },
+                        '&:disabled': {
+                          backgroundColor: colors.textLight,
+                          color: 'white'
+                        }
+                      }}
+                    >
+                      Tiếp theo
+                    </Button>
                   )}
-                </Paper>
-              </Grid>
 
-              {/* Action Buttons */}
-              <Grid item xs={12}>
-                <Divider sx={{ my: 4, borderColor: 'rgba(25, 118, 210, 0.2)' }} />
-                <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center', mt: 2 }}>
-                  <Button
-                    variant="outlined"
-                    onClick={handleCancel}
-                    startIcon={<CancelIcon />}
-                    sx={{
-                      borderRadius: 3,
-                      px: 6,
-                      py: 2,
-                      borderColor: '#e0e0e0',
-                      color: '#666666',
-                      fontSize: '1.1rem',
-                      fontWeight: 600,
-                      fontFamily: 'Inter, Roboto, sans-serif',
-                      minWidth: 180,
-                      backgroundColor: '#ffffff',
-                      border: '2px solid #e0e0e0',
-                      '&:hover': {
-                        borderColor: '#1976d2',
-                        backgroundColor: '#f8f9ff',
-                        color: '#1976d2',
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 4px 12px rgba(25, 118, 210, 0.15)'
-                      },
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    disabled={saving}
-                    startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
-                    sx={{
-                      borderRadius: 3,
-                      px: 6,
-                      py: 2,
-                      background: 'linear-gradient(135deg, #1976d2, #00bcd4)',
-                      fontSize: '1.1rem',
-                      fontWeight: 600,
-                      fontFamily: 'Inter, Roboto, sans-serif',
-                      minWidth: 180,
-                      boxShadow: '0 4px 20px rgba(25, 118, 210, 0.3)',
-                      '&:hover': {
-                        background: 'linear-gradient(135deg, #1565c0, #0097a7)',
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 8px 30px rgba(25, 118, 210, 0.4)'
-                      },
-                      '&:disabled': {
-                        background: '#cccccc',
-                        color: '#999999',
-                        boxShadow: 'none'
-                      },
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-                    {saving ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Add Vehicle')}
-                  </Button>
+                  {activeStep === 2 && (
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      disabled={saving}
+                      startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
+                      sx={{
+                        backgroundColor: colors.success,
+                        borderRadius: 2,
+                        px: 4,
+                        fontWeight: 600,
+                        '&:hover': {
+                          backgroundColor: '#4caf50',
+                          transform: 'translateY(-1px)',
+                          boxShadow: `0 4px 12px ${colors.success}33`
+                        },
+                        '&:disabled': {
+                          backgroundColor: `${colors.textLight}33`,
+                          color: `${colors.textLight}66`
+                        }
+                      }}
+                    >
+                      {saving ? 'Đang lưu...' : (isEditMode ? 'Cập nhật xe' : 'Tạo xe mới')}
+                    </Button>
+                  )}
                 </Box>
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
           </form>
         </CardContent>
       </Card>
