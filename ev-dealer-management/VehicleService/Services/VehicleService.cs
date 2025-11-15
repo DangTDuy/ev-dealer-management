@@ -8,10 +8,12 @@ namespace VehicleService.Services;
 public class VehicleService : IVehicleService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IMessageProducer _messageProducer;
 
-    public VehicleService(ApplicationDbContext context)
+    public VehicleService(ApplicationDbContext context, IMessageProducer messageProducer)
     {
         _context = context;
+        _messageProducer = messageProducer;
     }
 
     public async Task<PaginatedResult<VehicleDto>> GetVehiclesAsync(VehicleQueryDto query)
@@ -26,9 +28,10 @@ public class VehicleService : IVehicleService
         // Apply filters
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
+            var searchTerm = query.Search.ToLower();
             queryable = queryable.Where(v =>
-                v.Model.Contains(query.Search, StringComparison.OrdinalIgnoreCase) ||
-                v.Description!.Contains(query.Search, StringComparison.OrdinalIgnoreCase));
+                EF.Functions.Like(v.Model.ToLower(), $"%{searchTerm}%") ||
+                (v.Description != null && EF.Functions.Like(v.Description.ToLower(), $"%{searchTerm}%")));
         }
 
         if (!string.IsNullOrWhiteSpace(query.Type))
@@ -51,36 +54,14 @@ public class VehicleService : IVehicleService
             queryable = queryable.Where(v => v.Price <= query.MaxPrice.Value);
         }
 
-        // Apply sorting
-        queryable = query.SortBy?.ToLower() switch
-        {
-            "model" => query.SortOrder == "asc"
-                ? queryable.OrderBy(v => v.Model)
-                : queryable.OrderByDescending(v => v.Model),
-            "price" => query.SortOrder == "asc"
-                ? queryable.OrderBy(v => v.Price)
-                : queryable.OrderByDescending(v => v.Price),
-            "createdat" => query.SortOrder == "asc"
-                ? queryable.OrderBy(v => v.CreatedAt)
-                : queryable.OrderByDescending(v => v.CreatedAt),
-            _ => queryable.OrderByDescending(v => v.CreatedAt)
-        };
-
         var totalCount = await queryable.CountAsync();
-        var items = await queryable
+
+        var vehicles = await queryable
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
-            .Select(v => new VehicleDto
+            .Select(v => new
             {
-                Id = v.Id,
-                Model = v.Model,
-                Type = v.Type,
-                Price = v.Price,
-                BatteryCapacity = v.BatteryCapacity,
-                Range = v.Range,
-                StockQuantity = v.StockQuantity,
-                Description = v.Description,
-                DealerId = v.DealerId,
+                Vehicle = v,
                 DealerName = v.Dealer!.Name,
                 Images = v.Images.Select(i => new VehicleImageDto
                 {
@@ -105,11 +86,43 @@ public class VehicleService : IVehicleService
                     Warranty = v.Specifications.Warranty,
                     Seats = v.Specifications.Seats,
                     Cargo = v.Specifications.Cargo
-                },
-                CreatedAt = v.CreatedAt,
-                UpdatedAt = v.UpdatedAt
+                }
             })
             .ToListAsync();
+
+        // Apply sorting in memory
+        vehicles = query.SortBy?.ToLower() switch
+        {
+            "model" => query.SortOrder == "asc"
+                ? vehicles.OrderBy(v => v.Vehicle.Model).ToList()
+                : vehicles.OrderByDescending(v => v.Vehicle.Model).ToList(),
+            "price" => query.SortOrder == "asc"
+                ? vehicles.OrderBy(v => v.Vehicle.Price).ToList()
+                : vehicles.OrderByDescending(v => v.Vehicle.Price).ToList(),
+            "createdat" => query.SortOrder == "asc"
+                ? vehicles.OrderBy(v => v.Vehicle.CreatedAt).ToList()
+                : vehicles.OrderByDescending(v => v.Vehicle.CreatedAt).ToList(),
+            _ => vehicles.OrderByDescending(v => v.Vehicle.CreatedAt).ToList()
+        };
+
+        var items = vehicles.Select(v => new VehicleDto
+        {
+            Id = v.Vehicle.Id,
+            Model = v.Vehicle.Model,
+            Type = v.Vehicle.Type,
+            Price = v.Vehicle.Price,
+            BatteryCapacity = v.Vehicle.BatteryCapacity,
+            Range = v.Vehicle.Range,
+            StockQuantity = v.Vehicle.StockQuantity,
+            Description = v.Vehicle.Description,
+            DealerId = v.Vehicle.DealerId,
+            DealerName = v.DealerName,
+            Images = v.Images,
+            ColorVariants = v.ColorVariants,
+            Specifications = v.Specifications,
+            CreatedAt = v.Vehicle.CreatedAt,
+            UpdatedAt = v.Vehicle.UpdatedAt
+        }).ToList();
 
         return new PaginatedResult<VehicleDto>
         {
@@ -227,6 +240,18 @@ public class VehicleService : IVehicleService
         _context.Vehicles.Add(vehicle);
         await _context.SaveChangesAsync();
 
+        // Publish vehicle created event
+        var vehicleCreatedEvent = new VehicleCreatedEvent
+        {
+            VehicleId = vehicle.Id,
+            Model = vehicle.Model,
+            Type = vehicle.Type,
+            Price = vehicle.Price,
+            DealerId = vehicle.DealerId,
+            CreatedAt = vehicle.CreatedAt
+        };
+        _messageProducer.PublishMessage(vehicleCreatedEvent);
+
         // Return the created vehicle with all related data
         return await GetVehicleByIdAsync(vehicle.Id) ?? throw new InvalidOperationException("Failed to retrieve created vehicle");
     }
@@ -305,6 +330,19 @@ public class VehicleService : IVehicleService
         }
 
         await _context.SaveChangesAsync();
+
+        // Publish vehicle updated event
+        var vehicleUpdatedEvent = new VehicleUpdatedEvent
+        {
+            VehicleId = vehicle.Id,
+            Model = vehicle.Model,
+            Type = vehicle.Type,
+            Price = vehicle.Price,
+            DealerId = vehicle.DealerId,
+            UpdatedAt = vehicle.UpdatedAt
+        };
+        _messageProducer.PublishMessage(vehicleUpdatedEvent);
+
         return await GetVehicleByIdAsync(id);
     }
 
@@ -315,6 +353,15 @@ public class VehicleService : IVehicleService
 
         _context.Vehicles.Remove(vehicle);
         await _context.SaveChangesAsync();
+
+        // Publish vehicle deleted event
+        var vehicleDeletedEvent = new VehicleDeletedEvent
+        {
+            VehicleId = id,
+            DeletedAt = DateTime.UtcNow
+        };
+        _messageProducer.PublishMessage(vehicleDeletedEvent);
+
         return true;
     }
 

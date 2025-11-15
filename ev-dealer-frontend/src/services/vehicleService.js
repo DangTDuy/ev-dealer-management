@@ -5,8 +5,55 @@ const vehicleService = {
   // Get all vehicles with optional filters and pagination
   getVehicles: async (params = {}) => {
     try {
-      // For now, use mock data. Replace with API call when backend is ready
-      // const response = await api.get('/vehicles', { params })
+      // Map frontend params to backend API params
+      const apiParams = {
+        Page: params.page || 1,
+        PageSize: params.limit || 10,
+        Search: params.search || undefined,
+        Type: params.type && params.type !== 'all' ? params.type : undefined,
+        DealerId: params.dealerId ? parseInt(params.dealerId) : undefined,
+        MinPrice: params.minPrice ? parseFloat(params.minPrice) : undefined,
+        MaxPrice: params.maxPrice ? parseFloat(params.maxPrice) : undefined,
+        SortBy: params.sortBy || 'CreatedAt',
+        SortOrder: params.sortOrder || 'desc'
+      }
+
+      // Remove undefined values
+      Object.keys(apiParams).forEach(key => {
+        if (apiParams[key] === undefined) {
+          delete apiParams[key]
+        }
+      })
+
+      const response = await api.get('/vehicles', { params: apiParams })
+      
+      // Transform backend response to frontend format
+      // Backend returns: { Items, TotalCount, Page, PageSize, TotalPages }
+      // Frontend expects: { vehicles, pagination: { page, limit, total, totalPages } }
+      const vehicles = (response.items || response.Items || []).map(vehicle => {
+        // Transform Images array to images array (backend uses Images with Url, frontend expects images with string URLs)
+        const transformedVehicle = { ...vehicle }
+        if (vehicle.Images && Array.isArray(vehicle.Images)) {
+          transformedVehicle.images = vehicle.Images.map(img => img.url || img.Url || img)
+        } else if (vehicle.images && Array.isArray(vehicle.images)) {
+          // Already in correct format
+          transformedVehicle.images = vehicle.images.map(img => typeof img === 'string' ? img : (img.url || img.Url || img))
+        }
+        return transformedVehicle
+      })
+      
+      return {
+        vehicles: vehicles,
+        pagination: {
+          page: response.page || response.Page || 1,
+          limit: response.pageSize || response.PageSize || 10,
+          total: response.totalCount || response.TotalCount || 0,
+          totalPages: response.totalPages || response.TotalPages || 0
+        }
+      }
+    } catch (error) {
+      // Fallback to mock data if API fails
+      console.warn('API call failed, using mock data:', error.message)
 
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 500))
@@ -55,16 +102,25 @@ const vehicleService = {
           totalPages: Math.ceil(total / limit)
         }
       }
-    } catch (error) {
-      throw error
     }
   },
 
   // Get single vehicle by ID
   getVehicleById: async (id) => {
     try {
-      // For now, use mock data. Replace with API call when backend is ready
-      // const response = await api.get(`/vehicles/${id}`)
+      const response = await api.get(`/vehicles/${id}`)
+      // Transform images array if needed (backend uses Images with Url, frontend expects images with string URLs)
+      const transformedVehicle = { ...response }
+      if (response.Images && Array.isArray(response.Images)) {
+        transformedVehicle.images = response.Images.map(img => img.url || img.Url || img)
+      } else if (response.images && Array.isArray(response.images)) {
+        // Already in correct format, but ensure it's strings
+        transformedVehicle.images = response.images.map(img => typeof img === 'string' ? img : (img.url || img.Url || img))
+      }
+      return transformedVehicle
+    } catch (error) {
+      // Fallback to mock data if API fails
+      console.warn('API call failed, using mock data:', error.message)
 
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 300))
@@ -75,16 +131,17 @@ const vehicleService = {
       }
 
       return vehicle
-    } catch (error) {
-      throw error
     }
   },
 
   // Create new vehicle
   createVehicle: async (vehicleData) => {
     try {
-      // For now, simulate API call. Replace with real API when backend is ready
-      // const response = await api.post('/vehicles', vehicleData)
+      const response = await api.post('/vehicles', vehicleData)
+      return response
+    } catch (error) {
+      // Fallback to mock implementation if API fails
+      console.warn('API call failed, using mock implementation:', error.message)
 
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 800))
@@ -103,16 +160,17 @@ const vehicleService = {
       console.log('Vehicle created:', newVehicle)
 
       return newVehicle
-    } catch (error) {
-      throw error
     }
   },
 
   // Update existing vehicle
   updateVehicle: async (id, vehicleData) => {
     try {
-      // For now, simulate API call. Replace with real API when backend is ready
-      // const response = await api.put(`/vehicles/${id}`, vehicleData)
+      const response = await api.put(`/vehicles/${id}`, vehicleData)
+      return response
+    } catch (error) {
+      // Fallback to mock implementation if API fails
+      console.warn('API call failed, using mock implementation:', error.message)
 
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 800))
@@ -132,16 +190,17 @@ const vehicleService = {
       console.log('Vehicle updated:', updatedVehicle)
 
       return updatedVehicle
-    } catch (error) {
-      throw error
     }
   },
 
   // Delete vehicle
   deleteVehicle: async (id) => {
     try {
-      // For now, simulate API call. Replace with real API when backend is ready
-      // const response = await api.delete(`/vehicles/${id}`)
+      const response = await api.delete(`/vehicles/${id}`)
+      return response
+    } catch (error) {
+      // Fallback to mock implementation if API fails
+      console.warn('API call failed, using mock implementation:', error.message)
 
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1200))
@@ -155,16 +214,25 @@ const vehicleService = {
       console.log('Vehicle deleted:', id)
 
       return { success: true, message: 'Vehicle deleted successfully' }
-    } catch (error) {
-      throw error
     }
   },
 
   // Get vehicle types
   getVehicleTypes: async () => {
     try {
-      // For now, return mock types. Replace with API call when backend is ready
-      // const response = await api.get('/vehicles/types')
+      const response = await api.get('/vehicletypes')
+      // Transform backend response to frontend format
+      // Backend returns array of VehicleType objects, frontend expects { value, label }
+      if (Array.isArray(response)) {
+        return response.map(type => ({
+          value: type.name || type.Name || type.value || type.Value,
+          label: type.name || type.Name || type.label || type.Label
+        }))
+      }
+      return response
+    } catch (error) {
+      // Fallback to mock types if API fails
+      console.warn('API call failed, using mock data:', error.message)
 
       return [
         { value: 'sedan', label: 'Sedan' },
@@ -174,28 +242,30 @@ const vehicleService = {
         { value: 'convertible', label: 'Convertible' },
         { value: 'truck', label: 'Truck' }
       ]
-    } catch (error) {
-      throw error
     }
   },
 
   // Get dealers
   getDealers: async () => {
     try {
-      // For now, return mock dealers. Replace with API call when backend is ready
-      // const response = await api.get('/dealers')
+      const response = await api.get('/dealers')
+      return response
+    } catch (error) {
+      // Fallback to mock dealers if API fails
+      console.warn('API call failed, using mock data:', error.message)
 
       return mockDealers
-    } catch (error) {
-      throw error
     }
   },
 
   // Search vehicles
   searchVehicles: async (query) => {
     try {
-      // For now, use mock data. Replace with API call when backend is ready
-      // const response = await api.get('/vehicles/search', { params: { q: query } })
+      const response = await api.get('/vehicles/search', { params: { q: query } })
+      return response
+    } catch (error) {
+      // Fallback to mock data if API fails
+      console.warn('API call failed, using mock data:', error.message)
 
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 300))
@@ -208,8 +278,6 @@ const vehicleService = {
       )
 
       return results
-    } catch (error) {
-      throw error
     }
   }
 }

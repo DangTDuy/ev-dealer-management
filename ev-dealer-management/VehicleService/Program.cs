@@ -19,6 +19,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Add services
 builder.Services.AddScoped<IVehicleService, VehicleService.Services.VehicleService>();
 
+// Register RabbitMQ Producer Service
+builder.Services.AddSingleton<VehicleService.Services.IMessageProducer, VehicleService.Services.RabbitMQProducerService>();
+
+// Add Health Checks
+builder.Services.AddHealthChecks();
+
 // Add CORS
 builder.Services.AddCors(options =>
 {
@@ -46,6 +52,9 @@ app.UseCors("AllowAll");
 
 // Map controllers
 app.MapControllers();
+
+// Map health checks
+app.MapHealthChecks("/health");
 
 // Ensure database is created and migrated
 using (var scope = app.Services.CreateScope())

@@ -201,10 +201,16 @@ const VehicleForm = () => {
       setSaving(true)
       setError(null)
 
+      // Map frontend form data to backend API format
       const submitData = {
-        ...formData,
+        model: `${formData.brand} ${formData.model}`, // Combine brand and model
+        type: 'sedan', // Default type, can be made configurable later
         price: parseFloat(formData.price),
-        year: parseInt(formData.year)
+        batteryCapacity: 75, // Default battery capacity
+        range: 300, // Default range
+        stockQuantity: 1, // Default stock quantity
+        description: formData.description || `${formData.brand} ${formData.model} - ${formData.year}`,
+        dealerId: 1 // Default dealer ID, can be made configurable later
       }
 
       if (isEditMode) {

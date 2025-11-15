@@ -24,6 +24,10 @@ COPY --from=publish /app/publish .
 # Create data directory for SQLite database
 RUN mkdir -p /app/data
 
+# Add health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost/health || exit 1
+
 # Expose port 80
 EXPOSE 80
 
