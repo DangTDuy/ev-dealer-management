@@ -18,7 +18,6 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import { alpha } from "@mui/material/styles";
 import {
   Assessment as ChartIcon,
   FileDownload as DownloadIcon,
@@ -26,7 +25,6 @@ import {
   AttachMoney as MoneyIcon,
   Store as StoreIcon,
   Percent as PercentIcon,
-  FilterList as FilterIcon,
   Refresh as RefreshIcon,
 } from "@mui/icons-material";
 import {
@@ -42,8 +40,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { PageHeader, ModernCard } from "../../components/common";
-import { reportService } from "../../services/reportService";
+import { reportService } from "../../services/reportService"; // Giữ nguyên import
 
 const COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#06B6D4", "#8B5CF6"];
 
@@ -55,9 +52,9 @@ const MetricCard = ({ title, value, subtitle, icon, color }) => {
     warning: "#F59E0B",
     info: "#06B6D4",
   };
-  
+
   const iconColor = colorMap[color] || colorMap.primary;
-  
+
   return (
     <Card
       sx={{
@@ -140,7 +137,9 @@ const Reports = () => {
   const [regionalData, setRegionalData] = useState([]);
   const [proportionData, setProportionData] = useState([]);
   const [summary, setSummary] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [topVehicles, setTopVehicles] = useState([]);
+  const [exporting, setExporting] = useState(false);
 
   // derived values for donut chart (sales share)
   const pieData = useMemo(
@@ -180,7 +179,11 @@ const Reports = () => {
 
       if (summaryRes) setSummary(summaryRes);
       if (regionsRes && Array.isArray(regionsRes)) {
-        setRegionalData(regionsRes);
+        const normalizedRegions = regionsRes.map((item) => ({
+          ...item,
+          revenueBn: Number(item.revenue || 0) / 1_000_000_000,
+        }));
+        setRegionalData(normalizedRegions);
       }
       if (proportionRes && Array.isArray(proportionRes)) {
         setProportionData(proportionRes);
@@ -198,22 +201,31 @@ const Reports = () => {
 
   useEffect(() => {
     fetchReportData();
+    // eslint-disable-next-line
   }, []); // Load data on mount
 
   const handleGenerateReport = async () => {
     await fetchReportData();
   };
 
-  const handleExport = async (type) => {
-    setLoading(true);
+  const handleExport = async (typeOverride) => {
+    const exportType = typeOverride || reportType || "sales";
+    const payload = {
+      type: exportType,
+      format: "csv",
+    };
+    if (fromDate) payload.from = fromDate;
+    if (toDate) payload.to = toDate;
+
+    setExporting(true);
     try {
-      const blob = await reportService.exportReport({ type });
+      const blob = await reportService.exportReport(payload);
       // create a download link
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      // prefer csv filename returned by backend — fallback
-      a.download = `report_${type}.csv`;
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "");
+      a.download = `report_${exportType}_${timestamp}.csv`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -221,7 +233,7 @@ const Reports = () => {
     } catch (err) {
       console.error("Export failed:", err);
     } finally {
-      setLoading(false);
+      setExporting(false);
     }
   };
 
@@ -271,154 +283,159 @@ const Reports = () => {
               maxWidth: "1200px",
             }}
           >
-          <Grid
-            container
-            spacing={2}
-            alignItems="center"
-            justifyContent="center"
-          >
-          <Grid item xs={12} md={4} lg={3}>
-            <TextField
-              select
-              fullWidth
-              label="Loại báo cáo"
-              value={reportType}
-              onChange={(e) => setReportType(e.target.value)}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "8px",
-                  backgroundColor: "white",
-                  "&:hover": {
-                    backgroundColor: "#F8FAFC",
-                  },
-                  "&.Mui-focused": {
-                    backgroundColor: "white",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontWeight: 500,
-                  color: "#64748B",
-                },
-              }}
+            <Grid
+              container
+              spacing={2}
+              alignItems="center"
+              justifyContent="center"
             >
-              <MenuItem value="sales">Báo cáo doanh số</MenuItem>
-              <MenuItem value="inventory">Báo cáo tồn kho</MenuItem>
-              <MenuItem value="revenue">Báo cáo doanh thu</MenuItem>
-              <MenuItem value="performance">Báo cáo hiệu suất</MenuItem>
-            </TextField>
-          </Grid>
+              <Grid item xs={12} md={4} lg={3}>
+                <TextField
+                  select
+                  fullWidth
+                  label="Loại báo cáo"
+                  value={reportType}
+                  onChange={(e) => setReportType(e.target.value)}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "8px",
+                      backgroundColor: "white",
+                      "&:hover": {
+                        backgroundColor: "#F8FAFC",
+                      },
+                      "&.Mui-focused": {
+                        backgroundColor: "white",
+                      },
+                    },
+                    "& .MuiInputLabel-root": {
+                      fontWeight: 500,
+                      color: "#64748B",
+                    },
+                  }}
+                >
+                  <MenuItem value="sales">Báo cáo doanh số</MenuItem>
+                  <MenuItem value="inventory">Báo cáo tồn kho</MenuItem>
+                  <MenuItem value="revenue">Báo cáo doanh thu</MenuItem>
+                  <MenuItem value="performance">Báo cáo hiệu suất</MenuItem>
+                </TextField>
+              </Grid>
 
-          <Grid item xs={6} md={3} lg={2}>
-            <TextField
-              type="date"
-              fullWidth
-              label="Từ ngày"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              InputLabelProps={{
-                shrink: true,
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "8px",
-                  backgroundColor: "white",
-                  "&:hover": {
-                    backgroundColor: "#F8FAFC",
-                  },
-                  "&.Mui-focused": {
-                    backgroundColor: "white",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontWeight: 500,
-                  color: "#64748B",
-                },
-              }}
-            />
-          </Grid>
+              <Grid item xs={6} md={3} lg={2}>
+                <TextField
+                  type="date"
+                  fullWidth
+                  label="Từ ngày"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "8px",
+                      backgroundColor: "white",
+                      "&:hover": {
+                        backgroundColor: "#F8FAFC",
+                      },
+                      "&.Mui-focused": {
+                        backgroundColor: "white",
+                      },
+                    },
+                    "& .MuiInputLabel-root": {
+                      fontWeight: 500,
+                      color: "#64748B",
+                    },
+                  }}
+                />
+              </Grid>
 
-          <Grid item xs={6} md={3} lg={2}>
-            <TextField
-              type="date"
-              fullWidth
-              label="Đến ngày"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              InputLabelProps={{
-                shrink: true,
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "8px",
-                  backgroundColor: "white",
-                  "&:hover": {
-                    backgroundColor: "#F8FAFC",
-                  },
-                  "&.Mui-focused": {
-                    backgroundColor: "white",
-                  },
-                },
-                "& .MuiInputLabel-root": {
-                  fontWeight: 500,
-                  color: "#64748B",
-                },
-              }}
-            />
-          </Grid>
+              <Grid item xs={6} md={3} lg={2}>
+                <TextField
+                  type="date"
+                  fullWidth
+                  label="Đến ngày"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "8px",
+                      backgroundColor: "white",
+                      "&:hover": {
+                        backgroundColor: "#F8FAFC",
+                      },
+                      "&.Mui-focused": {
+                        backgroundColor: "white",
+                      },
+                    },
+                    "& .MuiInputLabel-root": {
+                      fontWeight: 500,
+                      color: "#64748B",
+                    },
+                  }}
+                />
+              </Grid>
 
-          <Grid item xs={12} md={2} lg={3}>
-            <Stack direction="row" spacing={2} justifyContent="flex-end">
-              <Button
-                variant="contained"
-                onClick={handleGenerateReport}
-                disabled={loading}
-                startIcon={loading ? <CircularProgress size={20} /> : <RefreshIcon />}
-                sx={{
-                  px: 3,
-                  py: 1.5,
-                  backgroundColor: "#3B82F6",
-                  color: "white",
-                  fontWeight: 600,
-                  textTransform: "none",
-                  borderRadius: "8px",
-                  "&:hover": {
-                    backgroundColor: "#2563EB",
-                  },
-                  "&:disabled": {
-                    backgroundColor: "#D1D5DB",
-                    color: "#9CA3AF",
-                  },
-                  transition: "all 0.2s ease",
-                }}
-              >
-                {loading ? "Đang tải..." : "Tạo báo cáo"}
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<DownloadIcon />}
-                onClick={() => handleExport("excel")}
-                sx={{
-                  px: 3,
-                  py: 1.5,
-                  borderColor: "#D1D5DB",
-                  color: "#374151",
-                  backgroundColor: "white",
-                  fontWeight: 600,
-                  textTransform: "none",
-                  borderRadius: "8px",
-                  "&:hover": {
-                    borderColor: "#9CA3AF",
-                    backgroundColor: "#F3F4F6",
-                  },
-                  transition: "all 0.2s ease",
-                }}
-              >
-                Xuất
-              </Button>
-            </Stack>
-          </Grid>
-        </Grid>
-      </Paper>
+              <Grid item xs={12} md={2} lg={3}>
+                <Stack direction="row" spacing={2} justifyContent="flex-end">
+                  <Button
+                    variant="contained"
+                    onClick={handleGenerateReport}
+                    disabled={loading}
+                    startIcon={loading ? <CircularProgress size={20} /> : <RefreshIcon />}
+                    sx={{
+                      px: 3,
+                      py: 1.5,
+                      backgroundColor: "#3B82F6",
+                      color: "white",
+                      fontWeight: 600,
+                      textTransform: "none",
+                      borderRadius: "8px",
+                      "&:hover": {
+                        backgroundColor: "#2563EB",
+                      },
+                      "&:disabled": {
+                        backgroundColor: "#D1D5DB",
+                        color: "#9CA3AF",
+                      },
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    {loading ? "Đang tải..." : "Tạo báo cáo"}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<DownloadIcon />}
+                    disabled={exporting}
+                    onClick={() => handleExport()}
+                    sx={{
+                      px: 3,
+                      py: 1.5,
+                      borderColor: "#D1D5DB",
+                      color: exporting ? "#9CA3AF" : "#374151",
+                      backgroundColor: "white",
+                      fontWeight: 600,
+                      textTransform: "none",
+                      borderRadius: "8px",
+                      "&:hover": {
+                        borderColor: "#9CA3AF",
+                        backgroundColor: "#F3F4F6",
+                      },
+                      "&:disabled": {
+                        borderColor: "#E5E7EB",
+                        backgroundColor: "#F9FAFB",
+                      },
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    {exporting ? "Đang xuất..." : "Xuất CSV"}
+                  </Button>
+                </Stack>
+              </Grid>
+            </Grid>
+          </Paper>
         </Box>
 
         {/* Error Message */}
@@ -442,73 +459,73 @@ const Reports = () => {
         <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
           <Grid container spacing={3} sx={{ maxWidth: "1200px" }}>
             <Grid item xs={12} sm={6} md={3}>
-            {loading ? (
-              <Skeleton variant="rectangular" height={160} sx={{ borderRadius: 3 }} />
-            ) : (
-              <MetricCard
-                title="Tổng doanh số"
-                value={
-                  summary?.totalSales
-                    ? summary.totalSales.toLocaleString("vi-VN")
-                    : "0"
-                }
-                subtitle="Số lượng xe"
-                icon={<TrendingUpIcon sx={{ fontSize: 28 }} />}
-                color="primary"
-              />
-            )}
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            {loading ? (
-              <Skeleton variant="rectangular" height={160} sx={{ borderRadius: 3 }} />
-            ) : (
-              <MetricCard
-                title="Doanh thu"
-                value={
-                  summary?.totalRevenue
-                    ? `${(summary.totalRevenue / 1000000000).toFixed(1)}B VNĐ`
-                    : "0B VNĐ"
-                }
-                subtitle="Tổng doanh thu"
-                icon={<MoneyIcon sx={{ fontSize: 28 }} />}
-                color="success"
-              />
-            )}
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            {loading ? (
-              <Skeleton variant="rectangular" height={160} sx={{ borderRadius: 3 }} />
-            ) : (
-              <MetricCard
-                title="Đại lý hoạt động"
-                value={
-                  summary
-                    ? `${summary.activeDealers || 0}/${summary.totalDealers || 0}`
-                    : "0/0"
-                }
-                subtitle="Số lượng đại lý"
-                icon={<StoreIcon sx={{ fontSize: 28 }} />}
-                color="warning"
-              />
-            )}
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            {loading ? (
-              <Skeleton variant="rectangular" height={160} sx={{ borderRadius: 3 }} />
-            ) : (
-              <MetricCard
-                title="Tỷ lệ chuyển đổi"
-                value={
-                  summary?.conversionRate
-                    ? `${(summary.conversionRate * 100).toFixed(1)}%`
-                    : "0%"
-                }
-                subtitle="Trung bình"
-                icon={<PercentIcon sx={{ fontSize: 28 }} />}
-                color="info"
-              />
-            )}
-          </Grid>
+              {loading ? (
+                <Skeleton variant="rectangular" height={160} sx={{ borderRadius: 3 }} />
+              ) : (
+                <MetricCard
+                  title="Tổng doanh số"
+                  value={
+                    summary?.totalSales
+                      ? summary.totalSales.toLocaleString("vi-VN")
+                      : "0"
+                  }
+                  subtitle="Số lượng xe"
+                  icon={<TrendingUpIcon sx={{ fontSize: 28 }} />}
+                  color="primary"
+                />
+              )}
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              {loading ? (
+                <Skeleton variant="rectangular" height={160} sx={{ borderRadius: 3 }} />
+              ) : (
+                <MetricCard
+                  title="Doanh thu"
+                  value={
+                    summary?.totalRevenue
+                      ? `${(summary.totalRevenue / 1000000000).toFixed(1)}B VNĐ`
+                      : "0B VNĐ"
+                  }
+                  subtitle="Tổng doanh thu"
+                  icon={<MoneyIcon sx={{ fontSize: 28 }} />}
+                  color="success"
+                />
+              )}
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              {loading ? (
+                <Skeleton variant="rectangular" height={160} sx={{ borderRadius: 3 }} />
+              ) : (
+                <MetricCard
+                  title="Đại lý hoạt động"
+                  value={
+                    summary
+                      ? `${summary.activeDealers || 0}/${summary.totalDealers || 0}`
+                      : "0/0"
+                  }
+                  subtitle="Số lượng đại lý"
+                  icon={<StoreIcon sx={{ fontSize: 28 }} />}
+                  color="warning"
+                />
+              )}
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              {loading ? (
+                <Skeleton variant="rectangular" height={160} sx={{ borderRadius: 3 }} />
+              ) : (
+                <MetricCard
+                  title="Tỷ lệ chuyển đổi"
+                  value={
+                    summary?.conversionRate
+                      ? `${(summary.conversionRate * 100).toFixed(1)}%`
+                      : "0%"
+                  }
+                  subtitle="Trung bình"
+                  icon={<PercentIcon sx={{ fontSize: 28 }} />}
+                  color="info"
+                />
+              )}
+            </Grid>
           </Grid>
         </Box>
 
@@ -517,205 +534,136 @@ const Reports = () => {
           <Grid container spacing={3} sx={{ maxWidth: "1200px" }}>
             {/* Bar Chart */}
             <Grid item xs={12} lg={6}>
-            <Fade in={!loading} timeout={1000}>
-              <Paper
-                sx={{
-                  p: 4,
-                  borderRadius: "12px",
-                  backgroundColor: "white",
-                  border: "1px solid #E2E8F0",
-                  boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  minHeight: "500px",
-                }}
-              >
-                <Box sx={{ mb: 3 }}>
-                  <Typography
-                    variant="h5"
-                    sx={{
-                      fontWeight: 600,
-                      mb: 0.5,
-                      color: "#0F172A",
-                      fontSize: "18px",
-                      textAlign: "center",
-                    }}
-                  >
-                    Doanh số theo khu vực
-                  </Typography>
-                  <Typography 
-                    variant="body2" 
-                    sx={{ color: "#64748B", fontSize: "14px", textAlign: "center" }}
-                  >
-                    Phân tích doanh số và doanh thu theo từng khu vực
-                  </Typography>
-                </Box>
-                <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", minHeight: "350px", width: "100%" }}>
-                  {loading ? (
-                    <Box
+              <Fade in={!loading} timeout={1000}>
+                <Paper
+                  sx={{
+                    p: 4,
+                    borderRadius: "12px",
+                    backgroundColor: "white",
+                    border: "1px solid #E2E8F0",
+                    boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    minHeight: "500px",
+                  }}
+                >
+                  <Box sx={{ mb: 3 }}>
+                    <Typography
+                      variant="h5"
                       sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        height: "100%",
-                        width: "100%",
-                      }}
-                    >
-                      <CircularProgress />
-                    </Box>
-                  ) : regionalData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={350}>
-                    <BarChart
-                      data={regionalData}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                    >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="#E2E8F0"
-                      />
-                      <XAxis
-                        dataKey="region"
-                        tick={{ fill: "#64748B", fontSize: 12 }}
-                        axisLine={{ stroke: "#E2E8F0" }}
-                      />
-                      <YAxis
-                        tick={{ fill: "#64748B", fontSize: 12 }}
-                        axisLine={{ stroke: "#E2E8F0" }}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          borderRadius: 8,
-                          border: "none",
-                          boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                        }}
-                      />
-                      <Legend
-                        wrapperStyle={{ paddingTop: 20 }}
-                        iconType="circle"
-                      />
-                      <Bar
-                        dataKey="sales"
-                        name="Số lượng"
-                        fill="#3B82F6"
-                        radius={[8, 8, 0, 0]}
-                      />
-                      <Bar
-                        dataKey="revenue"
-                        name="Doanh thu (VNĐ)"
-                        fill="#10B981"
-                        radius={[8, 8, 0, 0]}
-                      />
-                    </BarChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        height: "350px",
-                        width: "100%",
-                        color: "#64748B",
+                        fontWeight: 600,
+                        mb: 0.5,
+                        color: "#0F172A",
+                        fontSize: "18px",
                         textAlign: "center",
                       }}
                     >
-                      <ChartIcon sx={{ fontSize: 64, mb: 2, opacity: 0.3, color: "#64748B" }} />
-                      <Typography variant="h6" sx={{ color: "#0F172A", mb: 1, fontWeight: 600 }}>
-                        Không có dữ liệu
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: "#64748B" }}>
-                        Vui lòng tạo báo cáo để xem dữ liệu
-                      </Typography>
-                    </Box>
-                  )}
-                </Box>
-              </Paper>
-            </Fade>
-          </Grid>
-
-          {/* Donut Chart */}
-          <Grid item xs={12} lg={6}>
-            <Fade in={!loading} timeout={1200}>
-              <Paper
-                sx={{
-                  p: 4,
-                  borderRadius: "12px",
-                  backgroundColor: "white",
-                  border: "1px solid #E2E8F0",
-                  boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  minHeight: "500px",
-                }}
-              >
-                <Box sx={{ mb: 3 }}>
-                  <Typography
-                    variant="h5"
-                    sx={{
-                      fontWeight: 600,
-                      mb: 0.5,
-                      color: "#0F172A",
-                      fontSize: "18px",
-                      textAlign: "center",
-                    }}
-                  >
-                    Tỷ trọng doanh số
-                  </Typography>
-                  <Typography 
-                    variant="body2" 
-                    sx={{ color: "#64748B", fontSize: "14px", textAlign: "center" }}
-                  >
-                    Phân bổ doanh số theo khu vực
-                  </Typography>
-                </Box>
-                <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: "350px", width: "100%" }}>
+                      Doanh số theo khu vực
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ color: "#64748B", fontSize: "14px", textAlign: "center" }}
+                    >
+                      Phân tích doanh số và doanh thu theo từng khu vực
+                    </Typography>
+                  </Box>
                   <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
                     {loading ? (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          height: "350px",
-                          width: "100%",
-                        }}
-                      >
+                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", width: "100%" }}>
                         <CircularProgress />
                       </Box>
-                    ) : pieData.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={350}>
-                      <PieChart>
-                        <Pie
-                          data={pieData}
-                          dataKey="value"
-                          nameKey="name"
-                          innerRadius={75}
-                          outerRadius={115}
-                          paddingAngle={5}
-                          label={({ name, percent }) =>
-                            `${name}: ${(percent * 100).toFixed(0)}%`
-                          }
-                          labelLine={false}
-                        >
-                          {pieData.map((entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={COLORS[index % COLORS.length]}
+                    ) : regionalData.length > 0 ? (
+                      // FIX: Thêm width 100% cho container để tránh co dãn sai
+                      <Box sx={{ width: "100%", height: 420 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart
+                            data={regionalData}
+                            // FIX: Tăng margin để nhãn không bị cắt
+                            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
+                            <XAxis
+                              dataKey="region"
+                              tick={{ fill: "#64748B", fontSize: 11 }}
+                              axisLine={{ stroke: "#E2E8F0" }}
+                              tickLine={false}
+                              tickMargin={10}
+                              interval={0} 
                             />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          contentStyle={{
-                            borderRadius: 8,
-                            border: "none",
-                            boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                          }}
-                        />
-                      </PieChart>
-                      </ResponsiveContainer>
+                            <YAxis
+                              yAxisId="orders"
+                              // FIX: Đặt width cố định để trục không bị nhảy khi số lớn
+                              width={60}
+                              tick={{ fill: "#64748B", fontSize: 12 }}
+                              axisLine={false}
+                              tickLine={false}
+                              label={{
+                                value: "Số lượng đơn",
+                                angle: -90,
+                                position: "insideLeft",
+                                fill: "#94A3B8",
+                                fontSize: 12,
+                                offset: 0, // FIX: Chỉnh offset
+                                style: { textAnchor: 'middle' }
+                              }}
+                            />
+                            <YAxis
+                              yAxisId="revenue"
+                              orientation="right"
+                              // FIX: Đặt width cố định
+                              width={60}
+                              tickFormatter={(value) => `${value.toFixed(1)}B`}
+                              tick={{ fill: "#64748B", fontSize: 12 }}
+                              axisLine={false}
+                              tickLine={false}
+                              label={{
+                                value: "Doanh thu (tỉ VNĐ)",
+                                angle: 90,
+                                position: "insideRight",
+                                fill: "#94A3B8",
+                                fontSize: 12,
+                                offset: 0,
+                                style: { textAnchor: 'middle' }
+                              }}
+                            />
+                            <Tooltip
+                              cursor={{ fill: 'transparent' }}
+                              contentStyle={{
+                                borderRadius: 8,
+                                border: "none",
+                                boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                              }}
+                              formatter={(value, name) => {
+                                if (name?.includes("Doanh thu")) {
+                                  return [`${Number(value).toFixed(1)}B VNĐ`, name];
+                                }
+                                return [value, name];
+                              }}
+                            />
+                            <Legend
+                              wrapperStyle={{ paddingTop: 20 }}
+                              iconType="circle"
+                            />
+                            <Bar
+                              yAxisId="orders"
+                              dataKey="sales"
+                              name="Số lượng (đơn)"
+                              fill="#3B82F6"
+                              radius={[4, 4, 0, 0]}
+                              barSize={32} // FIX: Kích thước cột cố định để đẹp hơn
+                            />
+                            <Bar
+                              yAxisId="revenue"
+                              dataKey="revenueBn"
+                              name="Doanh thu (tỉ VNĐ)"
+                              fill="#10B981"
+                              radius={[4, 4, 0, 0]}
+                              barSize={32} // FIX: Kích thước cột cố định để đẹp hơn
+                            />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </Box>
                     ) : (
                       <Box
                         sx={{
@@ -739,18 +687,118 @@ const Reports = () => {
                       </Box>
                     )}
                   </Box>
+                </Paper>
+              </Fade>
+            </Grid>
 
-                  <Divider sx={{ my: 3 }} />
+            {/* Donut Chart */}
+            <Grid item xs={12} lg={6}>
+              <Fade in={!loading} timeout={1200}>
+                <Paper
+                  sx={{
+                    p: 4,
+                    borderRadius: "12px",
+                    backgroundColor: "white",
+                    border: "1px solid #E2E8F0",
+                    boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    minHeight: "500px",
+                  }}
+                >
+                  <Box sx={{ mb: 3 }}>
+                    <Typography
+                      variant="h5"
+                      sx={{
+                        fontWeight: 600,
+                        mb: 0.5,
+                        color: "#0F172A",
+                        fontSize: "18px",
+                        textAlign: "center",
+                      }}
+                    >
+                      Tỷ trọng doanh số
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ color: "#64748B", fontSize: "14px", textAlign: "center" }}
+                    >
+                      Phân bổ doanh số theo khu vực
+                    </Typography>
+                  </Box>
+                  <Box sx={{ flex: 1, display: "flex", flexDirection: "column", width: "100%" }}>
+                    <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%", minHeight: 300 }}>
+                      {loading ? (
+                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", width: "100%" }}>
+                          <CircularProgress />
+                        </Box>
+                      ) : pieData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                          <PieChart>
+                            <Pie
+                              data={pieData}
+                              dataKey="value"
+                              nameKey="name"
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={80} 
+                              outerRadius={110} 
+                              paddingAngle={5}
+                              label={false}
+                              labelLine={false}
+                            >
+                              {pieData.map((entry, index) => (
+                                <Cell
+                                  key={`cell-${index}`}
+                                  fill={COLORS[index % COLORS.length]}
+                                />
+                              ))}
+                            </Pie>
+                            <Tooltip
+                              contentStyle={{
+                                borderRadius: 8,
+                                border: "none",
+                                boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                              }}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            height: "350px",
+                            width: "100%",
+                            color: "#64748B",
+                            textAlign: "center",
+                          }}
+                        >
+                          <ChartIcon sx={{ fontSize: 64, mb: 2, opacity: 0.3, color: "#64748B" }} />
+                          <Typography variant="h6" sx={{ color: "#0F172A", mb: 1, fontWeight: 600 }}>
+                            Không có dữ liệu
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: "#64748B" }}>
+                            Vui lòng tạo báo cáo để xem dữ liệu
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
 
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 2,
-                    }}
-                  >
-                    {proportionData.length > 0
-                      ? proportionData.map((d, i) => (
+                    <Divider sx={{ my: 3 }} />
+
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 2,
+                      }}
+                    >
+                      {proportionData.length > 0
+                        ? proportionData.map((d, i) => (
                           <Box
                             key={d.region}
                             sx={{
@@ -800,7 +848,7 @@ const Reports = () => {
                             </Typography>
                           </Box>
                         ))
-                      : !loading && (
+                        : !loading && (
                           <Typography
                             variant="body2"
                             color="text.secondary"
@@ -809,12 +857,12 @@ const Reports = () => {
                             Không có dữ liệu
                           </Typography>
                         )}
+                    </Box>
                   </Box>
-                </Box>
-              </Paper>
-            </Fade>
+                </Paper>
+              </Fade>
+            </Grid>
           </Grid>
-        </Grid>
         </Box>
 
         {/* Export Buttons - Centered */}
@@ -830,7 +878,7 @@ const Reports = () => {
             variant="contained"
             startIcon={<DownloadIcon />}
             onClick={() => handleExport("sales")}
-            disabled={loading}
+            disabled={exporting}
             sx={{
               px: 4,
               py: 1.5,
@@ -849,13 +897,13 @@ const Reports = () => {
               transition: "all 0.2s ease",
             }}
           >
-            Xuất Excel
+            {exporting ? "Đang xuất..." : "Xuất Sales CSV"}
           </Button>
           <Button
             variant="contained"
             startIcon={<DownloadIcon />}
             onClick={() => handleExport("inventory")}
-            disabled={loading}
+            disabled={exporting}
             sx={{
               px: 4,
               py: 1.5,
@@ -874,7 +922,7 @@ const Reports = () => {
               transition: "all 0.2s ease",
             }}
           >
-            Xuất PDF
+            {exporting ? "Đang xuất..." : "Xuất Inventory CSV"}
           </Button>
         </Box>
       </Container>

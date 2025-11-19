@@ -94,6 +94,52 @@ export const reportService = {
     }
   },
 
+  getSalesSummary: async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params.fromDate) queryParams.append("fromDate", params.fromDate);
+      if (params.toDate) queryParams.append("toDate", params.toDate);
+      if (params.dealerId) queryParams.append("dealerId", params.dealerId);
+
+      const url = `/sales-summary${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
+      const response = await reportingApi.get(url);
+      return response;
+    } catch (error) {
+      console.error("Error fetching sales summary list:", error);
+      throw error;
+    }
+  },
+
+  getSalesSummaryById: async (id) => {
+    if (!id) throw new Error("Sales summary id is required");
+    return reportingApi.get(`/sales-summary/${id}`);
+  },
+
+  createSalesSummary: async (payload) => {
+    if (!payload) throw new Error("Payload is required");
+    return reportingApi.post("/sales-summary", payload);
+  },
+
+  getInventorySummary: async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params.dealerId) queryParams.append("dealerId", params.dealerId);
+      if (params.vehicleId) queryParams.append("vehicleId", params.vehicleId);
+
+      const url = `/inventory-summary${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
+      const response = await reportingApi.get(url);
+      return response;
+    } catch (error) {
+      console.error("Error fetching inventory summary list:", error);
+      throw error;
+    }
+  },
+
+  createInventorySummary: async (payload) => {
+    if (!payload) throw new Error("Payload is required");
+    return reportingApi.post("/inventory-summary", payload);
+  },
+
   exportReport: async (payload = {}) => {
     try {
       const response = await reportingApi.post("/export", payload, {

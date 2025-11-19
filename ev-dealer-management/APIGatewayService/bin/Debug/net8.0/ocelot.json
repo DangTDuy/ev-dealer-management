@@ -84,6 +84,7 @@
       "UpstreamPathTemplate": "/api/vehicletypes/{everything}",
       "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
       "DownstreamHttpVersion": "1.1"
+<<<<<<< HEAD
     },
     {
       "DownstreamPathTemplate": "/images/{everything}",
@@ -97,6 +98,8 @@
       "UpstreamPathTemplate": "/images/{everything}",
       "UpstreamHttpMethod": ["GET"],
       "DownstreamHttpVersion": "1.1"
+=======
+>>>>>>> adaf20735dc5d8fd55c2f8cf0399264c1f5d7cdc
     }
   ],
   "GlobalConfiguration": {

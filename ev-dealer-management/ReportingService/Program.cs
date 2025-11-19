@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Linq;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
@@ -94,6 +95,7 @@ using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<ReportingDbContext>();
         db.Database.Migrate();
+        await EnsureRegionDataAsync(db);
     }
     catch (Exception ex)
     {
@@ -130,7 +132,8 @@ app.MapGet("/api/reports/summary", async (ReportingDbContext db, string? type, s
         
         // Tính toán metrics từ dữ liệu thật
         var totalSales = salesData.Sum(s => s.TotalOrders);
-        var totalRevenue = salesData.Sum(s => s.TotalRevenue);
+        // Sum in memory to avoid SQLite decimal aggregate issues
+        var totalRevenue = salesData.Sum(s => (double)s.TotalRevenue);
         
         // Đếm số đại lý unique từ SalesSummaries và InventorySummaries
         var activeDealersFromSales = await salesQuery.Select(s => s.DealerId).Distinct().CountAsync();
@@ -151,7 +154,7 @@ app.MapGet("/api/reports/summary", async (ReportingDbContext db, string? type, s
         var metrics = new
         {
             totalSales,
-            totalRevenue = (long)totalRevenue,
+            totalRevenue,
             activeDealers,
             totalDealers,
             conversionRate = Math.Round(conversionRate, 4)
@@ -198,17 +201,27 @@ app.MapGet("/api/reports/sales-by-region", async (ReportingDbContext db, string?
             query = query.Where(s => s.Date <= toDate.Value);
 
         // Group by Region và tính tổng (bỏ qua records có Region null)
-        var salesByRegion = await query
+        var regionalGroups = await query
             .Where(s => !string.IsNullOrWhiteSpace(s.Region))
             .GroupBy(s => s.Region)
             .Select(g => new
             {
                 region = g.Key,
                 sales = g.Sum(s => s.TotalOrders),
-                revenue = (long)g.Sum(s => s.TotalRevenue)
+                // Sum decimals on client to avoid SQLite limitation
+                revenues = g.Select(s => s.TotalRevenue)
+            })
+            .ToListAsync();
+
+        var salesByRegion = regionalGroups
+            .Select(g => new
+            {
+                g.region,
+                g.sales,
+                revenue = (long)g.revenues.Sum(v => v)
             })
             .OrderByDescending(x => x.revenue)
-            .ToListAsync();
+            .ToList();
 
         return Results.Json(salesByRegion);
     }
@@ -243,19 +256,28 @@ app.MapGet("/api/reports/sales-proportion", async (ReportingDbContext db, string
             query = query.Where(s => s.Date <= toDate.Value);
 
         // Bỏ qua records có Region null
-        var salesByRegion = await query
+        var grouped = await query
             .Where(s => !string.IsNullOrWhiteSpace(s.Region))
             .GroupBy(s => s.Region)
             .Select(g => new
             {
                 region = g.Key,
                 sales = g.Sum(s => s.TotalOrders),
-                revenue = (long)g.Sum(s => s.TotalRevenue)
+                revenues = g.Select(s => s.TotalRevenue)
             })
             .ToListAsync();
 
+        var salesByRegion = grouped
+            .Select(g => new
+            {
+                g.region,
+                g.sales,
+                revenue = (long)g.revenues.Sum(v => v)
+            })
+            .ToList();
+
         var totalSales = salesByRegion.Sum(x => x.sales);
-        var totalRevenue = salesByRegion.Sum(x => x.revenue);
+        var totalRevenue = salesByRegion.Sum(x => (double)x.revenue);
 
         var result = salesByRegion.Select(x => new
         {
@@ -294,13 +316,24 @@ app.MapGet("/api/reports/top-vehicles", async (ReportingDbContext db, int? limit
             .Select(g => new
             {
                 model = g.Key,
-                sales = g.Sum(i => i.StockCount), // Tổng stock count cho vehicle đó
-                revenue = (long)(g.Sum(i => i.StockCount) * avgRevenuePerOrder) // Tính revenue dựa trên average revenue per order
+                stockCount = g.Sum(i => i.StockCount),
+                estimatedRevenue = (long)Math.Round(g.Sum(i => i.StockCount) * avgRevenuePerOrder)
             })
-            .OrderByDescending(x => x.sales);
+            .OrderByDescending(x => x.stockCount);
 
         var l = limit.HasValue && limit.Value > 0 ? limit.Value : 10;
-        var topVehicles = await query.Take(l).ToListAsync();
+        var topVehicles = await query
+            .Take(l)
+            .Select(x => new
+            {
+                x.model,
+                stockCount = x.stockCount,
+                // Backwards compatibility for existing frontend expecting "sales" + "revenue"
+                sales = x.stockCount,
+                revenue = x.estimatedRevenue,
+                estimatedRevenue = x.estimatedRevenue
+            })
+            .ToListAsync();
 
         return Results.Json(topVehicles);
     }
@@ -402,7 +435,11 @@ app.MapPost("/api/reports/export", async (HttpRequest req, ReportingDbContext db
             filename = $"full_report_{DateTime.UtcNow:yyyyMMddHHmmss}.csv";
         }
 
-        bytes = Encoding.UTF8.GetBytes(csvBuilder.ToString());
+                    // --- SỬA: Thêm BOM vào đầu chuỗi byte để Excel nhận diện tiếng Việt ---
+            var contentBytes = Encoding.UTF8.GetBytes(csvBuilder.ToString());
+            var bom = Encoding.UTF8.GetPreamble(); // Lấy mã BOM (EF BB BF)
+            bytes = bom.Concat(contentBytes).ToArray(); // Ghép BOM + Dữ liệu
+            // --------------------------------------------------------------------
 
         // Persist ReportRequest and ReportExport record
         try
@@ -641,6 +678,48 @@ var summaries = new[]
 {
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
+
+static async Task EnsureRegionDataAsync(ReportingDbContext db)
+{
+    var dealerRegionMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Dealer Hà Nội"] = "Miền Bắc",
+        ["Dealer TP.HCM"] = "Miền Nam",
+        ["Dealer Đà Nẵng"] = "Miền Trung",
+    };
+
+    var salesWithoutRegion = await db.SalesSummaries
+        .Where(s => string.IsNullOrWhiteSpace(s.Region))
+        .ToListAsync();
+
+    foreach (var sale in salesWithoutRegion)
+    {
+        if (dealerRegionMap.TryGetValue(sale.DealerName, out var region))
+        {
+            sale.Region = region;
+        }
+    }
+
+    var inventoryWithoutRegion = await db.InventorySummaries
+        .Where(i => string.IsNullOrWhiteSpace(i.Region))
+        .ToListAsync();
+
+    foreach (var inv in inventoryWithoutRegion)
+    {
+        if (dealerRegionMap.TryGetValue(inv.DealerName, out var region))
+        {
+            inv.Region = region;
+        }
+    }
+
+    var updated = salesWithoutRegion.Any(s => !string.IsNullOrWhiteSpace(s.Region)) ||
+                  inventoryWithoutRegion.Any(i => !string.IsNullOrWhiteSpace(i.Region));
+
+    if (updated)
+    {
+        await db.SaveChangesAsync();
+    }
+}
 
 app.MapGet("/weatherforecast", () =>
 {
