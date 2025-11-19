@@ -18,6 +18,10 @@ Chờ đến khi thấy: `Now listening on: http://localhost:5208`
 
 **Lưu ý:** Giữ cửa sổ PowerShell này mở trong khi test.
 
+> 🔁 Nếu đây là lần đầu test trên máy của bạn, chạy thêm  
+> `dotnet ef database update --context ReportingDbContext`  
+> để tạo hai cột `Region` mới (Sales/Inventory).
+
 ---
 
 ## 📥 Bước 2: Import Dữ liệu Test
@@ -34,57 +38,7 @@ Write-Host "`n=== Importing Sales Summary Data ===" -ForegroundColor Green
 
 $salesData = @(
     @{
-        date = "2025-01-15T00:00:00Z"
-        dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"
-        dealerName = "Dealer Hà Nội"
-        region = "Miền Bắc"
-        salespersonId = "11111111-2222-3333-4444-555555555551"
-        salespersonName = "Nguyễn Văn A"
-        totalOrders = 5
-        totalRevenue = 1500000000
-    },
-    @{
-        date = "2025-01-20T00:00:00Z"
-        dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"
-        dealerName = "Dealer Hà Nội"
-        region = "Miền Bắc"
-        salespersonId = "11111111-2222-3333-4444-555555555552"
-        salespersonName = "Trần Thị B"
-        totalOrders = 8
-        totalRevenue = 2400000000
-    },
-    @{
-        date = "2025-01-10T00:00:00Z"
-        dealerId = "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e"
-        dealerName = "Dealer TP.HCM"
-        region = "Miền Nam"
-        salespersonId = "22222222-3333-4444-5555-666666666661"
-        salespersonName = "Lê Văn C"
-        totalOrders = 12
-        totalRevenue = 3600000000
-    },
-    @{
-        date = "2025-01-25T00:00:00Z"
-        dealerId = "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e"
-        dealerName = "Dealer TP.HCM"
-        region = "Miền Nam"
-        salespersonId = "22222222-3333-4444-5555-666666666662"
-        salespersonName = "Phạm Thị D"
-        totalOrders = 10
-        totalRevenue = 3000000000
-    },
-    @{
-        date = "2025-01-12T00:00:00Z"
-        dealerId = "c3d4e5f6-a7b8-4c5d-0e1f-3a4b5c6d7e8f"
-        dealerName = "Dealer Đà Nẵng"
-        region = "Miền Trung"
-        salespersonId = "33333333-4444-5555-6666-777777777771"
-        salespersonName = "Hoàng Văn E"
-        totalOrders = 7
-        totalRevenue = 2100000000
-    },
-    @{
-        date = "2025-02-08T00:00:00Z"
+        date = "2025-01-05T00:00:00Z"
         dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"
         dealerName = "Dealer Hà Nội"
         region = "Miền Bắc"
@@ -94,24 +48,84 @@ $salesData = @(
         totalRevenue = 1800000000
     },
     @{
-        date = "2025-02-15T00:00:00Z"
+        date = "2025-02-14T00:00:00Z"
+        dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"
+        dealerName = "Dealer Hà Nội"
+        region = "Miền Bắc"
+        salespersonId = "11111111-2222-3333-4444-555555555552"
+        salespersonName = "Trần Thị B"
+        totalOrders = 9
+        totalRevenue = 2700000000
+    },
+    @{
+        date = "2025-03-02T00:00:00Z"
+        dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"
+        dealerName = "Dealer Hà Nội"
+        region = "Miền Bắc"
+        salespersonId = "11111111-2222-3333-4444-555555555553"
+        salespersonName = "Lý Quốc C"
+        totalOrders = 8
+        totalRevenue = 2560000000
+    },
+    @{
+        date = "2025-01-12T00:00:00Z"
         dealerId = "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e"
         dealerName = "Dealer TP.HCM"
         region = "Miền Nam"
         salespersonId = "22222222-3333-4444-5555-666666666661"
         salespersonName = "Lê Văn C"
-        totalOrders = 15
-        totalRevenue = 4500000000
+        totalOrders = 11
+        totalRevenue = 3520000000
     },
     @{
-        date = "2025-02-20T00:00:00Z"
+        date = "2025-02-18T00:00:00Z"
+        dealerId = "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e"
+        dealerName = "Dealer TP.HCM"
+        region = "Miền Nam"
+        salespersonId = "22222222-3333-4444-5555-666666666662"
+        salespersonName = "Phạm Thị D"
+        totalOrders = 7
+        totalRevenue = 2240000000
+    },
+    @{
+        date = "2025-03-08T00:00:00Z"
+        dealerId = "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e"
+        dealerName = "Dealer TP.HCM"
+        region = "Miền Nam"
+        salespersonId = "22222222-3333-4444-5555-666666666663"
+        salespersonName = "Đỗ Minh E"
+        totalOrders = 9
+        totalRevenue = 2970000000
+    },
+    @{
+        date = "2025-01-20T00:00:00Z"
         dealerId = "c3d4e5f6-a7b8-4c5d-0e1f-3a4b5c6d7e8f"
         dealerName = "Dealer Đà Nẵng"
         region = "Miền Trung"
         salespersonId = "33333333-4444-5555-6666-777777777771"
         salespersonName = "Hoàng Văn E"
-        totalOrders = 9
-        totalRevenue = 2700000000
+        totalOrders = 5
+        totalRevenue = 1400000000
+    },
+    @{
+        date = "2025-02-10T00:00:00Z"
+        dealerId = "c3d4e5f6-a7b8-4c5d-0e1f-3a4b5c6d7e8f"
+        dealerName = "Dealer Đà Nẵng"
+        region = "Miền Trung"
+        salespersonId = "33333333-4444-5555-6666-777777777772"
+        salespersonName = "Võ Thu F"
+        totalOrders = 6
+        totalRevenue = 1740000000
+    },
+    @{
+        date = "2025-03-05T00:00:00Z"
+        dealerId = "c3d4e5f6-a7b8-4c5d-0e1f-3a4b5c6d7e8f"
+        dealerName = "Dealer Đà Nẵng"
+        region = "Miền Trung"
+        salespersonId = "33333333-4444-5555-6666-777777777773"
+        salespersonName = "Nguyễn Hà G"
+        totalOrders = 4
+        totalRevenue = 1160000000
     }
 )
 
@@ -144,15 +158,15 @@ $inventoryData = @(
         dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"
         dealerName = "Dealer Hà Nội"
         region = "Miền Bắc"
-        stockCount = 15
+        stockCount = 18
     },
     @{
-        vehicleId = "v2222222-2222-2222-2222-222222222222"
-        vehicleName = "BMW i3"
+        vehicleId = "v9991111-1111-1111-1111-111111111111"
+        vehicleName = "VinFast VF9"
         dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"
         dealerName = "Dealer Hà Nội"
         region = "Miền Bắc"
-        stockCount = 8
+        stockCount = 12
     },
     @{
         vehicleId = "v3333333-3333-3333-3333-333333333333"
@@ -160,15 +174,15 @@ $inventoryData = @(
         dealerId = "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e"
         dealerName = "Dealer TP.HCM"
         region = "Miền Nam"
-        stockCount = 12
+        stockCount = 14
     },
     @{
         vehicleId = "v4444444-4444-4444-4444-444444444444"
-        vehicleName = "Mercedes EQC"
+        vehicleName = "Mercedes EQE"
         dealerId = "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e"
         dealerName = "Dealer TP.HCM"
         region = "Miền Nam"
-        stockCount = 10
+        stockCount = 9
     },
     @{
         vehicleId = "v5555555-5555-5555-5555-555555555555"
@@ -176,31 +190,15 @@ $inventoryData = @(
         dealerId = "c3d4e5f6-a7b8-4c5d-0e1f-3a4b5c6d7e8f"
         dealerName = "Dealer Đà Nẵng"
         region = "Miền Trung"
-        stockCount = 5
+        stockCount = 7
     },
     @{
-        vehicleId = "v6666666-6666-6666-6666-666666666666"
-        vehicleName = "Tesla Model Y"
-        dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"
-        dealerName = "Dealer Hà Nội"
-        region = "Miền Bắc"
-        stockCount = 20
-    },
-    @{
-        vehicleId = "v7777777-7777-7777-7777-777777777777"
-        vehicleName = "BMW iX"
-        dealerId = "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e"
-        dealerName = "Dealer TP.HCM"
-        region = "Miền Nam"
-        stockCount = 6
-    },
-    @{
-        vehicleId = "v8888888-8888-8888-8888-888888888888"
-        vehicleName = "VinFast VF8"
+        vehicleId = "v5559999-5555-5555-5555-555555555555"
+        vehicleName = "Hyundai Ioniq 5"
         dealerId = "c3d4e5f6-a7b8-4c5d-0e1f-3a4b5c6d7e8f"
         dealerName = "Dealer Đà Nẵng"
         region = "Miền Trung"
-        stockCount = 18
+        stockCount = 11
     }
 )
 
@@ -287,10 +285,10 @@ Invoke-RestMethod -Uri "http://localhost:5208/api/reports/summary?from=2025-01-0
   "from": "2025-01-01",
   "to": "2025-01-31",
   "metrics": {
-    "totalSales": 42,        // Tổng số orders từ dữ liệu thật
-    "totalRevenue": 12600000000,  // Tổng revenue từ dữ liệu thật
-    "activeDealers": 3,       // Số dealer unique
-    "conversionRate": 0.1234
+    "totalSales": 65,
+    "totalRevenue": 20090000000,
+    "activeDealers": 3,
+    "conversionRate": 0.48
   }
 }
 ```
@@ -309,19 +307,19 @@ Invoke-RestMethod -Uri "http://localhost:5208/api/reports/sales-by-region?from=2
 ```json
 [
   {
-    "region": "Dealer TP.HCM",
-    "sales": 22,
-    "revenue": 6600000000
+    "region": "Miền Bắc",
+    "sales": 23,
+    "revenue": 7060000000
   },
   {
-    "region": "Dealer Hà Nội",
-    "sales": 19,
-    "revenue": 5700000000
+    "region": "Miền Nam",
+    "sales": 27,
+    "revenue": 8730000000
   },
   {
-    "region": "Dealer Đà Nẵng",
-    "sales": 7,
-    "revenue": 2100000000
+    "region": "Miền Trung",
+    "sales": 15,
+    "revenue": 4300000000
   }
 ]
 ```
@@ -340,18 +338,24 @@ Invoke-RestMethod -Uri "http://localhost:5208/api/reports/top-vehicles?limit=5" 
 ```json
 [
   {
-    "model": "Tesla Model Y",
-    "sales": 20,
-    "revenue": "10000000000"
+    "model": "Tesla Model 3",
+    "stockCount": 18,
+    "sales": 18,
+    "revenue": 9000000000,
+    "estimatedRevenue": 9000000000
   },
   {
-    "model": "VinFast VF8",
-    "sales": 18,
-    "revenue": "9000000000"
+    "model": "Audi e-tron",
+    "stockCount": 14,
+    "sales": 14,
+    "revenue": 7000000000,
+    "estimatedRevenue": 7000000000
   },
   ...
 ]
 ```
+
+> Lưu ý: endpoint này đang xếp hạng **tồn kho** theo `stockCount`, đồng thời trả thêm `estimatedRevenue` dựa trên doanh thu trung bình mỗi đơn.
 
 ### Test 6: Test Export Report (Endpoint mới - dữ liệu thật)
 

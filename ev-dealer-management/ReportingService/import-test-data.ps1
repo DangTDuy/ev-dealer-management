@@ -13,7 +13,7 @@ try {
     Write-Host "✓ Service đang chạy tại $baseUrl" -ForegroundColor Green
 } catch {
     Write-Host "✗ Lỗi: Service không chạy hoặc không thể kết nối!" -ForegroundColor Red
-    Write-Host "   Hãy chạy: cd ReportingService && `$env:USE_SQLITE = 'true' && dotnet run" -ForegroundColor Yellow
+    Write-Host "   Hãy chạy: cd ReportingService ; `$env:USE_SQLITE = 'true' ; dotnet run" -ForegroundColor Yellow
     exit 1
 }
 
@@ -21,86 +21,15 @@ try {
 Write-Host "`n=== Importing Sales Summary Data ===" -ForegroundColor Green
 
 $salesData = @(
-    @{
-        date = "2025-01-15T00:00:00Z"
-        dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"
-        dealerName = "Dealer Hà Nội"
-        region = "Miền Bắc"
-        salespersonId = "11111111-2222-3333-4444-555555555551"
-        salespersonName = "Nguyễn Văn A"
-        totalOrders = 5
-        totalRevenue = 1500000000
-    },
-    @{
-        date = "2025-01-20T00:00:00Z"
-        dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"
-        dealerName = "Dealer Hà Nội"
-        region = "Miền Bắc"
-        salespersonId = "11111111-2222-3333-4444-555555555552"
-        salespersonName = "Trần Thị B"
-        totalOrders = 8
-        totalRevenue = 2400000000
-    },
-    @{
-        date = "2025-01-10T00:00:00Z"
-        dealerId = "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e"
-        dealerName = "Dealer TP.HCM"
-        region = "Miền Nam"
-        salespersonId = "22222222-3333-4444-5555-666666666661"
-        salespersonName = "Lê Văn C"
-        totalOrders = 12
-        totalRevenue = 3600000000
-    },
-    @{
-        date = "2025-01-25T00:00:00Z"
-        dealerId = "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e"
-        dealerName = "Dealer TP.HCM"
-        region = "Miền Nam"
-        salespersonId = "22222222-3333-4444-5555-666666666662"
-        salespersonName = "Phạm Thị D"
-        totalOrders = 10
-        totalRevenue = 3000000000
-    },
-    @{
-        date = "2025-01-12T00:00:00Z"
-        dealerId = "c3d4e5f6-a7b8-4c5d-0e1f-3a4b5c6d7e8f"
-        dealerName = "Dealer Đà Nẵng"
-        region = "Miền Trung"
-        salespersonId = "33333333-4444-5555-6666-777777777771"
-        salespersonName = "Hoàng Văn E"
-        totalOrders = 7
-        totalRevenue = 2100000000
-    },
-    @{
-        date = "2025-02-08T00:00:00Z"
-        dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"
-        dealerName = "Dealer Hà Nội"
-        region = "Miền Bắc"
-        salespersonId = "11111111-2222-3333-4444-555555555551"
-        salespersonName = "Nguyễn Văn A"
-        totalOrders = 6
-        totalRevenue = 1800000000
-    },
-    @{
-        date = "2025-02-15T00:00:00Z"
-        dealerId = "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e"
-        dealerName = "Dealer TP.HCM"
-        region = "Miền Nam"
-        salespersonId = "22222222-3333-4444-5555-666666666661"
-        salespersonName = "Lê Văn C"
-        totalOrders = 15
-        totalRevenue = 4500000000
-    },
-    @{
-        date = "2025-02-20T00:00:00Z"
-        dealerId = "c3d4e5f6-a7b8-4c5d-0e1f-3a4b5c6d7e8f"
-        dealerName = "Dealer Đà Nẵng"
-        region = "Miền Trung"
-        salespersonId = "33333333-4444-5555-6666-777777777771"
-        salespersonName = "Hoàng Văn E"
-        totalOrders = 9
-        totalRevenue = 2700000000
-    }
+    @{ date = "2025-01-05T00:00:00Z"; dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"; dealerName = "Dealer Hà Nội"; region = "Miền Bắc"; salespersonId = "11111111-2222-3333-4444-555555555551"; salespersonName = "Nguyễn Văn A"; totalOrders = 6; totalRevenue = 1800000000 },
+    @{ date = "2025-02-14T00:00:00Z"; dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"; dealerName = "Dealer Hà Nội"; region = "Miền Bắc"; salespersonId = "11111111-2222-3333-4444-555555555552"; salespersonName = "Trần Thị B"; totalOrders = 9; totalRevenue = 2700000000 },
+    @{ date = "2025-03-02T00:00:00Z"; dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"; dealerName = "Dealer Hà Nội"; region = "Miền Bắc"; salespersonId = "11111111-2222-3333-4444-555555555553"; salespersonName = "Lý Quốc C"; totalOrders = 8; totalRevenue = 2560000000 },
+    @{ date = "2025-01-12T00:00:00Z"; dealerId = "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e"; dealerName = "Dealer TP.HCM"; region = "Miền Nam"; salespersonId = "22222222-3333-4444-5555-666666666661"; salespersonName = "Lê Văn C"; totalOrders = 11; totalRevenue = 3520000000 },
+    @{ date = "2025-02-18T00:00:00Z"; dealerId = "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e"; dealerName = "Dealer TP.HCM"; region = "Miền Nam"; salespersonId = "22222222-3333-4444-5555-666666666662"; salespersonName = "Phạm Thị D"; totalOrders = 7; totalRevenue = 2240000000 },
+    @{ date = "2025-03-08T00:00:00Z"; dealerId = "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e"; dealerName = "Dealer TP.HCM"; region = "Miền Nam"; salespersonId = "22222222-3333-4444-5555-666666666663"; salespersonName = "Đỗ Minh E"; totalOrders = 9; totalRevenue = 2970000000 },
+    @{ date = "2025-01-20T00:00:00Z"; dealerId = "c3d4e5f6-a7b8-4c5d-0e1f-3a4b5c6d7e8f"; dealerName = "Dealer Đà Nẵng"; region = "Miền Trung"; salespersonId = "33333333-4444-5555-6666-777777777771"; salespersonName = "Hoàng Văn E"; totalOrders = 5; totalRevenue = 1400000000 },
+    @{ date = "2025-02-10T00:00:00Z"; dealerId = "c3d4e5f6-a7b8-4c5d-0e1f-3a4b5c6d7e8f"; dealerName = "Dealer Đà Nẵng"; region = "Miền Trung"; salespersonId = "33333333-4444-5555-6666-777777777772"; salespersonName = "Võ Thu F"; totalOrders = 6; totalRevenue = 1740000000 },
+    @{ date = "2025-03-05T00:00:00Z"; dealerId = "c3d4e5f6-a7b8-4c5d-0e1f-3a4b5c6d7e8f"; dealerName = "Dealer Đà Nẵng"; region = "Miền Trung"; salespersonId = "33333333-4444-5555-6666-777777777773"; salespersonName = "Nguyễn Hà G"; totalOrders = 4; totalRevenue = 1160000000 }
 )
 
 $salesSuccess = 0
@@ -129,70 +58,12 @@ Write-Host "`nSales Summary: $salesSuccess thành công, $salesFailed lỗi" -Fo
 Write-Host "`n=== Importing Inventory Summary Data ===" -ForegroundColor Green
 
 $inventoryData = @(
-    @{
-        vehicleId = "v1111111-1111-1111-1111-111111111111"
-        vehicleName = "Tesla Model 3"
-        dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"
-        dealerName = "Dealer Hà Nội"
-        region = "Miền Bắc"
-        stockCount = 15
-    },
-    @{
-        vehicleId = "v2222222-2222-2222-2222-222222222222"
-        vehicleName = "BMW i3"
-        dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"
-        dealerName = "Dealer Hà Nội"
-        region = "Miền Bắc"
-        stockCount = 8
-    },
-    @{
-        vehicleId = "v3333333-3333-3333-3333-333333333333"
-        vehicleName = "Audi e-tron"
-        dealerId = "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e"
-        dealerName = "Dealer TP.HCM"
-        region = "Miền Nam"
-        stockCount = 12
-    },
-    @{
-        vehicleId = "v4444444-4444-4444-4444-444444444444"
-        vehicleName = "Mercedes EQC"
-        dealerId = "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e"
-        dealerName = "Dealer TP.HCM"
-        region = "Miền Nam"
-        stockCount = 10
-    },
-    @{
-        vehicleId = "v5555555-5555-5555-5555-555555555555"
-        vehicleName = "Porsche Taycan"
-        dealerId = "c3d4e5f6-a7b8-4c5d-0e1f-3a4b5c6d7e8f"
-        dealerName = "Dealer Đà Nẵng"
-        region = "Miền Trung"
-        stockCount = 5
-    },
-    @{
-        vehicleId = "v6666666-6666-6666-6666-666666666666"
-        vehicleName = "Tesla Model Y"
-        dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"
-        dealerName = "Dealer Hà Nội"
-        region = "Miền Bắc"
-        stockCount = 20
-    },
-    @{
-        vehicleId = "v7777777-7777-7777-7777-777777777777"
-        vehicleName = "BMW iX"
-        dealerId = "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e"
-        dealerName = "Dealer TP.HCM"
-        region = "Miền Nam"
-        stockCount = 6
-    },
-    @{
-        vehicleId = "v8888888-8888-8888-8888-888888888888"
-        vehicleName = "VinFast VF8"
-        dealerId = "c3d4e5f6-a7b8-4c5d-0e1f-3a4b5c6d7e8f"
-        dealerName = "Dealer Đà Nẵng"
-        region = "Miền Trung"
-        stockCount = 18
-    }
+    @{ vehicleId = "v1111111-1111-1111-1111-111111111111"; vehicleName = "Tesla Model 3"; dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"; dealerName = "Dealer Hà Nội"; region = "Miền Bắc"; stockCount = 18 },
+    @{ vehicleId = "v9991111-1111-1111-1111-111111111111"; vehicleName = "VinFast VF9"; dealerId = "a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d"; dealerName = "Dealer Hà Nội"; region = "Miền Bắc"; stockCount = 12 },
+    @{ vehicleId = "v3333333-3333-3333-3333-333333333333"; vehicleName = "Audi e-tron"; dealerId = "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e"; dealerName = "Dealer TP.HCM"; region = "Miền Nam"; stockCount = 14 },
+    @{ vehicleId = "v4444444-4444-4444-4444-444444444444"; vehicleName = "Mercedes EQE"; dealerId = "b2c3d4e5-f6a7-4b5c-9d0e-2f3a4b5c6d7e"; dealerName = "Dealer TP.HCM"; region = "Miền Nam"; stockCount = 9 },
+    @{ vehicleId = "v5555555-5555-5555-5555-555555555555"; vehicleName = "Porsche Taycan"; dealerId = "c3d4e5f6-a7b8-4c5d-0e1f-3a4b5c6d7e8f"; dealerName = "Dealer Đà Nẵng"; region = "Miền Trung"; stockCount = 7 },
+    @{ vehicleId = "v5559999-5555-5555-5555-555555555555"; vehicleName = "Hyundai Ioniq 5"; dealerId = "c3d4e5f6-a7b8-4c5d-0e1f-3a4b5c6d7e8f"; dealerName = "Dealer Đà Nẵng"; region = "Miền Trung"; stockCount = 11 }
 )
 
 $inventorySuccess = 0

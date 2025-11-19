@@ -18,113 +18,46 @@ ReportingService đã cấu hình CORS cho `http://localhost:5173` (hoặc `loca
 
 ---
 
-## 2. Tạo Service (API Client)
+## 2. Sử dụng service có sẵn (`reportService.js`)
 
-Tạo file: `ev-dealer-frontend/src/services/reportingService.js`
+Repo frontend đã có sẵn client Axios tại `ev-dealer-frontend/src/services/reportService.js`.  
+Service này tự động lấy `VITE_REPORTING_SERVICE_URL` (nên thêm biến môi trường này khi triển khai).
 
 ```javascript
-// reportingService.js
-const API_BASE_URL = "http://localhost:5208/api/reports";
+// src/services/reportService.js (rút gọn)
+import axios from "axios";
 
-export const reportingService = {
-  // Lấy toàn bộ sales summary
-  async getSalesSummary(filters = {}) {
-    try {
-      const params = new URLSearchParams();
-      if (filters.fromDate) params.append("fromDate", filters.fromDate);
-      if (filters.toDate) params.append("toDate", filters.toDate);
-      if (filters.dealerId) params.append("dealerId", filters.dealerId);
+const reportingApi = axios.create({
+  baseURL:
+    import.meta.env.VITE_REPORTING_SERVICE_URL ||
+    "http://localhost:5208/api/reports",
+  timeout: 10000,
+  headers: { "Content-Type": "application/json" },
+});
 
-      const response = await fetch(
-        `${API_BASE_URL}/sales-summary?${params.toString()}`,
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error("Error fetching sales-summary:", error);
-      throw error;
+reportingApi.interceptors.response.use(
+  (response) => response.data,
+  (error) => {
+    if (error.response) {
+      const { data } = error.response;
+      return Promise.reject(data.message || data.error || "Reporting API error");
     }
-  },
+    return Promise.reject("Network error. Please check your connection.");
+  }
+);
 
-  // Lấy chi tiết một sales record
-  async getSalesSummaryById(id) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/sales-summary/${id}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error(`Error fetching sales-summary/${id}:`, error);
-      throw error;
-    }
-  },
-
-  // Thêm sales record mới
-  async createSalesSummary(data) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/sales-summary`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error("Error creating sales-summary:", error);
-      throw error;
-    }
-  },
-
-  // Lấy toàn bộ inventory summary
-  async getInventorySummary(filters = {}) {
-    try {
-      const params = new URLSearchParams();
-      if (filters.dealerId) params.append("dealerId", filters.dealerId);
-      if (filters.vehicleId) params.append("vehicleId", filters.vehicleId);
-
-      const response = await fetch(
-        `${API_BASE_URL}/inventory-summary?${params.toString()}`,
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error("Error fetching inventory-summary:", error);
-      throw error;
-    }
-  },
-
-  // Thêm inventory record mới
-  async createInventorySummary(data) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/inventory-summary`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.error("Error creating inventory-summary:", error);
-      throw error;
-    }
-  },
+export const reportService = {
+  getSummary: (params = {}) => { /* ... */ },
+  getSalesByRegion: (params = {}) => { /* ... */ },
+  getSalesProportion: (params = {}) => { /* ... */ },
+  getTopVehicles: (params = {}) => { /* ... */ },
+  exportReport: (payload = {}) =>
+    reportingApi.post("/export", payload, { responseType: "blob" }),
+  // + các hàm REST đầy đủ trong file thực tế
 };
 ```
+
+> 💡 Tip: Nếu bạn muốn thêm hàm mới (ví dụ `getSalesSummary`), hãy mở file trên và mở rộng object `reportService` cho thống nhất với codebase.
 
 ---
 
@@ -135,7 +68,7 @@ Tạo file: `ev-dealer-frontend/src/components/SalesSummaryTable.jsx`
 ```jsx
 // SalesSummaryTable.jsx
 import React, { useState, useEffect } from "react";
-import { reportingService } from "../services/reportingService";
+import { reportService } from "../services/reportService";
 import "./SalesSummaryTable.css";
 
 export function SalesSummaryTable() {
@@ -157,7 +90,7 @@ export function SalesSummaryTable() {
     setLoading(true);
     setError(null);
     try {
-      const response = await reportingService.getSalesSummary(filters);
+      const response = await reportService.getSalesSummary(filters);
       setData(response.data || []);
     } catch (err) {
       setError(err.message);
@@ -445,7 +378,7 @@ Tạo file: `ev-dealer-frontend/src/components/InventorySummaryTable.jsx`
 ```jsx
 // InventorySummaryTable.jsx
 import React, { useState, useEffect } from "react";
-import { reportingService } from "../services/reportingService";
+import { reportService } from "../services/reportService";
 import "./InventorySummaryTable.css";
 
 export function InventorySummaryTable() {
@@ -461,7 +394,7 @@ export function InventorySummaryTable() {
     setLoading(true);
     setError(null);
     try {
-      const response = await reportingService.getInventorySummary();
+      const response = await reportService.getInventorySummary();
       setData(response.data || []);
     } catch (err) {
       setError(err.message);
@@ -703,7 +636,7 @@ Nếu dùng port khác, kiểm tra `.env` hoặc console output.
 | Vấn đề               | Nguyên nhân                      | Cách khắc phục                                                       |
 | -------------------- | -------------------------------- | -------------------------------------------------------------------- |
 | CORS Error           | Frontend không được phép gọi API | Kiểm tra CORS config trong `Program.cs` (line ~27)                   |
-| "Cannot find module" | Import path sai                  | Kiểm tra file path: `src/services/reportingService.js`               |
+| "Cannot find module" | Import path sai                  | Kiểm tra file path: `src/services/reportService.js`                  |
 | Không có dữ liệu     | API không trả data               | Kiểm tra ReportingService đang chạy + import data qua Postman        |
 | Kết nối bị từ chối   | API không chạy                   | `$env:USE_SQLITE = "true"; dotnet run` trong ReportingService folder |
 
