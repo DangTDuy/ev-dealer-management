@@ -21,7 +21,7 @@ const CustomerForm = ({ initialData = {}, onSubmit, onCancel, isEditMode = false
     email: '',
     phone: '',
     address: '',
-    status: 'active',
+    status: '',
     joinDate: dayjs(),
     ...initialData,
   });
@@ -109,6 +109,7 @@ const CustomerForm = ({ initialData = {}, onSubmit, onCancel, isEditMode = false
                 label="Trạng thái"
                 onChange={handleChange}
               >
+                <MenuItem value="">Chọn trạng thái</MenuItem>
                 <MenuItem value="active">Hoạt động</MenuItem>
                 <MenuItem value="inactive">Không hoạt động</MenuItem>
                 <MenuItem value="pending">Đang chờ</MenuItem>

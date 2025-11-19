@@ -87,14 +87,12 @@ public class CreateVehicleDto
 
 public class CreateVehicleImageDto
 {
-    [Required]
-    [StringLength(500)]
-    public string Url { get; set; } = string.Empty;
+    public string? Url { get; set; } // Added to satisfy backend validation
 
     [StringLength(100)]
     public string? AltText { get; set; }
 
-    public int Order { get; set; } = 0;
+    public int? Order { get; set; } = 0; // Made nullable
 }
 
 public class CreateColorVariantDto

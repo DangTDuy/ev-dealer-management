@@ -29,7 +29,7 @@ services:
     image: evdealer/vehicleservice:local
     container_name: evm_vehicleservice
     ports:
-      - "5224:80"
+      - "5224:8080"
     volumes:
       - ./VehicleService/data:/app/data
     environment:

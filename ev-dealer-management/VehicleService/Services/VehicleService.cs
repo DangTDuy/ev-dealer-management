@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using VehicleService.Data;
 using VehicleService.DTOs;
 using VehicleService.Models;
+using System.IO;
+using System.Net.Http.Headers;
 
 namespace VehicleService.Services;
 
@@ -185,7 +187,7 @@ public class VehicleService : IVehicleService
         };
     }
 
-    public async Task<VehicleDto> CreateVehicleAsync(CreateVehicleDto createDto)
+    public async Task<VehicleDto> CreateVehicleAsync(CreateVehicleDto createDto, List<IFormFile>? imageFiles = null)
     {
         var vehicle = new Vehicle
         {
@@ -202,14 +204,50 @@ public class VehicleService : IVehicleService
         };
 
         // Add images
-        foreach (var imageDto in createDto.Images)
+        if (imageFiles != null && imageFiles.Count > 0)
         {
-            vehicle.Images.Add(new VehicleImage
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+            Directory.CreateDirectory(uploadsFolder);
+
+            for (int i = 0; i < imageFiles.Count; i++)
             {
-                Url = imageDto.Url,
-                AltText = imageDto.AltText,
-                Order = imageDto.Order
-            });
+                var file = imageFiles[i];
+                var imageDto = (createDto.Images != null && i < createDto.Images.Count) ? createDto.Images[i] : null;
+
+                if (file.Length > 0)
+                {
+                    var fileName = $"{Guid.NewGuid()}_{ContentDispositionHeaderValue.Parse(file.ContentDisposition)?.FileName?.Trim('"') ?? "unknown"}";
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    vehicle.Images.Add(new VehicleImage
+                    {
+                        Url = $"/images/{fileName}",
+                        AltText = imageDto?.AltText ?? "Vehicle Image", // Use provided AltText or default
+                        Order = imageDto?.Order ?? 0 // Consistent default for nullable int
+                    });
+                }
+            }
+        }
+        else
+        {
+            // Fallback to URL-based images if no files provided or if file processing fails
+            if (createDto.Images != null)
+            {
+                foreach (var imageDto in createDto.Images)
+                {
+                    vehicle.Images.Add(new VehicleImage
+                    {
+                        Url = imageDto.Url,
+                        AltText = imageDto.AltText ?? "Vehicle Image", // Handle nullable AltText
+                        Order = imageDto.Order ?? 0 // Explicitly cast and provide default for nullable int
+                    });
+                }
+            }
         }
 
         // Add color variants
@@ -256,7 +294,7 @@ public class VehicleService : IVehicleService
         return await GetVehicleByIdAsync(vehicle.Id) ?? throw new InvalidOperationException("Failed to retrieve created vehicle");
     }
 
-    public async Task<VehicleDto?> UpdateVehicleAsync(int id, UpdateVehicleDto updateDto)
+    public async Task<VehicleDto?> UpdateVehicleAsync(int id, UpdateVehicleDto updateDto, List<IFormFile>? imageFiles = null)
     {
         var vehicle = await _context.Vehicles
             .Include(v => v.Images)
@@ -278,15 +316,68 @@ public class VehicleService : IVehicleService
         vehicle.UpdatedAt = DateTime.UtcNow;
 
         // Update images - remove existing and add new ones
-        _context.VehicleImages.RemoveRange(vehicle.Images);
-        foreach (var imageDto in updateDto.Images)
+        if (imageFiles != null && imageFiles.Count > 0)
         {
-            vehicle.Images.Add(new VehicleImage
+            // Delete old image files from wwwroot
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+            foreach (var existingImage in vehicle.Images)
             {
-                Url = imageDto.Url,
-                AltText = imageDto.AltText,
-                Order = imageDto.Order
-            });
+                if (!string.IsNullOrWhiteSpace(existingImage.Url) && existingImage.Url.StartsWith("/images/"))
+                {
+                    var fileName = Path.GetFileName(existingImage.Url);
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+                }
+            }
+            _context.VehicleImages.RemoveRange(vehicle.Images);
+            vehicle.Images.Clear();
+
+            // Add new image files
+            Directory.CreateDirectory(uploadsFolder);
+            for (int i = 0; i < imageFiles.Count; i++)
+            {
+                var file = imageFiles[i];
+                var imageDto = (updateDto.Images != null && i < updateDto.Images.Count) ? updateDto.Images[i] : null;
+
+                if (file.Length > 0)
+                {
+                    var fileName = $"{Guid.NewGuid()}_{ContentDispositionHeaderValue.Parse(file.ContentDisposition)?.FileName?.Trim('"') ?? "unknown"}";
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    vehicle.Images.Add(new VehicleImage
+                    {
+                        Url = $"/images/{fileName}",
+                        AltText = imageDto?.AltText ?? "Vehicle Image", // Handle nullable AltText
+                        Order = imageDto?.Order ?? 0 // Consistent default for nullable int
+                    });
+                }
+            }
+        }
+        else
+        {
+            // Fallback to URL-based images if no files provided
+            _context.VehicleImages.RemoveRange(vehicle.Images);
+            vehicle.Images.Clear();
+            if (updateDto.Images != null)
+            {
+                foreach (var imageDto in updateDto.Images)
+                {
+                    vehicle.Images.Add(new VehicleImage
+                    {
+                        Url = imageDto.Url,
+                        AltText = imageDto.AltText ?? "Vehicle Image", // Handle nullable AltText
+                        Order = imageDto.Order ?? 0 // Explicitly cast and provide default for nullable int
+                    });
+                }
+            }
         }
 
         // Update color variants - remove existing and add new ones

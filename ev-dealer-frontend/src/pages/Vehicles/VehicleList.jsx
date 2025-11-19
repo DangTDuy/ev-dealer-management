@@ -65,7 +65,7 @@ const VehicleList = () => {
   // Filters and search
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState({
-    type: 'all',
+    type: '',
     dealerId: '',
     minPrice: '',
     maxPrice: ''
@@ -273,7 +273,7 @@ const VehicleList = () => {
                 onChange={(e) => handleFilterChange('type', e.target.value)}
                 sx={{ borderRadius: 2 }}
               >
-                <MenuItem value="all">Tất cả loại</MenuItem>
+                <MenuItem value="">Tất cả loại</MenuItem>
                 {vehicleTypes.map((type) => (
                   <MenuItem key={type.value} value={type.value}>
                     {type.label}
@@ -491,7 +491,7 @@ const VehicleList = () => {
                     fontSize: '1.2rem'
                   }}
                 >
-                  ${vehicle.price.toLocaleString()} VND
+                  {vehicle.price?.toLocaleString('vi-VN')} ₫
                 </Typography>
                 <Chip
                   label={`${vehicle.stockQuantity} xe có sẵn`}

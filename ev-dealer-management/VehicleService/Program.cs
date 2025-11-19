@@ -28,11 +28,12 @@ builder.Services.AddHealthChecks();
 // Add CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("SpecificOrigins", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("http://localhost:5174")
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials(); // Allow credentials for authenticated requests
     });
 });
 
@@ -45,10 +46,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("SpecificOrigins"); // Moved here
+
 app.UseHttpsRedirection();
 
-// Use CORS
-app.UseCors("AllowAll");
+// Serve static files (images)
+app.UseStaticFiles();
 
 // Map controllers
 app.MapControllers();

@@ -137,7 +137,36 @@ const vehicleService = {
   // Create new vehicle
   createVehicle: async (vehicleData) => {
     try {
-      const response = await api.post('/vehicles', vehicleData)
+      // Backend expects form-data ([FromForm]) so send multipart/form-data
+      const form = new FormData()
+      // Append primitive fields
+      if (vehicleData.model !== undefined) form.append('Model', vehicleData.model)
+      if (vehicleData.type !== undefined) form.append('Type', vehicleData.type)
+      if (vehicleData.price !== undefined) form.append('Price', vehicleData.price)
+      if (vehicleData.batteryCapacity !== undefined) form.append('BatteryCapacity', vehicleData.batteryCapacity)
+      if (vehicleData.range !== undefined) form.append('Range', vehicleData.range)
+      if (vehicleData.stockQuantity !== undefined) form.append('StockQuantity', vehicleData.stockQuantity)
+      if (vehicleData.description !== undefined) form.append('Description', vehicleData.description)
+      if (vehicleData.dealerId !== undefined) form.append('DealerId', vehicleData.dealerId)
+
+      // Append images if provided as files or URLs
+      if (vehicleData.images && Array.isArray(vehicleData.images)) {
+        vehicleData.images.forEach((img, idx) => {
+          // if File or Blob
+          if (img instanceof File || img instanceof Blob) {
+            form.append('imageFiles', img)
+          } else if (typeof img === 'string') {
+            // Append as Images[0].Url style if backend expects structured fields
+            form.append('Images[' + idx + '].Url', img)
+          }
+        })
+      }
+
+      const response = await api.post('/vehicles', form, { headers: { 'Content-Type': 'multipart/form-data' } })
+      console.log('Vehicle created response:', response)
+      if (response.images && response.images.length > 0) {
+        console.log('First image URL:', response.images[0].url || response.images[0].Url)
+      }
       return response
     } catch (error) {
       // Fallback to mock implementation if API fails
@@ -166,7 +195,28 @@ const vehicleService = {
   // Update existing vehicle
   updateVehicle: async (id, vehicleData) => {
     try {
-      const response = await api.put(`/vehicles/${id}`, vehicleData)
+      // Send multipart/form-data to match backend [FromForm]
+      const form = new FormData()
+      if (vehicleData.model !== undefined) form.append('Model', vehicleData.model)
+      if (vehicleData.type !== undefined) form.append('Type', vehicleData.type)
+      if (vehicleData.price !== undefined) form.append('Price', vehicleData.price)
+      if (vehicleData.batteryCapacity !== undefined) form.append('BatteryCapacity', vehicleData.batteryCapacity)
+      if (vehicleData.range !== undefined) form.append('Range', vehicleData.range)
+      if (vehicleData.stockQuantity !== undefined) form.append('StockQuantity', vehicleData.stockQuantity)
+      if (vehicleData.description !== undefined) form.append('Description', vehicleData.description)
+      if (vehicleData.dealerId !== undefined) form.append('DealerId', vehicleData.dealerId)
+
+      if (vehicleData.images && Array.isArray(vehicleData.images)) {
+        vehicleData.images.forEach((img, idx) => {
+          if (img instanceof File || img instanceof Blob) {
+            form.append('imageFiles', img)
+          } else if (typeof img === 'string') {
+            form.append('Images[' + idx + '].Url', img)
+          }
+        })
+      }
+
+      const response = await api.put(`/vehicles/${id}`, form, { headers: { 'Content-Type': 'multipart/form-data' } })
       return response
     } catch (error) {
       // Fallback to mock implementation if API fails

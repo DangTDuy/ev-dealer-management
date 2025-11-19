@@ -17,11 +17,13 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
-        builder =>
+        policy =>
         {
-            builder.WithOrigins("http://localhost:5173")
-                   .AllowAnyHeader()
-                   .AllowAnyMethod();
+            // Allow common dev ports used by Vite (5173, 5174, 5175)
+            policy.WithOrigins("http://localhost:5173", "http://localhost:5174", "http://localhost:5175")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
         });
 });
 

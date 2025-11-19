@@ -62,15 +62,17 @@ const VehicleForm = () => {
 
   // Form state
   const [formData, setFormData] = useState({
+    vehicleName: '',
+    brand: '',
     model: '',
-    type: 'sedan',
+    year: '',
     price: '',
+    status: '',
+    description: '',
     batteryCapacity: '',
     range: '',
-    stockQuantity: '',
-    description: '',
-    dealerId: '',
     image: null
+    // Các trường khác có thể thêm vào đây nếu cần
   })
 
   // UI state
@@ -107,7 +109,7 @@ const VehicleForm = () => {
   const brands = [
     'Tesla', 'Toyota', 'Honda', 'Ford', 'Chevrolet',
     'BMW', 'Mercedes-Benz', 'Audi', 'Volkswagen', 'Nissan',
-    'Hyundai', 'Kia', 'Lexus', 'Porsche', 'Jaguar'
+    'Hyundai', 'Kia', 'Lexus', 'Porsche', 'Jaguar','VinFast'
   ]
 
   const statuses = [
@@ -201,16 +203,20 @@ const VehicleForm = () => {
       setSaving(true)
       setError(null)
 
-      // Map frontend form data to backend API format
       const submitData = {
-        model: `${formData.brand} ${formData.model}`, // Combine brand and model
-        type: 'sedan', // Default type, can be made configurable later
+        model: formData.vehicleName || [formData.brand, formData.model].filter(Boolean).join(' '),
+        type: formData.type || 'Electric',
         price: parseFloat(formData.price),
-        batteryCapacity: 75, // Default battery capacity
-        range: 300, // Default range
-        stockQuantity: 1, // Default stock quantity
-        description: formData.description || `${formData.brand} ${formData.model} - ${formData.year}`,
-        dealerId: 1 // Default dealer ID, can be made configurable later
+        batteryCapacity: parseFloat(formData.batteryCapacity) || 80.5,
+        range: parseInt(formData.range, 10) || 450,
+        stockQuantity: parseInt(formData.stockQuantity, 10) || 1,
+        description: formData.description,
+        dealerId: formData.dealerId || 1
+      }
+
+      // Attach the image file if it exists
+      if (formData.image) {
+        submitData.images = [formData.image]
       }
 
       if (isEditMode) {
@@ -422,7 +428,7 @@ const VehicleForm = () => {
                   </Typography>
 
                   <Grid container spacing={3}>
-                    <Grid item xs={12}>
+                    <Grid xs={12}>
                       <TextField
                         fullWidth
                         label="Tên xe"
@@ -453,7 +459,7 @@ const VehicleForm = () => {
                       />
                     </Grid>
 
-                    <Grid item xs={12} md={6}>
+                    <Grid xs={12} md={6}>
                       <FormControl fullWidth required>
                         <InputLabel sx={{ color: colors.textLight }}>Hãng xe</InputLabel>
                         <Select
@@ -475,6 +481,7 @@ const VehicleForm = () => {
                             }
                           }}
                         >
+                          <MenuItem value="">Chọn hãng</MenuItem>
                           {brands.map((brand) => (
                             <MenuItem key={brand} value={brand} sx={{ color: colors.text }}>
                               {brand}
@@ -484,7 +491,7 @@ const VehicleForm = () => {
                       </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} md={6}>
+                    <Grid xs={12} md={6}>
                       <TextField
                         fullWidth
                         label="Model"
@@ -512,7 +519,7 @@ const VehicleForm = () => {
                       />
                     </Grid>
 
-                    <Grid item xs={12}>
+                    <Grid xs={12}>
                       <TextField
                         fullWidth
                         label="Năm sản xuất"
@@ -564,7 +571,7 @@ const VehicleForm = () => {
                   </Typography>
 
                   <Grid container spacing={3}>
-                    <Grid item xs={12} md={6}>
+                    <Grid xs={12} md={6}>
                       <TextField
                         fullWidth
                         label="Giá xe"
@@ -600,7 +607,7 @@ const VehicleForm = () => {
                       />
                     </Grid>
 
-                    <Grid item xs={12} md={6}>
+                    <Grid xs={12} md={6}>
                       <FormControl fullWidth>
                         <InputLabel sx={{ color: colors.textLight }}>Trạng thái</InputLabel>
                         <Select
@@ -622,6 +629,7 @@ const VehicleForm = () => {
                             }
                           }}
                         >
+                          <MenuItem value="">Chọn trạng thái</MenuItem>
                           {statuses.map((status) => (
                             <MenuItem key={status.value} value={status.value}>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -640,7 +648,77 @@ const VehicleForm = () => {
                       </FormControl>
                     </Grid>
 
-                    <Grid item xs={12}>
+                    <Grid xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Dung lượng pin"
+                        type="number"
+                        placeholder="80.5"
+                        value={formData.batteryCapacity}
+                        onChange={(e) => handleInputChange('batteryCapacity', e.target.value)}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <Typography sx={{ color: colors.textLight, fontWeight: 600 }}>kWh</Typography>
+                            </InputAdornment>
+                          ),
+                        }}
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            backgroundColor: `${colors.background}`,
+                            '& fieldset': {
+                              borderColor: colors.accent,
+                            },
+                            '&:hover fieldset': {
+                              borderColor: colors.primary,
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: colors.primary,
+                              borderWidth: 2
+                            }
+                          }
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label="Quãng đường tối đa"
+                        type="number"
+                        placeholder="450"
+                        value={formData.range}
+                        onChange={(e) => handleInputChange('range', e.target.value)}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <Typography sx={{ color: colors.textLight, fontWeight: 600 }}>km</Typography>
+                            </InputAdornment>
+                          ),
+                        }}
+                        variant="outlined"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            backgroundColor: `${colors.background}`,
+                            '& fieldset': {
+                              borderColor: colors.accent,
+                            },
+                            '&:hover fieldset': {
+                              borderColor: colors.primary,
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: colors.primary,
+                              borderWidth: 2
+                            }
+                          }
+                        }}
+                      />
+                    </Grid>
+
+                    <Grid xs={12}>
                       <TextField
                         fullWidth
                         label="Mô tả chi tiết"
@@ -690,7 +768,7 @@ const VehicleForm = () => {
                   </Typography>
 
                   <Grid container spacing={4}>
-                    <Grid item xs={12} md={7}>
+                    <Grid xs={12} md={7}>
                       <Paper sx={{
                         p: 3,
                         borderRadius: 3,
@@ -728,15 +806,25 @@ const VehicleForm = () => {
                           </Box>
                           <Divider />
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography sx={{ color: colors.textLight }}>Dung lượng pin:</Typography>
+                            <Typography sx={{ color: colors.text, fontWeight: 500 }}>{formData.batteryCapacity || '-'} kWh</Typography>
+                          </Box>
+                          <Divider />
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Typography sx={{ color: colors.textLight }}>Quãng đường tối đa:</Typography>
+                            <Typography sx={{ color: colors.text, fontWeight: 500 }}>{formData.range || '-'} km</Typography>
+                          </Box>
+                          <Divider />
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <Typography sx={{ color: colors.textLight }}>Trạng thái:</Typography>
                             {(() => {
                               const status = statuses.find(s => s.value === formData.status)
                               return (
                                 <Chip
-                                  label={status?.label}
+                                  label={status?.label || 'Chưa chọn'}
                                   color={status?.color}
                                   size="small"
-                                  icon={<status.icon />}
+                                  icon={status ? <status.icon /> : undefined}
                                 />
                               )
                             })()}
@@ -745,7 +833,7 @@ const VehicleForm = () => {
                       </Paper>
                     </Grid>
 
-                    <Grid item xs={12} md={5}>
+                    <Grid xs={12} md={5}>
                       <Paper sx={{
                         p: 3,
                         borderRadius: 3,

@@ -7,8 +7,8 @@ public interface IVehicleService
 {
     Task<PaginatedResult<VehicleDto>> GetVehiclesAsync(VehicleQueryDto query);
     Task<VehicleDto?> GetVehicleByIdAsync(int id);
-    Task<VehicleDto> CreateVehicleAsync(CreateVehicleDto createDto);
-    Task<VehicleDto?> UpdateVehicleAsync(int id, UpdateVehicleDto updateDto);
+    Task<VehicleDto> CreateVehicleAsync(CreateVehicleDto createDto, List<IFormFile>? imageFiles = null);
+    Task<VehicleDto?> UpdateVehicleAsync(int id, UpdateVehicleDto updateDto, List<IFormFile>? imageFiles = null);
     Task<bool> DeleteVehicleAsync(int id);
     Task<List<DealerDto>> GetDealersAsync();
     Task<DealerDto?> GetDealerByIdAsync(int id);
