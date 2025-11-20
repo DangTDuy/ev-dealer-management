@@ -34,7 +34,7 @@ namespace VehicleService.Services
                 _channel = _connection.CreateModel();
 
                 // Declare exchange for vehicle events
-                _channel.ExchangeDeclare(exchange: "vehicle_exchange", type: ExchangeType.Fanout);
+                _channel.ExchangeDeclare(exchange: "vehicle_events", type: ExchangeType.Topic, durable: true);
 
                 _logger.LogInformation("RabbitMQ producer connection and channel initialized successfully.");
             }
@@ -62,12 +62,27 @@ namespace VehicleService.Services
                 var messageString = JsonSerializer.Serialize(message);
                 var body = Encoding.UTF8.GetBytes(messageString);
 
-                _channel.BasicPublish(exchange: "vehicle_exchange",
-                                    routingKey: routingKey, // Fanout exchange ignores routing key
+                // Use specific routing key based on message type
+                var finalRoutingKey = routingKey;
+                if (string.IsNullOrEmpty(routingKey))
+                {
+                    finalRoutingKey = typeof(T).Name switch
+                    {
+                        "VehicleCreatedEvent" => "vehicle.created",
+                        "VehicleUpdatedEvent" => "vehicle.updated", 
+                        "VehicleDeletedEvent" => "vehicle.deleted",
+                        "VehicleReservedEvent" => "vehicle.reserved",
+                        _ => "vehicle.unknown"
+                    };
+                }
+
+                _channel.BasicPublish(exchange: "vehicle_events",
+                                    routingKey: finalRoutingKey,
                                     basicProperties: null,
                                     body: body);
 
-                _logger.LogInformation("Published message of type {MessageType} to exchange 'vehicle_exchange'", typeof(T).Name);
+                _logger.LogInformation("Published message of type {MessageType} to exchange 'vehicle_events' with routing key '{RoutingKey}'", 
+                    typeof(T).Name, finalRoutingKey);
             }
             catch (Exception ex)
             {

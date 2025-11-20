@@ -1,11 +1,11 @@
 ﻿<Project>
   <ItemGroup>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\129afdc4-6d20-48a9-a30e-101ced134ad6_ERD_RPG.png))">
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\2a2ba449-6fd3-48ee-9535-07198627cc15_1757045201878-qla5igg2ej.webp))">
       <SourceType>Package</SourceType>
       <SourceId>VehicleService</SourceId>
       <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
       <BasePath>_content/VehicleService</BasePath>
-      <RelativePath>images/129afdc4-6d20-48a9-a30e-101ced134ad6_ERD_RPG.png</RelativePath>
+      <RelativePath>images/2a2ba449-6fd3-48ee-9535-07198627cc15_1757045201878-qla5igg2ej.webp</RelativePath>
       <AssetKind>All</AssetKind>
       <AssetMode>All</AssetMode>
       <AssetRole>Primary</AssetRole>
@@ -14,14 +14,14 @@
       <AssetTraitValue></AssetTraitValue>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\129afdc4-6d20-48a9-a30e-101ced134ad6_ERD_RPG.png))</OriginalItemSpec>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\2a2ba449-6fd3-48ee-9535-07198627cc15_1757045201878-qla5igg2ej.webp))</OriginalItemSpec>
     </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\263846e8-b7fb-40ba-94c1-7e33e3412717_Sơ đồ kiến trúc tổng thể.png))">
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\b2bb537e-a33c-4d60-98c4-76ef510aafa1_tesla-cybertruck-1.webp))">
       <SourceType>Package</SourceType>
       <SourceId>VehicleService</SourceId>
       <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
       <BasePath>_content/VehicleService</BasePath>
-      <RelativePath>images/263846e8-b7fb-40ba-94c1-7e33e3412717_Sơ đồ kiến trúc tổng thể.png</RelativePath>
+      <RelativePath>images/b2bb537e-a33c-4d60-98c4-76ef510aafa1_tesla-cybertruck-1.webp</RelativePath>
       <AssetKind>All</AssetKind>
       <AssetMode>All</AssetMode>
       <AssetRole>Primary</AssetRole>
@@ -30,14 +30,14 @@
       <AssetTraitValue></AssetTraitValue>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\263846e8-b7fb-40ba-94c1-7e33e3412717_Sơ đồ kiến trúc tổng thể.png))</OriginalItemSpec>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\b2bb537e-a33c-4d60-98c4-76ef510aafa1_tesla-cybertruck-1.webp))</OriginalItemSpec>
     </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\27a36640-8b12-4629-84e9-388c659b6237_SequenceDiagram.png))">
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\ce23ab5a-8356-498c-9cfe-059edfdafcfb_tesla-model-3-thumb.png))">
       <SourceType>Package</SourceType>
       <SourceId>VehicleService</SourceId>
       <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
       <BasePath>_content/VehicleService</BasePath>
-      <RelativePath>images/27a36640-8b12-4629-84e9-388c659b6237_SequenceDiagram.png</RelativePath>
+      <RelativePath>images/ce23ab5a-8356-498c-9cfe-059edfdafcfb_tesla-model-3-thumb.png</RelativePath>
       <AssetKind>All</AssetKind>
       <AssetMode>All</AssetMode>
       <AssetRole>Primary</AssetRole>
@@ -46,151 +46,7 @@
       <AssetTraitValue></AssetTraitValue>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\27a36640-8b12-4629-84e9-388c659b6237_SequenceDiagram.png))</OriginalItemSpec>
-    </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\43f38bd3-b2f8-4205-a6f0-5b9e211759f5_ERD_RPG.png))">
-      <SourceType>Package</SourceType>
-      <SourceId>VehicleService</SourceId>
-      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
-      <BasePath>_content/VehicleService</BasePath>
-      <RelativePath>images/43f38bd3-b2f8-4205-a6f0-5b9e211759f5_ERD_RPG.png</RelativePath>
-      <AssetKind>All</AssetKind>
-      <AssetMode>All</AssetMode>
-      <AssetRole>Primary</AssetRole>
-      <RelatedAsset></RelatedAsset>
-      <AssetTraitName></AssetTraitName>
-      <AssetTraitValue></AssetTraitValue>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\43f38bd3-b2f8-4205-a6f0-5b9e211759f5_ERD_RPG.png))</OriginalItemSpec>
-    </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\5b6bc8b6-08e2-476b-8e2a-c864f7bbf24c_flowchart.png))">
-      <SourceType>Package</SourceType>
-      <SourceId>VehicleService</SourceId>
-      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
-      <BasePath>_content/VehicleService</BasePath>
-      <RelativePath>images/5b6bc8b6-08e2-476b-8e2a-c864f7bbf24c_flowchart.png</RelativePath>
-      <AssetKind>All</AssetKind>
-      <AssetMode>All</AssetMode>
-      <AssetRole>Primary</AssetRole>
-      <RelatedAsset></RelatedAsset>
-      <AssetTraitName></AssetTraitName>
-      <AssetTraitValue></AssetTraitValue>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\5b6bc8b6-08e2-476b-8e2a-c864f7bbf24c_flowchart.png))</OriginalItemSpec>
-    </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\5d1debe7-dac5-47e3-b46e-7e8c8dd88933_water_sprite_pack.png))">
-      <SourceType>Package</SourceType>
-      <SourceId>VehicleService</SourceId>
-      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
-      <BasePath>_content/VehicleService</BasePath>
-      <RelativePath>images/5d1debe7-dac5-47e3-b46e-7e8c8dd88933_water_sprite_pack.png</RelativePath>
-      <AssetKind>All</AssetKind>
-      <AssetMode>All</AssetMode>
-      <AssetRole>Primary</AssetRole>
-      <RelatedAsset></RelatedAsset>
-      <AssetTraitName></AssetTraitName>
-      <AssetTraitValue></AssetTraitValue>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\5d1debe7-dac5-47e3-b46e-7e8c8dd88933_water_sprite_pack.png))</OriginalItemSpec>
-    </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\82dee080-b23e-4727-a34c-a054e733396f_Erd_Ev.png))">
-      <SourceType>Package</SourceType>
-      <SourceId>VehicleService</SourceId>
-      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
-      <BasePath>_content/VehicleService</BasePath>
-      <RelativePath>images/82dee080-b23e-4727-a34c-a054e733396f_Erd_Ev.png</RelativePath>
-      <AssetKind>All</AssetKind>
-      <AssetMode>All</AssetMode>
-      <AssetRole>Primary</AssetRole>
-      <RelatedAsset></RelatedAsset>
-      <AssetTraitName></AssetTraitName>
-      <AssetTraitValue></AssetTraitValue>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\82dee080-b23e-4727-a34c-a054e733396f_Erd_Ev.png))</OriginalItemSpec>
-    </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\97f422fb-f56d-41a0-b56f-ade60fa87c65_water_sprite_pack.png))">
-      <SourceType>Package</SourceType>
-      <SourceId>VehicleService</SourceId>
-      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
-      <BasePath>_content/VehicleService</BasePath>
-      <RelativePath>images/97f422fb-f56d-41a0-b56f-ade60fa87c65_water_sprite_pack.png</RelativePath>
-      <AssetKind>All</AssetKind>
-      <AssetMode>All</AssetMode>
-      <AssetRole>Primary</AssetRole>
-      <RelatedAsset></RelatedAsset>
-      <AssetTraitName></AssetTraitName>
-      <AssetTraitValue></AssetTraitValue>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\97f422fb-f56d-41a0-b56f-ade60fa87c65_water_sprite_pack.png))</OriginalItemSpec>
-    </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\c7fcb63a-81af-4de0-8393-388c7429ece3_SequenceDiagram.png))">
-      <SourceType>Package</SourceType>
-      <SourceId>VehicleService</SourceId>
-      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
-      <BasePath>_content/VehicleService</BasePath>
-      <RelativePath>images/c7fcb63a-81af-4de0-8393-388c7429ece3_SequenceDiagram.png</RelativePath>
-      <AssetKind>All</AssetKind>
-      <AssetMode>All</AssetMode>
-      <AssetRole>Primary</AssetRole>
-      <RelatedAsset></RelatedAsset>
-      <AssetTraitName></AssetTraitName>
-      <AssetTraitValue></AssetTraitValue>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\c7fcb63a-81af-4de0-8393-388c7429ece3_SequenceDiagram.png))</OriginalItemSpec>
-    </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\cc9d7c8d-d659-492a-87f7-208c740264f6_Sơ đồ kiến trúc tổng thể.png))">
-      <SourceType>Package</SourceType>
-      <SourceId>VehicleService</SourceId>
-      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
-      <BasePath>_content/VehicleService</BasePath>
-      <RelativePath>images/cc9d7c8d-d659-492a-87f7-208c740264f6_Sơ đồ kiến trúc tổng thể.png</RelativePath>
-      <AssetKind>All</AssetKind>
-      <AssetMode>All</AssetMode>
-      <AssetRole>Primary</AssetRole>
-      <RelatedAsset></RelatedAsset>
-      <AssetTraitName></AssetTraitName>
-      <AssetTraitValue></AssetTraitValue>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\cc9d7c8d-d659-492a-87f7-208c740264f6_Sơ đồ kiến trúc tổng thể.png))</OriginalItemSpec>
-    </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\d712b94c-c99c-410e-a2f3-cde37806bb6d_ERD_RPG.png))">
-      <SourceType>Package</SourceType>
-      <SourceId>VehicleService</SourceId>
-      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
-      <BasePath>_content/VehicleService</BasePath>
-      <RelativePath>images/d712b94c-c99c-410e-a2f3-cde37806bb6d_ERD_RPG.png</RelativePath>
-      <AssetKind>All</AssetKind>
-      <AssetMode>All</AssetMode>
-      <AssetRole>Primary</AssetRole>
-      <RelatedAsset></RelatedAsset>
-      <AssetTraitName></AssetTraitName>
-      <AssetTraitValue></AssetTraitValue>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\d712b94c-c99c-410e-a2f3-cde37806bb6d_ERD_RPG.png))</OriginalItemSpec>
-    </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\db0f0931-0042-435b-a11c-81046bc62b63_water_sprite_pack.png))">
-      <SourceType>Package</SourceType>
-      <SourceId>VehicleService</SourceId>
-      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
-      <BasePath>_content/VehicleService</BasePath>
-      <RelativePath>images/db0f0931-0042-435b-a11c-81046bc62b63_water_sprite_pack.png</RelativePath>
-      <AssetKind>All</AssetKind>
-      <AssetMode>All</AssetMode>
-      <AssetRole>Primary</AssetRole>
-      <RelatedAsset></RelatedAsset>
-      <AssetTraitName></AssetTraitName>
-      <AssetTraitValue></AssetTraitValue>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\db0f0931-0042-435b-a11c-81046bc62b63_water_sprite_pack.png))</OriginalItemSpec>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\ce23ab5a-8356-498c-9cfe-059edfdafcfb_tesla-model-3-thumb.png))</OriginalItemSpec>
     </StaticWebAsset>
   </ItemGroup>
 </Project>

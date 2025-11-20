@@ -401,4 +401,154 @@ public class CustomerService : ICustomerService
         await _context.SaveChangesAsync();
         return true;
     }
+
+    public async Task<CustomerDto?> GetCustomerByEmailAsync(string email)
+    {
+        var customer = await _context.Customers
+            .Include(c => c.Purchases)
+            .Include(c => c.TestDrives)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Email == email);
+
+        if (customer == null)
+        {
+            return null;
+        }
+
+        return new CustomerDto
+        {
+            Id = customer.Id,
+            Name = customer.Name,
+            Email = customer.Email,
+            Phone = customer.Phone,
+            Address = customer.Address,
+            Status = customer.Status,
+            JoinDate = customer.JoinDate,
+            Purchases = customer.Purchases.Select(p => new PurchaseDto
+            {
+                Id = p.Id,
+                CustomerId = p.CustomerId,
+                Vehicle = p.Vehicle,
+                Amount = p.Amount,
+                PurchaseDate = p.PurchaseDate
+            }).ToList(),
+            TestDrives = customer.TestDrives.Select(t => new TestDriveDto
+            {
+                Id = t.Id,
+                CustomerId = t.CustomerId,
+                VehicleId = t.VehicleId,
+                DealerId = t.DealerId,
+                AppointmentDate = t.AppointmentDate,
+                Status = t.Status,
+                Notes = t.Notes,
+                CreatedAt = t.CreatedAt
+            }).ToList()
+        };
+    }
+
+    public async Task<CustomerDto> CreateOrUpdateCustomerFromReservationAsync(VehicleReservedEvent reservationEvent)
+    {
+        // Tìm customer có sẵn theo email
+        var existingCustomer = await _context.Customers
+            .FirstOrDefaultAsync(c => c.Email == reservationEvent.CustomerEmail);
+
+        if (existingCustomer != null)
+        {
+            // Cập nhật thông tin nếu cần
+            if (string.IsNullOrEmpty(existingCustomer.Phone) && !string.IsNullOrEmpty(reservationEvent.CustomerPhone))
+            {
+                existingCustomer.Phone = reservationEvent.CustomerPhone;
+            }
+            
+            // Cập nhật tên nếu khác biệt đáng kể (có thể customer đã cập nhật tên)
+            if (!existingCustomer.Name.Equals(reservationEvent.CustomerName, StringComparison.OrdinalIgnoreCase))
+            {
+                existingCustomer.Name = reservationEvent.CustomerName;
+            }
+
+            existingCustomer.UpdatedAt = DateTime.UtcNow;
+            
+            // Thêm purchase record mới
+            var purchase = new Purchase
+            {
+                CustomerId = existingCustomer.Id,
+                Vehicle = $"{reservationEvent.VehicleModel} (Reservation #{reservationEvent.ReservationId})",
+                Amount = reservationEvent.TotalPrice,
+                PurchaseDate = reservationEvent.CreatedAt
+            };
+            
+            existingCustomer.Purchases.Add(purchase);
+            await _context.SaveChangesAsync();
+
+            return new CustomerDto
+            {
+                Id = existingCustomer.Id,
+                Name = existingCustomer.Name,
+                Email = existingCustomer.Email,
+                Phone = existingCustomer.Phone,
+                Address = existingCustomer.Address,
+                Status = existingCustomer.Status,
+                JoinDate = existingCustomer.JoinDate,
+                Purchases = existingCustomer.Purchases.Select(p => new PurchaseDto
+                {
+                    Id = p.Id,
+                    CustomerId = p.CustomerId,
+                    Vehicle = p.Vehicle,
+                    Amount = p.Amount,
+                    PurchaseDate = p.PurchaseDate
+                }).ToList(),
+                TestDrives = new List<TestDriveDto>()
+            };
+        }
+        else
+        {
+            // Tạo customer mới
+            var newCustomer = new Customer
+            {
+                Name = reservationEvent.CustomerName,
+                Email = reservationEvent.CustomerEmail,
+                Phone = reservationEvent.CustomerPhone,
+                DealerId = reservationEvent.DealerId,
+                Status = "active",
+                JoinDate = reservationEvent.CreatedAt,
+                UpdatedAt = reservationEvent.CreatedAt
+            };
+
+            // Thêm purchase record đầu tiên
+            var purchase = new Purchase
+            {
+                Vehicle = $"{reservationEvent.VehicleModel} (Reservation #{reservationEvent.ReservationId})",
+                Amount = reservationEvent.TotalPrice,
+                PurchaseDate = reservationEvent.CreatedAt
+            };
+            
+            newCustomer.Purchases.Add(purchase);
+            
+            _context.Customers.Add(newCustomer);
+            await _context.SaveChangesAsync();
+
+            return new CustomerDto
+            {
+                Id = newCustomer.Id,
+                Name = newCustomer.Name,
+                Email = newCustomer.Email,
+                Phone = newCustomer.Phone,
+                Address = newCustomer.Address,
+                Status = newCustomer.Status,
+                JoinDate = newCustomer.JoinDate,
+                Purchases = new List<PurchaseDto>
+                {
+                    new PurchaseDto
+                    {
+                        Id = purchase.Id,
+                        CustomerId = newCustomer.Id,
+                        Vehicle = purchase.Vehicle,
+                        Amount = purchase.Amount,
+                        PurchaseDate = purchase.PurchaseDate
+                    }
+                },
+                TestDrives = new List<TestDriveDto>()
+            };
+        }
+    }
 }

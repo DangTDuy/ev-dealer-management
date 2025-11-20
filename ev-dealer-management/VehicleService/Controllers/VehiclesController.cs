@@ -150,4 +150,49 @@ public class VehiclesController : ControllerBase
         }
         return NoContent();
     }
+
+    [HttpPost("{id}/reserve")]
+    public async Task<ActionResult<ReservationDto>> ReserveVehicle(int id, CreateReservationDto createDto)
+    {
+        try
+        {
+            if (!TryValidateModel(createDto))
+            {
+                return ValidationProblem(ModelState);
+            }
+
+            var reservation = await _vehicleService.ReserveVehicleAsync(id, createDto);
+            return Ok(reservation);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("reservations/{id}")]
+    public async Task<ActionResult<ReservationDto>> GetReservation(int id)
+    {
+        var reservation = await _vehicleService.GetReservationByIdAsync(id);
+        if (reservation == null)
+        {
+            return NotFound(new { message = "Reservation not found" });
+        }
+        return Ok(reservation);
+    }
+
+    [HttpGet("reservations")]
+    public async Task<ActionResult<PaginatedResult<ReservationDto>>> GetReservations([FromQuery] ReservationQueryDto query)
+    {
+        var result = await _vehicleService.GetReservationsAsync(query);
+        return Ok(result);
+    }
 }

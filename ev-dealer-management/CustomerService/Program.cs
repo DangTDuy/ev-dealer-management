@@ -60,6 +60,9 @@ builder.Services.AddScoped<CustomerService.Services.ICustomerService, CustomerSe
 // Register RabbitMQ Producer Service
 builder.Services.AddSingleton<CustomerService.Services.IMessageProducer, CustomerService.Services.RabbitMQProducerService>();
 
+// Register Background Service for consuming VehicleReservedEvent
+builder.Services.AddHostedService<CustomerService.Consumers.VehicleReservedEventConsumer>();
+
 var app = builder.Build();
 
 // Automatically apply migrations on startup (for development)

@@ -23,5 +23,9 @@ namespace CustomerService.Services
         Task<ComplaintDto> CreateComplaintAsync(int customerId, CreateComplaintRequest request);
         Task<ComplaintDto?> UpdateComplaintAsync(int id, UpdateComplaintRequest request);
         Task<bool> ResolveComplaintAsync(int id);
+
+        // Methods for handling Vehicle Reservations
+        Task<CustomerDto?> GetCustomerByEmailAsync(string email);
+        Task<CustomerDto> CreateOrUpdateCustomerFromReservationAsync(VehicleReservedEvent reservationEvent);
     }
 }

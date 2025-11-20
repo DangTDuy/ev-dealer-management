@@ -16,6 +16,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<VehicleImage> VehicleImages { get; set; }
     public DbSet<ColorVariant> ColorVariants { get; set; }
     public DbSet<VehicleSpecifications> VehicleSpecifications { get; set; }
+    public DbSet<Reservation> Reservations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -45,6 +46,23 @@ public class ApplicationDbContext : DbContext
             .WithMany(v => v.ColorVariants)
             .HasForeignKey(cv => cv.VehicleId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Reservation>()
+            .HasOne(r => r.Vehicle)
+            .WithMany()
+            .HasForeignKey(r => r.VehicleId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Reservation>()
+            .HasOne(r => r.ColorVariant)
+            .WithMany()
+            .HasForeignKey(r => r.ColorVariantId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // Configure enum conversion
+        modelBuilder.Entity<Reservation>()
+            .Property(r => r.Status)
+            .HasConversion<string>();
 
         // Seed data
         SeedData(modelBuilder);

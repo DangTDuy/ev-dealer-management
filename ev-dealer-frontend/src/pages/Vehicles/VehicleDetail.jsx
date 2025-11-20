@@ -19,6 +19,11 @@ import {
   DialogActions,
   DialogContentText,
   Container,
+  TextField,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Select,
   Grid,
   Card,
   CardContent,
@@ -72,6 +77,20 @@ const VehicleDetail = () => {
   const [imageLoading, setImageLoading] = useState(true)
   const [failedImages, setFailedImages] = useState(new Set())
   const [zoomOpen, setZoomOpen] = useState(false)
+
+  // Reservation state
+  const [reservationDialogOpen, setReservationDialogOpen] = useState(false)
+  const [reservationLoading, setReservationLoading] = useState(false)
+  const [reservationData, setReservationData] = useState({
+    customerName: '',
+    customerEmail: '',
+    customerPhone: '',
+    colorVariantId: null,
+    notes: '',
+    quantity: 1
+  })
+  const [reservationSuccess, setReservationSuccess] = useState(false)
+  const [reservationResult, setReservationResult] = useState(null)
 
   const generatePlaceholderDataUrl = (text, width = 1200, height = 700) => {
     const bg = '#f3f6fb'
@@ -160,6 +179,38 @@ const VehicleDetail = () => {
     } else {
       navigator.clipboard.writeText(window.location.href)
       // Could show a toast notification here
+    }
+  }
+
+  const handleReserveClick = () => {
+    setReservationData(prev => ({
+      ...prev,
+      colorVariantId: vehicle?.colorVariants[selectedColor]?.id || null
+    }))
+    setReservationDialogOpen(true)
+  }
+
+  const handleReservationInputChange = (field, value) => {
+    setReservationData(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  const handleReservationSubmit = async () => {
+    try {
+      setReservationLoading(true)
+      const result = await vehicleService.reserveVehicle(vehicle.id, reservationData)
+      setReservationResult(result)
+      setReservationSuccess(true)
+      setReservationDialogOpen(false)
+      // Reload vehicle data to update stock
+      await loadVehicle()
+    } catch (err) {
+      setError(err.message || 'Failed to create reservation')
+      console.error('Error creating reservation:', err)
+    } finally {
+      setReservationLoading(false)
     }
   }
 
@@ -533,6 +584,8 @@ const VehicleDetail = () => {
                   variant="contained"
                   size="large"
                   startIcon={<CartIcon />}
+                  onClick={handleReserveClick}
+                  disabled={vehicle.stockQuantity === 0}
                   sx={{
                     borderRadius: 3,
                     py: 1.5,
@@ -544,10 +597,15 @@ const VehicleDetail = () => {
                       boxShadow: '0 8px 30px rgba(25, 118, 210, 0.4)',
                       transform: 'translateY(-2px)'
                     },
+                    '&:disabled': {
+                      bgcolor: 'grey.300',
+                      color: 'grey.500',
+                      boxShadow: 'none'
+                    },
                     transition: 'all 0.3s ease'
                   }}
                 >
-                  Đặt mua ngay
+                  {vehicle.stockQuantity === 0 ? 'Hết hàng' : 'Đặt mua ngay'}
                 </Button>
               </CardContent>
             </Card>
@@ -864,6 +922,187 @@ const VehicleDetail = () => {
           </Box>
         </Card>
       </Box>
+
+      {/* Reservation Dialog */}
+      <Dialog
+        open={reservationDialogOpen}
+        onClose={() => !reservationLoading && setReservationDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: 3 }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 'bold', borderBottom: 1, borderColor: 'divider', pb: 2 }}>
+          🚗 Đặt mua {vehicle?.model}
+        </DialogTitle>
+        <DialogContent sx={{ pt: 3 }}>
+          <Stack spacing={3}>
+            {/* Selected Color Display */}
+            {vehicle?.colorVariants[selectedColor] && (
+              <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>Màu đã chọn:</Typography>
+                <Stack direction="row" alignItems="center" spacing={2}>
+                  <Box
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: '50%',
+                      bgcolor: vehicle.colorVariants[selectedColor].hex,
+                      border: '2px solid rgba(0,0,0,0.1)'
+                    }}
+                  />
+                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                    {vehicle.colorVariants[selectedColor].name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    ({vehicle.colorVariants[selectedColor].stock} xe có sẵn)
+                  </Typography>
+                </Stack>
+              </Box>
+            )}
+
+            {/* Customer Information */}
+            <TextField
+              label="Họ và tên"
+              fullWidth
+              required
+              value={reservationData.customerName}
+              onChange={(e) => handleReservationInputChange('customerName', e.target.value)}
+              disabled={reservationLoading}
+            />
+
+            <TextField
+              label="Email"
+              type="email"
+              fullWidth
+              required
+              value={reservationData.customerEmail}
+              onChange={(e) => handleReservationInputChange('customerEmail', e.target.value)}
+              disabled={reservationLoading}
+            />
+
+            <TextField
+              label="Số điện thoại"
+              fullWidth
+              required
+              value={reservationData.customerPhone}
+              onChange={(e) => handleReservationInputChange('customerPhone', e.target.value)}
+              disabled={reservationLoading}
+            />
+
+            <FormControl fullWidth>
+              <InputLabel>Số lượng</InputLabel>
+              <Select
+                value={reservationData.quantity}
+                onChange={(e) => handleReservationInputChange('quantity', e.target.value)}
+                label="Số lượng"
+                disabled={reservationLoading}
+              >
+                {[1, 2, 3, 4, 5].map((num) => (
+                  <MenuItem key={num} value={num} disabled={num > vehicle?.stockQuantity}>
+                    {num} xe {num > vehicle?.stockQuantity && '(không đủ hàng)'}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <TextField
+              label="Ghi chú (tùy chọn)"
+              multiline
+              rows={3}
+              fullWidth
+              value={reservationData.notes}
+              onChange={(e) => handleReservationInputChange('notes', e.target.value)}
+              disabled={reservationLoading}
+              placeholder="Ví dụ: Muốn xem xe trực tiếp, thời gian rảnh..."
+            />
+
+            {/* Price Summary */}
+            <Box sx={{ p: 2, bgcolor: 'primary.50', borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
+                Tổng tiền dự kiến:
+              </Typography>
+              <Typography variant="h5" color="primary.main" sx={{ fontWeight: 'bold' }}>
+                ${((vehicle?.price || 0) * reservationData.quantity).toLocaleString()} VND
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Giá có thể thay đổi tùy theo phụ kiện và khuyến mãi
+              </Typography>
+            </Box>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, gap: 1 }}>
+          <Button
+            onClick={() => setReservationDialogOpen(false)}
+            variant="outlined"
+            disabled={reservationLoading}
+            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, px: 3 }}
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={handleReservationSubmit}
+            variant="contained"
+            disabled={reservationLoading || !reservationData.customerName || !reservationData.customerEmail || !reservationData.customerPhone}
+            startIcon={reservationLoading ? <CircularProgress size={20} /> : <CartIcon />}
+            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, px: 3 }}
+          >
+            {reservationLoading ? 'Đang đặt...' : 'Xác nhận đặt mua'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Reservation Success Dialog */}
+      <Dialog
+        open={reservationSuccess}
+        onClose={() => setReservationSuccess(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: 3 }
+        }}
+      >
+        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', pt: 4 }}>
+          ✅ Đặt mua thành công!
+        </DialogTitle>
+        <DialogContent sx={{ textAlign: 'center', pb: 2 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Cảm ơn bạn đã đặt mua {vehicle?.model}
+          </Typography>
+          {reservationResult && (
+            <Box sx={{ p: 3, bgcolor: 'grey.50', borderRadius: 2, mb: 3 }}>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                <strong>Mã đặt hàng:</strong> #{reservationResult.id}
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                <strong>Tên khách hàng:</strong> {reservationResult.customerName}
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                <strong>Email:</strong> {reservationResult.customerEmail}
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                <strong>Số lượng:</strong> {reservationResult.quantity} xe
+              </Typography>
+              <Typography variant="body2">
+                <strong>Tổng tiền:</strong> ${reservationResult.totalPrice?.toLocaleString()} VND
+              </Typography>
+            </Box>
+          )}
+          <Typography variant="body1" color="text.secondary">
+            Chúng tôi sẽ liên hệ với bạn trong vòng 24 giờ để xác nhận đơn hàng và hướng dẫn các bước tiếp theo.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 4 }}>
+          <Button
+            onClick={() => setReservationSuccess(false)}
+            variant="contained"
+            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, px: 4 }}
+          >
+            Đóng
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog
