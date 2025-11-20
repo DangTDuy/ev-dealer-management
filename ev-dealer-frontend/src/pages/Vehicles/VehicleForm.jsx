@@ -109,7 +109,7 @@ const VehicleForm = () => {
   const brands = [
     'Tesla', 'Toyota', 'Honda', 'Ford', 'Chevrolet',
     'BMW', 'Mercedes-Benz', 'Audi', 'Volkswagen', 'Nissan',
-    'Hyundai', 'Kia', 'Lexus', 'Porsche', 'Jaguar'
+    'Hyundai', 'Kia', 'Lexus', 'Porsche', 'Jaguar' , 'VinFast'
   ]
 
   const statuses = [
