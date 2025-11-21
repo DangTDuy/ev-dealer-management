@@ -1,4 +1,4 @@
-/**
+/**chỉnh lại giao diện frontend này cho thật trực quan và hiện đại đừng thay đổi gì hết chỉ cần sửa frontend thôi
  * Vehicle Detail Page - Interactive and Engaging Vehicle Details
  * Features: Image gallery, specifications, color variants, 3D model, animations
  */
@@ -36,7 +36,10 @@ import {
   Tab,
   LinearProgress,
   Divider,
-  Badge
+  Badge,
+  Fade,
+  Zoom,
+  Slide
 } from '@mui/material'
 import {
   ArrowBack as ArrowBackIcon,
@@ -58,7 +61,10 @@ import {
   NavigateBefore as PrevIcon,
   ZoomIn as ZoomIcon,
   Close as CloseIcon,
-  ThreeDRotation as ThreeDIcon
+  ThreeDRotation as ThreeDIcon,
+  ElectricCar as ElectricIcon,
+  CheckCircle as CheckIcon,
+  Star as StarIcon
 } from '@mui/icons-material'
 
 import vehicleService from '../../services/vehicleService'
@@ -93,20 +99,27 @@ const VehicleDetail = () => {
   const [reservationResult, setReservationResult] = useState(null)
 
   const generatePlaceholderDataUrl = (text, width = 1200, height = 700) => {
-    const bg = '#f3f6fb'
-    const fg = '#546e7a'
+    const bg = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+    const fg = '#ffffff'
     const svg = `
       <svg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}' viewBox='0 0 ${width} ${height}'>
-        <rect width='100%' height='100%' fill='${bg}' />
-        <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='${fg}' font-family='Arial, Helvetica, sans-serif' font-size='36'>${text}</text>
+        <defs>
+          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        <rect width='100%' height='100%' fill='url(#gradient)' />
+        <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='${fg}' font-family='Arial, Helvetica, sans-serif' font-size='36' font-weight='600'>${text}</text>
       </svg>`
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
   }
 
   const getImageSrc = (index) => {
     if (vehicle?.images && vehicle.images[index] && !failedImages.has(index)) return resolveImagePath(vehicle.images[index])
-    return generatePlaceholderDataUrl(vehicle?.model || 'No image')
+    return generatePlaceholderDataUrl(vehicle?.model || 'Electric Vehicle')
   }
+  
   const [activeTab, setActiveTab] = useState(0)
   const [isFavorite, setIsFavorite] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -217,10 +230,13 @@ const VehicleDetail = () => {
   if (loading) {
     return (
       <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-          <CircularProgress size={60} />
-          <Typography variant="h6" sx={{ ml: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh', flexDirection: 'column' }}>
+          <CircularProgress size={60} thickness={4} sx={{ color: 'primary.main', mb: 3 }} />
+          <Typography variant="h5" sx={{ fontWeight: 600, color: 'text.primary' }}>
             Đang tải chi tiết xe...
+          </Typography>
+          <Typography variant="body1" sx={{ color: 'text.secondary', mt: 1 }}>
+            Vui lòng chờ trong giây lát
           </Typography>
         </Box>
       </Container>
@@ -230,8 +246,17 @@ const VehicleDetail = () => {
   if (error) {
     return (
       <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Alert severity="error" sx={{ borderRadius: 2 }}>
-          {error}
+        <Alert 
+          severity="error" 
+          sx={{ 
+            borderRadius: 3,
+            boxShadow: '0 8px 32px rgba(211, 47, 47, 0.1)',
+            border: '1px solid rgba(211, 47, 47, 0.1)'
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            {error}
+          </Typography>
         </Alert>
       </Container>
     )
@@ -240,688 +265,1013 @@ const VehicleDetail = () => {
   if (!vehicle) {
     return (
       <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Alert severity="warning" sx={{ borderRadius: 2 }}>
-          Không tìm thấy xe
+        <Alert 
+          severity="warning" 
+          sx={{ 
+            borderRadius: 3,
+            boxShadow: '0 8px 32px rgba(237, 108, 2, 0.1)',
+            border: '1px solid rgba(237, 108, 2, 0.1)'
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Không tìm thấy xe
+          </Typography>
         </Alert>
       </Container>
     )
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Back Button */}
-      <Box sx={{ mb: 3 }}>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate('/vehicles')}
-          sx={{
-            textTransform: 'none',
-            fontWeight: 600,
-            borderRadius: 2,
-            '&:hover': {
-              bgcolor: 'rgba(25, 118, 210, 0.04)'
-            }
-          }}
-        >
-          Quay lại danh sách xe
-        </Button>
-      </Box>
-
-      {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 3 }}>
-          <Box>
-            <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', mb: 1 }}>
-              {vehicle.model}
-            </Typography>
-            <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-              {vehicle.description}
-            </Typography>
-            <Stack direction="row" spacing={2} alignItems="center">
-              {/* Vehicle type chip and pinned model name (separate line) */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'flex-start' }}>
-                <Chip
-                  label={vehicle.type === 'sedan' ? 'Sedan' : vehicle.type === 'suv' ? 'SUV' : vehicle.type === 'hatchback' ? 'Hatchback' : vehicle.type.charAt(0).toUpperCase() + vehicle.type.slice(1)}
-                  color="primary"
-                  size="small"
-                  sx={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}
-                />
-
-                <Typography
-                  variant="subtitle2"
-                  sx={{
-                    fontWeight: 700,
-                    maxWidth: 320,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                  }}
-                  title={vehicle.model}
-                >
-                  {vehicle.model}
-                </Typography>
-              </Box>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <LocationIcon fontSize="small" color="action" />
-                <Typography variant="body2" color="text.secondary">
-                  {vehicle.dealerName}
-                </Typography>
-              </Stack>
-            </Stack>
-          </Box>
-
-          <Stack direction="row" spacing={2}>
-            <IconButton
-              onClick={toggleFavorite}
-              sx={{
-                bgcolor: isFavorite ? 'rgba(244, 67, 54, 0.1)' : 'rgba(0,0,0,0.04)',
-                borderRadius: '50%',
-                width: 44,
-                height: 44,
-                p: 0.5,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                '&:hover': {
-                  bgcolor: isFavorite ? 'rgba(244, 67, 54, 0.2)' : 'rgba(0,0,0,0.08)'
-                }
-              }}
-            >
-              {isFavorite ? <FavoriteIcon color="error" /> : <FavoriteBorderIcon />}
-            </IconButton>
-            <IconButton
-              onClick={handleShare}
-              sx={{
-                bgcolor: 'rgba(0,0,0,0.04)',
-                borderRadius: '50%',
-                width: 44,
-                height: 44,
-                p: 0.5,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                '&:hover': {
-                  bgcolor: 'rgba(0,0,0,0.08)'
-                }
-              }}
-            >
-              <ShareIcon />
-            </IconButton>
-            <Button
-              variant="outlined"
-              startIcon={<EditIcon />}
-              onClick={handleEdit}
-              sx={{
-                borderRadius: 2,
-                textTransform: 'none',
-                fontWeight: 600
-              }}
-            >
-              Sửa
-            </Button>
-            <Button
-              variant="outlined"
-              color="error"
-              startIcon={<DeleteIcon />}
-              onClick={handleDelete}
-              sx={{
-                borderRadius: 2,
-                textTransform: 'none',
-                fontWeight: 600
-              }}
-            >
-              Xóa
-            </Button>
-          </Stack>
-        </Stack>
-      </Box>
-
-      <Grid container spacing={4}>
-        {/* Image Gallery */}
-        <Grid item xs={12} lg={8}>
-          <Card sx={{ borderRadius: 4, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
-            {/* Main Image */}
-            <Box sx={{ position: 'relative', height: 700, overflow: 'hidden' }}>
-                {imageLoading && (
-                  <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5 }}>
-                    <CircularProgress />
-                  </Box>
-                )}
-
-                <img
-                  src={getImageSrc(selectedImage)}
-                  alt={vehicle.model}
-                  onLoad={() => setImageLoading(false)}
-                  onError={() => setFailedImages(prev => { const s = new Set(prev); s.add(selectedImage); return s })}
-                  onClick={() => setZoomOpen(true)}
-                  role="button"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    display: imageLoading ? 'none' : 'block',
-                    transition: 'transform 0.5s ease',
-                    cursor: 'zoom-in'
-                  }}
-                />
-
-                {/* Dots / Carousel indicators */}
-                {vehicle.images && vehicle.images.length > 1 && (
-                  <Box sx={{ position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 1, zIndex: 6 }}>
-                    {vehicle.images.map((_, i) => (
-                      <Box
-                        key={i}
-                        onClick={() => { setSelectedImage(i); setImageLoading(true) }}
-                        sx={{
-                          width: selectedImage === i ? 12 : 8,
-                          height: selectedImage === i ? 12 : 8,
-                          borderRadius: '50%',
-                          bgcolor: selectedImage === i ? 'primary.main' : 'rgba(255,255,255,0.6)',
-                          border: '1px solid rgba(0,0,0,0.08)',
-                          cursor: 'pointer'
-                        }}
-                      />
-                    ))}
-                  </Box>
-                )}
-  {/* Hiện tên xe trên ảnh */}
-  <Box
-    sx={{
-      position: 'absolute',
-      bottom: 20,
-      left: 20,
-      bgcolor: 'rgba(0,0,0,0.6)',
-      color: 'white',
-      px: 2,
-      py: 1,
-      borderRadius: 2,
-      fontSize: '1.2rem',
-      fontWeight: 'bold',
-    }}
-  >
-    {vehicle.model}
-  </Box>
-
-              {/* Image Navigation */}
-              {vehicle.images && vehicle.images.length > 1 && (
-                <>
-                  <IconButton
-                    onClick={() => handleImageChange(selectedImage > 0 ? selectedImage - 1 : vehicle.images.length - 1)}
-                    sx={{
-                      position: 'absolute',
-                      left: 16,
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      bgcolor: 'rgba(255,255,255,0.9)',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      borderRadius: '50%',
-                      width: 44,
-                      height: 44,
-                      p: 0,
-                      '&:hover': {
-                        bgcolor: 'white',
-                        transform: 'translateY(-50%) scale(1.05)'
-                      },
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    <PrevIcon />
-                  </IconButton>
-                  <IconButton
-                    onClick={() => handleImageChange(selectedImage < vehicle.images.length - 1 ? selectedImage + 1 : 0)}
-                    sx={{
-                      position: 'absolute',
-                      right: 16,
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      bgcolor: 'rgba(255,255,255,0.9)',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      borderRadius: '50%',
-                      width: 44,
-                      height: 44,
-                      p: 0,
-                      '&:hover': {
-                        bgcolor: 'white',
-                        transform: 'translateY(-50%) scale(1.05)'
-                      },
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    <NextIcon />
-                  </IconButton>
-                </>
-              )}
-
-              {/* Image Counter */}
-              {vehicle.images && vehicle.images.length > 1 && (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    bottom: 16,
-                    right: 16,
-                    bgcolor: 'rgba(0,0,0,0.7)',
-                    color: 'white',
-                    px: 2,
-                    py: 1,
-                    borderRadius: 2,
-                    fontSize: '0.8rem',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  {selectedImage + 1} / {vehicle.images.length}
-                </Box>
-              )}
+    <Box sx={{ 
+      bgcolor: 'background.default', 
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%)'
+    }}>
+      <Container maxWidth="xl" sx={{ py: 3 }}>
+        {/* Header Section */}
+        <Fade in={true} timeout={800}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              mb: 4,
+              borderRadius: 4,
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            <Box sx={{ position: 'absolute', top: -50, right: -50, opacity: 0.1 }}>
+              <ElectricIcon sx={{ fontSize: 200 }} />
             </Box>
-
-            {/* Thumbnail Gallery */}
-              {vehicle.images && vehicle.images.length > 1 && (
-                <Box sx={{ p: 2, display: 'flex', gap: 1, overflowX: 'auto' }}>
-                  {vehicle.images.map((image, index) => (
-                    <Box
-                      key={index}
-                      onClick={() => { setSelectedImage(index); setImageLoading(true) }}
-                      sx={{
-                        minWidth: 80,
-                        height: 60,
-                        borderRadius: 2,
-                        overflow: 'hidden',
-                        cursor: 'pointer',
-                        border: selectedImage === index ? '3px solid #1976d2' : '3px solid transparent',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          borderColor: 'rgba(25, 118, 210, 0.5)',
-                          transform: 'scale(1.05)'
-                        }
-                      }}
-                    >
-                      <img
-                        src={!failedImages.has(index) ? resolveImagePath(image) : generatePlaceholderDataUrl(vehicle.model, 240, 140)}
-                        alt={`${vehicle.model} ${index + 1}`}
-                        onError={() => setFailedImages(prev => { const s = new Set(prev); s.add(index); return s })}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover'
-                        }}
-                      />
-                    </Box>
-                  ))}
-                </Box>
-              )}
-          </Card>
-        </Grid>
-
-        {/* Vehicle Info */}
-        <Grid item xs={12} lg={4}>
-          <Stack spacing={3}>
-            {/* Price Card */}
-            <Card sx={{ borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 2 }}>
-                  ${vehicle.price.toLocaleString()} VND
-                </Typography>
-
-                <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
+            
+            <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3, position: 'relative', zIndex: 1 }}>
+              <IconButton 
+                onClick={() => navigate('/vehicles')} 
+                sx={{ 
+                  borderRadius: 3, 
+                  bgcolor: 'rgba(255,255,255,0.2)',
+                  backdropFilter: 'blur(10px)',
+                  color: 'white',
+                  '&:hover': {
+                    bgcolor: 'rgba(255,255,255,0.3)',
+                    transform: 'translateY(-2px)'
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <ArrowBackIcon />
+              </IconButton>
+              <Box sx={{ flex: 1 }}>
+                <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
                   <Chip
-                    label={`${vehicle.stockQuantity} xe có sẵn`}
+                    label={vehicle.type === 'sedan' ? 'Sedan' : vehicle.type === 'suv' ? 'SUV' : vehicle.type === 'hatchback' ? 'Hatchback' : vehicle.type.charAt(0).toUpperCase() + vehicle.type.slice(1)}
+                    color="primary"
                     size="small"
-                    color={vehicle.stockQuantity > 5 ? 'success' : vehicle.stockQuantity > 0 ? 'warning' : 'error'}
-                    variant="outlined"
-                    sx={{ fontWeight: 'bold' }}
+                    sx={{ 
+                      bgcolor: 'rgba(255,255,255,0.2)',
+                      color: 'white',
+                      fontWeight: 600,
+                      backdropFilter: 'blur(10px)'
+                    }}
                   />
                   <Chip
-                    label="Đặt hàng ngay"
+                    icon={<LocationIcon fontSize="small" />}
+                    label={vehicle.dealerName}
                     size="small"
-                    color="primary"
-                    sx={{ fontWeight: 'bold' }}
+                    sx={{ 
+                      bgcolor: 'rgba(255,255,255,0.2)',
+                      color: 'white',
+                      fontWeight: 600,
+                      backdropFilter: 'blur(10px)'
+                    }}
                   />
                 </Stack>
-
+                <Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>
+                  {vehicle.model}
+                </Typography>
+                <Typography variant="h6" sx={{ opacity: 0.9, fontWeight: 400 }}>
+                  {vehicle.description}
+                </Typography>
+              </Box>
+              <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', md: 'flex' } }}>
                 <Button
-                  fullWidth
                   variant="contained"
-                  size="large"
                   startIcon={<CartIcon />}
                   onClick={handleReserveClick}
-                  disabled={vehicle.stockQuantity === 0}
-                  sx={{
+                  sx={{ 
+                    textTransform: 'none', 
+                    fontWeight: 700,
                     borderRadius: 3,
+                    px: 4,
                     py: 1.5,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    fontSize: '1.1rem',
-                    boxShadow: '0 4px 20px rgba(25, 118, 210, 0.3)',
+                    bgcolor: 'white',
+                    color: 'primary.main',
                     '&:hover': {
-                      boxShadow: '0 8px 30px rgba(25, 118, 210, 0.4)',
+                      bgcolor: 'rgba(255,255,255,0.9)',
                       transform: 'translateY(-2px)'
-                    },
-                    '&:disabled': {
-                      bgcolor: 'grey.300',
-                      color: 'grey.500',
-                      boxShadow: 'none'
                     },
                     transition: 'all 0.3s ease'
                   }}
                 >
-                  {vehicle.stockQuantity === 0 ? 'Hết hàng' : 'Đặt mua ngay'}
+                  Đặt xe ngay
                 </Button>
-              </CardContent>
-            </Card>
+              </Stack>
+            </Stack>
+          </Paper>
+        </Fade>
 
-            {/* Quick Specs */}
-            <Card sx={{ borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3 }}>
-                  Thông số chính
-                </Typography>
+        <Grid container spacing={4}>
+          {/* Left Column - Image Gallery */}
+          <Grid item xs={12} lg={8}>
+            <Slide in={true} direction="up" timeout={600}>
+              <Paper 
+                elevation={0}
+                sx={{ 
+                  borderRadius: 4,
+                  overflow: 'hidden',
+                  bgcolor: 'white',
+                  boxShadow: '0 20px 60px rgba(0,0,0,0.1)',
+                  mb: 4,
+                  border: '1px solid rgba(0,0,0,0.05)'
+                }}
+              >
+                {/* Main Image */}
+                <Box sx={{ position: 'relative', height: { xs: 400, md: 600 }, overflow: 'hidden', bgcolor: '#000' }}>
+                  {imageLoading && (
+                    <Box sx={{ 
+                      position: 'absolute', 
+                      inset: 0, 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      zIndex: 5 
+                    }}>
+                      <CircularProgress sx={{ color: 'white' }} />
+                    </Box>
+                  )}
 
-                <Stack spacing={2}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      <BatteryIcon color="action" />
-                      <Typography variant="body2">Dung lượng pin</Typography>
-                    </Stack>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                      {vehicle.batteryCapacity} kWh
+                  <img
+                    src={getImageSrc(selectedImage)}
+                    alt={vehicle.model}
+                    onLoad={() => setImageLoading(false)}
+                    onError={() => setFailedImages(prev => { const s = new Set(prev); s.add(selectedImage); return s })}
+                    onClick={() => setZoomOpen(true)}
+                    role="button"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: imageLoading ? 'none' : 'block',
+                      transition: 'transform 0.5s ease',
+                      cursor: 'zoom-in'
+                    }}
+                  />
+
+                  {/* Navigation Dots */}
+                  {vehicle.images && vehicle.images.length > 1 && (
+                    <Box sx={{ 
+                      position: 'absolute', 
+                      bottom: 20, 
+                      left: '50%', 
+                      transform: 'translateX(-50%)', 
+                      display: 'flex', 
+                      gap: 1, 
+                      zIndex: 6 
+                    }}>
+                      {vehicle.images.map((_, i) => (
+                        <Box
+                          key={i}
+                          onClick={() => { setSelectedImage(i); setImageLoading(true) }}
+                          sx={{
+                            width: selectedImage === i ? 16 : 8,
+                            height: 8,
+                            borderRadius: 4,
+                            bgcolor: selectedImage === i ? 'primary.main' : 'rgba(255,255,255,0.6)',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s ease',
+                            '&:hover': {
+                              bgcolor: selectedImage === i ? 'primary.dark' : 'rgba(255,255,255,0.8)'
+                            }
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  )}
+
+                  {/* Vehicle Name Overlay */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      bottom: 20,
+                      left: 20,
+                      bgcolor: 'rgba(0,0,0,0.7)',
+                      color: 'white',
+                      px: 3,
+                      py: 2,
+                      borderRadius: 3,
+                      backdropFilter: 'blur(10px)',
+                      border: '1px solid rgba(255,255,255,0.1)'
+                    }}
+                  >
+                    <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                      {vehicle.model}
                     </Typography>
                   </Box>
 
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      <SpeedIcon color="action" />
-                      <Typography variant="body2">Quãng đường</Typography>
-                    </Stack>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                      {vehicle.range} km
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      <TimeIcon color="action" />
-                      <Typography variant="body2">Tăng tốc 0-60mph</Typography>
-                    </Stack>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                      {vehicle.specifications?.acceleration || 'N/A'}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      <SecurityIcon color="action" />
-                      <Typography variant="body2">Bảo hành</Typography>
-                    </Stack>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                      {vehicle.specifications?.warranty || 'N/A'}
-                    </Typography>
-                  </Box>
-                </Stack>
-              </CardContent>
-            </Card>
-
-            {/* Color Variants */}
-            {vehicle.colorVariants && vehicle.colorVariants.length > 0 && (
-              <Card sx={{ borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3 }}>
-                    <PaletteIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                    Màu sắc có sẵn
-                  </Typography>
-
-                  <Stack direction="row" spacing={1} flexWrap="wrap">
-                    {vehicle.colorVariants.map((color, index) => (
-                      <Box
-                        key={color.id}
-                        onClick={() => handleColorChange(index)}
+                  {/* Navigation Arrows */}
+                  {vehicle.images && vehicle.images.length > 1 && (
+                    <>
+                      <IconButton
+                        onClick={() => handleImageChange(selectedImage > 0 ? selectedImage - 1 : vehicle.images.length - 1)}
                         sx={{
-                          width: 40,
-                          height: 40,
+                          position: 'absolute',
+                          left: 20,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          bgcolor: 'rgba(255,255,255,0.9)',
+                          backdropFilter: 'blur(10px)',
+                          border: '1px solid rgba(255,255,255,0.2)',
                           borderRadius: '50%',
-                          bgcolor: color.hex,
-                          cursor: 'pointer',
-                          border: selectedColor === index ? '3px solid #1976d2' : '3px solid rgba(0,0,0,0.1)',
-                          position: 'relative',
-                          transition: 'all 0.2s ease',
+                          width: 56,
+                          height: 56,
+                          p: 0,
                           '&:hover': {
-                            transform: 'scale(1.1)',
-                            borderColor: 'rgba(25, 118, 210, 0.5)'
+                            bgcolor: 'white',
+                            transform: 'translateY(-50%) scale(1.1)'
+                          },
+                          transition: 'all 0.3s ease'
+                        }}
+                      >
+                        <PrevIcon />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleImageChange(selectedImage < vehicle.images.length - 1 ? selectedImage + 1 : 0)}
+                        sx={{
+                          position: 'absolute',
+                          right: 20,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          bgcolor: 'rgba(255,255,255,0.9)',
+                          backdropFilter: 'blur(10px)',
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          borderRadius: '50%',
+                          width: 56,
+                          height: 56,
+                          p: 0,
+                          '&:hover': {
+                            bgcolor: 'white',
+                            transform: 'translateY(-50%) scale(1.1)'
+                          },
+                          transition: 'all 0.3s ease'
+                        }}
+                      >
+                        <NextIcon />
+                      </IconButton>
+                    </>
+                  )}
+
+                  {/* Image Counter */}
+                  {vehicle.images && vehicle.images.length > 1 && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: 20,
+                        right: 20,
+                        bgcolor: 'rgba(0,0,0,0.7)',
+                        color: 'white',
+                        px: 2,
+                        py: 1,
+                        borderRadius: 3,
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                        backdropFilter: 'blur(10px)'
+                      }}
+                    >
+                      {selectedImage + 1} / {vehicle.images.length}
+                    </Box>
+                  )}
+                </Box>
+
+                {/* Thumbnail Gallery */}
+                {vehicle.images && vehicle.images.length > 1 && (
+                  <Box sx={{ p: 3, display: 'flex', gap: 2, overflowX: 'auto', bgcolor: 'grey.50' }}>
+                    {vehicle.images.map((image, index) => (
+                      <Box
+                        key={index}
+                        onClick={() => { setSelectedImage(index); setImageLoading(true) }}
+                        sx={{
+                          minWidth: 100,
+                          height: 80,
+                          borderRadius: 2,
+                          overflow: 'hidden',
+                          cursor: 'pointer',
+                          border: selectedImage === index ? '3px solid #1976d2' : '3px solid transparent',
+                          transition: 'all 0.3s ease',
+                          position: 'relative',
+                          '&:hover': {
+                            borderColor: 'primary.main',
+                            transform: 'scale(1.05)'
                           }
                         }}
-                        title={`${color.name} (${color.stock} xe)`}
                       >
-                        {color.stock === 0 && (
+                        <img
+                          src={!failedImages.has(index) ? resolveImagePath(image) : generatePlaceholderDataUrl(vehicle.model, 240, 140)}
+                          alt={`${vehicle.model} ${index + 1}`}
+                          onError={() => setFailedImages(prev => { const s = new Set(prev); s.add(index); return s })}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                          }}
+                        />
+                        {selectedImage === index && (
                           <Box
                             sx={{
                               position: 'absolute',
-                              top: '50%',
-                              left: '50%',
-                              transform: 'translate(-50%, -50%) rotate(45deg)',
-                              width: 2,
-                              height: 40,
-                              bgcolor: 'rgba(255,255,255,0.8)',
-                              borderRadius: 1
+                              top: 8,
+                              right: 8,
+                              width: 20,
+                              height: 20,
+                              borderRadius: '50%',
+                              bgcolor: 'primary.main',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
                             }}
-                          />
+                          >
+                            <CheckIcon sx={{ color: 'white', fontSize: 14 }} />
+                          </Box>
                         )}
                       </Box>
                     ))}
-                  </Stack>
+                  </Box>
+                )}
+              </Paper>
+            </Slide>
 
-                  {vehicle.colorVariants[selectedColor] && (
-                    <Typography variant="body2" sx={{ mt: 2, fontWeight: 'bold' }}>
-                      {vehicle.colorVariants[selectedColor].name} - {vehicle.colorVariants[selectedColor].stock} xe có sẵn
+            {/* Color Variants */}
+            {vehicle.colorVariants && vehicle.colorVariants.length > 0 && (
+              <Fade in={true} timeout={800}>
+                <Card sx={{ 
+                  borderRadius: 4,
+                  bgcolor: 'white',
+                  boxShadow: '0 20px 60px rgba(0,0,0,0.1)',
+                  border: '1px solid rgba(0,0,0,0.05)',
+                  mb: 4
+                }}>
+                  <CardContent sx={{ p: 4 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <PaletteIcon sx={{ color: 'primary.main' }} />
+                      Màu sắc có sẵn
                     </Typography>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-          </Stack>
-        </Grid>
-      </Grid>
 
-      {/* Detailed Specifications Tabs */}
-      <Box sx={{ mt: 8 }}>
-        <Card sx={{ borderRadius: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
-          <Tabs
-            value={activeTab}
-            onChange={handleTabChange}
-            sx={{
-              borderBottom: 1,
-              borderColor: 'divider',
-              '& .MuiTab-root': {
-                textTransform: 'none',
-                fontWeight: 600,
-                fontSize: '1rem',
-                minHeight: 64
-              }
-            }}
-          >
-            <Tab label="Thông số kỹ thuật" />
-            <Tab label="Tính năng" />
-            <Tab label="Bảo hành & Hỗ trợ" />
-          </Tabs>
+                    <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', mb: 4 }}>
+                      {vehicle.colorVariants.map((color, index) => (
+                        <Box
+                          key={color.id}
+                          onClick={() => handleColorChange(index)}
+                          sx={{
+                            position: 'relative',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s ease',
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: 64,
+                              height: 64,
+                              borderRadius: '50%',
+                              bgcolor: color.hex,
+                              border: selectedColor === index ? '4px solid #1976d2' : '3px solid rgba(0,0,0,0.1)',
+                              boxShadow: selectedColor === index ? '0 8px 25px rgba(25, 118, 210, 0.3)' : '0 4px 15px rgba(0,0,0,0.1)',
+                              transition: 'all 0.3s ease',
+                              position: 'relative',
+                              '&:hover': {
+                                transform: 'scale(1.15)',
+                                boxShadow: '0 8px 25px rgba(0,0,0,0.2)'
+                              }
+                            }}
+                          >
+                            {selectedColor === index && (
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  top: '50%',
+                                  left: '50%',
+                                  transform: 'translate(-50%, -50%)',
+                                  width: 24,
+                                  height: 24,
+                                  borderRadius: '50%',
+                                  bgcolor: 'white',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                                }}
+                              >
+                                <CheckIcon sx={{ color: 'primary.main', fontSize: 16 }} />
+                              </Box>
+                            )}
+                            {color.stock === 0 && (
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  inset: 0,
+                                  borderRadius: '50%',
+                                  bgcolor: 'rgba(0,0,0,0.6)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                <CloseIcon sx={{ color: 'white', fontSize: 28 }} />
+                              </Box>
+                            )}
+                          </Box>
+                          <Typography variant="caption" sx={{ 
+                            display: 'block', 
+                            textAlign: 'center', 
+                            mt: 1, 
+                            fontWeight: 600,
+                            color: selectedColor === index ? 'primary.main' : 'text.primary'
+                          }}>
+                            {color.name}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
 
-          <Box sx={{ p: 4 }}>
-            {activeTab === 0 && (
-              <Grid container spacing={4}>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3 }}>
-                    <BuildIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                    Thông số động cơ & hiệu suất
-                  </Typography>
-                  <Stack spacing={2}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body1">Tăng tốc 0-60 mph:</Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                        {vehicle.specifications?.acceleration || 'N/A'}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body1">Tốc độ tối đa:</Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                        {vehicle.specifications?.topSpeed || 'N/A'}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body1">Sạc nhanh:</Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                        {vehicle.specifications?.charging || 'N/A'}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </Grid>
-                {/* Zoom Modal */}
-                <Dialog open={zoomOpen} onClose={() => setZoomOpen(false)} maxWidth="lg" fullWidth>
-                  <DialogContent sx={{ p: 0, backgroundColor: 'black' }}>
-                    <Box sx={{ position: 'relative', width: '100%', height: { xs: '60vh', md: '80vh' }, bgcolor: 'black' }}>
-                      <IconButton
-                        onClick={() => setZoomOpen(false)}
-                        sx={{ position: 'absolute', right: 8, top: 8, zIndex: 10, color: 'white', bgcolor: 'rgba(0,0,0,0.4)', borderRadius: '50%', width: 40, height: 40, p: 0.5 }}
+                    {vehicle.colorVariants[selectedColor] && (
+                      <Paper 
+                        elevation={0}
+                        sx={{ 
+                          p: 3, 
+                          bgcolor: 'primary.50',
+                          borderRadius: 3,
+                          border: '1px solid',
+                          borderColor: 'primary.100'
+                        }}
                       >
-                        <CloseIcon />
-                      </IconButton>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                        <img
-                          src={getImageSrc(selectedImage)}
-                          alt={vehicle.model}
-                          style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                        />
-                      </Box>
-                    </Box>
-                  </DialogContent>
-                </Dialog>
-
-                <Grid item xs={12} md={6}>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3 }}>
-                    <CarIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                    Kích thước & tiện nghi
-                  </Typography>
-                  <Stack spacing={2}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body1">Số chỗ ngồi:</Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                        {vehicle.specifications?.seats || 'N/A'}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body1">Dung tích cốp:</Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                        {vehicle.specifications?.cargo || 'N/A'}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body1">Trọng lượng:</Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                        N/A
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </Grid>
-              </Grid>
+                        <Stack direction="row" alignItems="center" spacing={3}>
+                          <Box
+                            sx={{
+                              width: 40,
+                              height: 40,
+                              borderRadius: '50%',
+                              bgcolor: vehicle.colorVariants[selectedColor].hex,
+                              border: '3px solid white',
+                              boxShadow: '0 4px 15px rgba(0,0,0,0.15)'
+                            }}
+                          />
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                              {vehicle.colorVariants[selectedColor].name}
+                            </Typography>
+                            <Typography variant="body2" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <CheckIcon sx={{ fontSize: 16, color: 'success.main' }} />
+                              {vehicle.colorVariants[selectedColor].stock} xe có sẵn
+                            </Typography>
+                          </Box>
+                          <Chip 
+                            label="Đã chọn" 
+                            color="primary" 
+                            variant="filled"
+                            sx={{ fontWeight: 600 }}
+                          />
+                        </Stack>
+                      </Paper>
+                    )}
+                  </CardContent>
+                </Card>
+              </Fade>
             )}
 
-            {activeTab === 1 && (
-              <Box sx={{ p: 4, minHeight: 300, transition: 'all 0.3s ease' }}>
+            {/* Specifications Tabs */}
+            <Fade in={true} timeout={1000}>
+              <Card sx={{ 
+                borderRadius: 4, 
+                bgcolor: 'white',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.1)',
+                border: '1px solid rgba(0,0,0,0.05)'
+              }}>
+                <Tabs
+                  value={activeTab}
+                  onChange={handleTabChange}
+                  sx={{
+                    borderBottom: 1,
+                    borderColor: 'divider',
+                    '& .MuiTab-root': {
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      minHeight: 70,
+                      color: 'text.secondary',
+                      '&.Mui-selected': {
+                        color: 'primary.main',
+                      }
+                    }
+                  }}
+                >
+                  <Tab 
+                    icon={<BuildIcon sx={{ mb: 0.5 }} />} 
+                    iconPosition="start" 
+                    label="Thông số kỹ thuật" 
+                  />
+                  <Tab 
+                    icon={<StarIcon sx={{ mb: 0.5 }} />} 
+                    iconPosition="start" 
+                    label="Tính năng" 
+                  />
+                  <Tab 
+                    icon={<SecurityIcon sx={{ mb: 0.5 }} />} 
+                    iconPosition="start" 
+                    label="Bảo hành & Hỗ trợ" 
+                  />
+                </Tabs>
 
-                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3 }}>
-                  Tính năng nổi bật
-                </Typography>
-                <Grid container spacing={4}>
-  {[
-    'Lái xe tự động',
-    'Hỗ trợ đỗ xe tự động',
-    'Sạc không dây',
-    'Kết nối smartphone',
-    'Màn hình cảm ứng lớn',
-    'Âm thanh cao cấp',
-    'Ghế sưởi ấm/làm mát',
-    'Cửa sổ trời toàn cảnh'
-  ].map((feature, index) => (
-    <Grid item xs={12} sm={6} md={6} key={index}>
-      <Paper
-        sx={{
-          p: 5,
-          textAlign: 'center',
-          borderRadius: 2,
-          bgcolor: 'rgba(25, 118, 210, 0.04)',
-          border: '1px solid rgba(25, 118, 210, 0.1)',
-          transition: 'all 0.2s ease',
-          '&:hover': {
-            bgcolor: 'rgba(25, 118, 210, 0.08)',
-            transform: 'translateY(-2px)',
-            boxShadow: '0 4px 12px rgba(219, 92, 92, 0.1)'
+                <Box sx={{ p: 4 }}>
+                  {activeTab === 0 && (
+                    <Grid container spacing={4}>
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <BuildIcon color="primary" />
+                          Thông số động cơ & hiệu suất
+                        </Typography>
+                        <Stack spacing={3}>
+                          {[
+                            { label: 'Tăng tốc 0-60 mph:', value: vehicle.specifications?.acceleration || 'N/A' },
+                            { label: 'Tốc độ tối đa:', value: vehicle.specifications?.topSpeed || 'N/A' },
+                            { label: 'Sạc nhanh:', value: vehicle.specifications?.charging || 'N/A' },
+                            { label: 'Công suất tối đa:', value: vehicle.motorPower || 'N/A' }
+                          ].map((spec, index) => (
+                            <Box key={index} sx={{ 
+                              display: 'flex', 
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              p: 2,
+                              borderRadius: 2,
+                              bgcolor: 'grey.50',
+                              transition: 'all 0.3s ease',
+                              '&:hover': {
+                                bgcolor: 'primary.50',
+                                transform: 'translateX(8px)'
+                              }
+                            }}>
+                              <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                                {spec.label}
+                              </Typography>
+                              <Typography variant="body1" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                                {spec.value}
+                              </Typography>
+                            </Box>
+                          ))}
+                        </Stack>
+                      </Grid>
+
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <CarIcon color="primary" />
+                          Kích thước & tiện nghi
+                        </Typography>
+                        <Stack spacing={3}>
+                          {[
+                            { label: 'Số chỗ ngồi:', value: vehicle.specifications?.seats || 'N/A' },
+                            { label: 'Dung tích cốp:', value: vehicle.specifications?.cargo || 'N/A' },
+                            { label: 'Trọng lượng:', value: 'N/A' },
+                            { label: 'Kích thước:', value: 'N/A' }
+                          ].map((spec, index) => (
+                            <Box key={index} sx={{ 
+                              display: 'flex', 
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              p: 2,
+                              borderRadius: 2,
+                              bgcolor: 'grey.50',
+                              transition: 'all 0.3s ease',
+                              '&:hover': {
+                                bgcolor: 'primary.50',
+                                transform: 'translateX(8px)'
+                              }
+                            }}>
+                              <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                                {spec.label}
+                              </Typography>
+                              <Typography variant="body1" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                                {spec.value}
+                              </Typography>
+                            </Box>
+                          ))}
+                        </Stack>
+                      </Grid>
+                    </Grid>
+                  )}
+
+                  {activeTab === 1 && (
+                    <Box>
+                      <Typography variant="h5" sx={{ fontWeight: 700, mb: 4, display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <StarIcon color="primary" />
+                        Tính năng nổi bật
+                      </Typography>
+                      <Grid container spacing={3}>
+                        {[
+                          'Lái xe tự động cấp độ 2',
+                          'Hỗ trợ đỗ xe tự động thông minh',
+                          'Sạc không dây 15W',
+                          'Kết nối smartphone không dây',
+                          'Màn hình cảm ứng 15 inch',
+                          'Hệ thống âm thanh cao cấp',
+                          'Ghế sưởi ấm/làm mát thông minh',
+                          'Cửa sổ trời toàn cảnh',
+                          'Sạc siêu nhanh 250kW',
+                          'Hệ thống an ninh thông minh',
+                          'Kết nối 5G tích hợp',
+                          'Cập nhật phần mềm từ xa'
+                        ].map((feature, index) => (
+                          <Grid item xs={12} sm={6} md={4} key={index}>
+                            <Paper
+                              sx={{
+                                p: 3,
+                                textAlign: 'center',
+                                borderRadius: 3,
+                                bgcolor: 'rgba(25, 118, 210, 0.04)',
+                                border: '1px solid rgba(25, 118, 210, 0.1)',
+                                transition: 'all 0.3s ease',
+                                height: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                '&:hover': {
+                                  bgcolor: 'rgba(25, 118, 210, 0.08)',
+                                  transform: 'translateY(-4px)',
+                                  boxShadow: '0 8px 25px rgba(25, 118, 210, 0.15)'
+                                }
+                              }}
+                            >
+                              <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                                {feature}
+                              </Typography>
+                            </Paper>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </Box>
+                  )}
+
+                  {activeTab === 2 && (
+                    <Box>
+                      <Typography variant="h5" sx={{ fontWeight: 700, mb: 4, display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <SecurityIcon color="primary" />
+                        Bảo hành & Hỗ trợ
+                      </Typography>
+                      <Grid container spacing={4}>
+                        <Grid item xs={12} md={6}>
+                          <Stack spacing={4}>
+                            <Paper sx={{ p: 3, borderRadius: 3, bgcolor: 'success.50', border: '1px solid', borderColor: 'success.100' }}>
+                              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: 'success.dark' }}>
+                                🛡️ Bảo hành xe
+                              </Typography>
+                              <Typography variant="body1" color="text.secondary">
+                                {vehicle.specifications?.warranty || '4 năm hoặc 50,000 dặm, tùy điều kiện nào đến trước'}
+                              </Typography>
+                            </Paper>
+
+                            <Paper sx={{ p: 3, borderRadius: 3, bgcolor: 'info.50', border: '1px solid', borderColor: 'info.100' }}>
+                              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: 'info.dark' }}>
+                                🔋 Bảo hành pin & động cơ
+                              </Typography>
+                              <Typography variant="body1" color="text.secondary">
+                                8 năm hoặc 100,000 dặm cho pin và động cơ điện
+                              </Typography>
+                            </Paper>
+                          </Stack>
+                        </Grid>
+
+                        <Grid item xs={12} md={6}>
+                          <Stack spacing={4}>
+                            <Paper sx={{ p: 3, borderRadius: 3, bgcolor: 'warning.50', border: '1px solid', borderColor: 'warning.100' }}>
+                              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: 'warning.dark' }}>
+                                📞 Hỗ trợ 24/7
+                              </Typography>
+                              <Typography variant="body1" color="text.secondary">
+                                Đội ngũ kỹ thuật viên chuyên nghiệp luôn sẵn sàng hỗ trợ bạn mọi lúc
+                              </Typography>
+                            </Paper>
+
+                            <Paper sx={{ p: 3, borderRadius: 3, bgcolor: 'primary.50', border: '1px solid', borderColor: 'primary.100' }}>
+                              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: 'primary.dark' }}>
+                                ⚡ Mạng lưới trạm sạc
+                              </Typography>
+                              <Typography variant="body1" color="text.secondary">
+                                Hơn 25,000 trạm sạc trên toàn quốc, đảm bảo bạn luôn di chuyển thoải mái
+                              </Typography>
+                            </Paper>
+                          </Stack>
+                        </Grid>
+                      </Grid>
+                    </Box>
+                  )}
+                </Box>
+              </Card>
+            </Fade>
+          </Grid>
+
+          {/* Right Column - Sidebar */}
+          <Grid item xs={12} lg={4}>
+            <Stack spacing={4}>
+              {/* Reserve CTA Card */}
+              <Zoom in={true} timeout={800}>
+                <Paper 
+                  elevation={0}
+                  sx={{ 
+                    borderRadius: 4,
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    boxShadow: '0 20px 60px rgba(102, 126, 234, 0.4)',
+                    overflow: 'hidden',
+                    position: 'relative'
+                  }}
+                >
+                  <Box sx={{ position: 'absolute', top: -20, right: -20, opacity: 0.1 }}>
+                    <ElectricIcon sx={{ fontSize: 120 }} />
+                  </Box>
+                  
+                  <CardContent sx={{ p: 4, position: 'relative', zIndex: 1 }}>
+                    <Stack spacing={3}>
+                      <Box>
+                        <Typography variant="overline" sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 600, letterSpacing: 1 }}>
+                          Giá xe
+                        </Typography>
+                        <Typography variant="h3" sx={{ fontWeight: 800, color: 'white', mb: 0.5 }}>
+                          ${vehicle.price.toLocaleString()}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                          VND - Bao gồm VAT & phí trước bạ
+                        </Typography>
+                      </Box>
+                      
+                      <Divider sx={{ borderColor: 'rgba(255,255,255,0.2)' }} />
+                      
+                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                        <Chip
+                          icon={<CarIcon sx={{ color: 'inherit !important' }} />}
+                          label={`${vehicle.stockQuantity} xe có sẵn`}
+                          size="small"
+                          sx={{ 
+                            bgcolor: 'rgba(255,255,255,0.2)',
+                            color: 'white',
+                            fontWeight: 600,
+                            backdropFilter: 'blur(10px)'
+                          }}
+                        />
+                        {vehicle.stockQuantity > 0 ? (
+                          <Chip
+                            label="🟢 Còn hàng"
+                            size="small"
+                            sx={{ 
+                              bgcolor: 'rgba(76, 175, 80, 0.9)',
+                              color: 'white',
+                              fontWeight: 600
+                            }}
+                          />
+                        ) : (
+                          <Chip
+                            label="🔴 Hết hàng"
+                            size="small"
+                            sx={{ 
+                              bgcolor: 'rgba(244, 67, 54, 0.9)',
+                              color: 'white',
+                              fontWeight: 600
+                            }}
+                          />
+                        )}
+                      </Stack>
+
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        size="large"
+                        startIcon={<CartIcon />}
+                        onClick={handleReserveClick}
+                        disabled={vehicle.stockQuantity === 0}
+                        sx={{
+                          bgcolor: 'white',
+                          color: 'primary.main',
+                          borderRadius: 3,
+                          py: 2.5,
+                          textTransform: 'none',
+                          fontWeight: 700,
+                          fontSize: '1.1rem',
+                          boxShadow: '0 8px 30px rgba(0,0,0,0.2)',
+                          '&:hover': {
+                            bgcolor: 'rgba(255,255,255,0.95)',
+                            boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
+                            transform: 'translateY(-3px)'
+                          },
+                          '&:disabled': {
+                            bgcolor: 'rgba(255,255,255,0.3)',
+                            color: 'rgba(255,255,255,0.6)',
+                            boxShadow: 'none'
+                          },
+                          transition: 'all 0.3s ease'
+                        }}
+                      >
+                        {vehicle.stockQuantity === 0 ? '🚫 Tạm hết hàng' : '🚗 Đặt mua ngay'}
+                      </Button>
+                      
+                      <Stack direction="row" spacing={2} justifyContent="center">
+                        {[
+                          { icon: '🚚', text: 'Miễn phí vận chuyển' },
+                          { icon: '🛡️', text: 'Bảo hành 4 năm' },
+                          { icon: '⚡', text: 'Giao xe nhanh' }
+                        ].map((item, index) => (
+                          <Box key={index} sx={{ textAlign: 'center' }}>
+                            <Typography variant="h6">{item.icon}</Typography>
+                            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', display: 'block', mt: 0.5 }}>
+                              {item.text}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Stack>
+                    </Stack>
+                  </CardContent>
+                </Paper>
+              </Zoom>
+
+              {/* Specifications Card */}
+              <Fade in={true} timeout={1000}>
+                <Paper elevation={0} sx={{ 
+                  borderRadius: 4,
+                  bgcolor: 'white',
+                  boxShadow: '0 20px 60px rgba(0,0,0,0.1)',
+                  overflow: 'hidden',
+                  border: '1px solid rgba(0,0,0,0.05)'
+                }}>
+                  <CardContent sx={{ p: 0 }}>
+                    {/* Gradient Header */}
+                    <Box sx={{
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      p: 4,
+                      color: 'white'
+                    }}>
+                      <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
+                        📊 Thông số kỹ thuật
+                      </Typography>
+                      <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                        Các thông số nổi bật của xe
+                      </Typography>
+                    </Box>
+
+                    {/* Specs List */}
+                    <Box sx={{ p: 3 }}>
+                      <Stack spacing={3}>
+                        {/* Battery */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                          <Avatar sx={{ 
+                            bgcolor: 'primary.50', 
+                            width: 56, 
+                            height: 56,
+                            boxShadow: '0 4px 15px rgba(102, 126, 234, 0.2)'
+                          }}>
+                            <BatteryIcon sx={{ color: 'primary.main', fontSize: 28 }} />
+                          </Avatar>
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                              Dung lượng pin
+                            </Typography>
+                            <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.dark' }}>
+                              {vehicle.batteryCapacity} kWh
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Divider />
+
+                        {/* Range */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                          <Avatar sx={{ 
+                            bgcolor: 'success.50', 
+                            width: 56, 
+                            height: 56,
+                            boxShadow: '0 4px 15px rgba(76, 175, 80, 0.2)'
+                          }}>
+                            <SpeedIcon sx={{ color: 'success.main', fontSize: 28 }} />
+                          </Avatar>
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                              Quãng đường
+                            </Typography>
+                            <Typography variant="h6" sx={{ fontWeight: 800, color: 'success.dark' }}>
+                              {vehicle.range} km
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Divider />
+
+                        {/* Charging Time */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                          <Avatar sx={{ 
+                            bgcolor: 'warning.50', 
+                            width: 56, 
+                            height: 56,
+                            boxShadow: '0 4px 15px rgba(255, 152, 0, 0.2)'
+                          }}>
+                            <TimeIcon sx={{ color: 'warning.main', fontSize: 28 }} />
+                          </Avatar>
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                              Thời gian sạc
+                            </Typography>
+                            <Typography variant="h6" sx={{ fontWeight: 800, color: 'warning.dark' }}>
+                              {vehicle.chargingTime}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Divider />
+
+                        {/* Motor Power */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                          <Avatar sx={{ 
+                            bgcolor: 'secondary.50', 
+                            width: 56, 
+                            height: 56,
+                            boxShadow: '0 4px 15px rgba(156, 39, 176, 0.2)'
+                          }}>
+                            <BuildIcon sx={{ color: 'secondary.main', fontSize: 28 }} />
+                          </Avatar>
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                              Công suất động cơ
+                            </Typography>
+                            <Typography variant="h6" sx={{ fontWeight: 800, color: 'secondary.dark' }}>
+                              {vehicle.motorPower}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Stack>
+                    </Box>
+                  </CardContent>
+                </Paper>
+              </Fade>
+            </Stack>
+          </Grid>
+        </Grid>
+      </Container>
+
+      {/* Zoom Modal */}
+      <Dialog 
+        open={zoomOpen} 
+        onClose={() => setZoomOpen(false)} 
+        maxWidth="lg" 
+        fullWidth
+        PaperProps={{
+          sx: { 
+            borderRadius: 4,
+            bgcolor: 'black'
           }
         }}
       >
-        <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-          {feature}
-        </Typography>
-      </Paper>
-    </Grid>
-  ))}
-</Grid>
-
-              </Box>
-            )}
-
-            {activeTab === 2 && (
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3 }}>
-                  <SecurityIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                  Bảo hành & Hỗ trợ
-                </Typography>
-                <Grid container spacing={4}>
-                  <Grid item xs={12} md={6}>
-                    <Stack spacing={3}>
-                      <Box>
-                        <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-                          Bảo hành xe
-                        </Typography>
-                        <Typography variant="body1" color="text.secondary">
-                          {vehicle.specifications?.warranty || '4 năm hoặc 50,000 dặm, tùy điều kiện nào đến trước'}
-                        </Typography>
-                      </Box>
-
-                      <Box>
-                        <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-                          Bảo hành pin & động cơ
-                        </Typography>
-                        <Typography variant="body1" color="text.secondary">
-                          8 năm hoặc 100,000 dặm cho pin và động cơ điện
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <Stack spacing={3}>
-                      <Box>
-                        <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-                          Hỗ trợ 24/7
-                        </Typography>
-                        <Typography variant="body1" color="text.secondary">
-                          Đội ngũ kỹ thuật viên chuyên nghiệp luôn sẵn sàng hỗ trợ bạn
-                        </Typography>
-                      </Box>
-
-                      <Box>
-                        <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-                          Mạng lưới trạm sạc
-                        </Typography>
-                        <Typography variant="body1" color="text.secondary">
-                          Hơn 25,000 trạm sạc trên toàn quốc
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </Grid>
-                </Grid>
-              </Box>
-            )}
+        <DialogContent sx={{ p: 0, backgroundColor: 'black', position: 'relative' }}>
+          <IconButton
+            onClick={() => setZoomOpen(false)}
+            sx={{ 
+              position: 'absolute', 
+              right: 16, 
+              top: 16, 
+              zIndex: 10, 
+              color: 'white', 
+              bgcolor: 'rgba(0,0,0,0.6)',
+              borderRadius: '50%', 
+              width: 48, 
+              height: 48,
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              '&:hover': {
+                bgcolor: 'rgba(0,0,0,0.8)'
+              }
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            height: { xs: '60vh', md: '80vh' },
+            bgcolor: 'black'
+          }}>
+            <img
+              src={getImageSrc(selectedImage)}
+              alt={vehicle.model}
+              style={{ 
+                maxWidth: '100%', 
+                maxHeight: '100%', 
+                objectFit: 'contain',
+                borderRadius: 4
+              }}
+            />
           </Box>
-        </Card>
-      </Box>
+        </DialogContent>
+      </Dialog>
 
       {/* Reservation Dialog */}
       <Dialog
@@ -930,36 +1280,56 @@ const VehicleDetail = () => {
         maxWidth="sm"
         fullWidth
         PaperProps={{
-          sx: { borderRadius: 3 }
+          sx: { 
+            borderRadius: 4,
+            boxShadow: '0 20px 60px rgba(0,0,0,0.2)'
+          }
         }}
       >
-        <DialogTitle sx={{ fontWeight: 'bold', borderBottom: 1, borderColor: 'divider', pb: 2 }}>
+        <DialogTitle sx={{ 
+          fontWeight: 800, 
+          borderBottom: 1, 
+          borderColor: 'divider', 
+          pb: 3,
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          textAlign: 'center'
+        }}>
           🚗 Đặt mua {vehicle?.model}
         </DialogTitle>
-        <DialogContent sx={{ pt: 3 }}>
+        <DialogContent sx={{ pt: 4, pb: 2 }}>
           <Stack spacing={3}>
             {/* Selected Color Display */}
             {vehicle?.colorVariants[selectedColor] && (
-              <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>Màu đã chọn:</Typography>
-                <Stack direction="row" alignItems="center" spacing={2}>
+              <Paper sx={{ p: 3, bgcolor: 'primary.50', borderRadius: 3, border: '1px solid', borderColor: 'primary.100' }}>
+                <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>Màu đã chọn:</Typography>
+                <Stack direction="row" alignItems="center" spacing={3}>
                   <Box
                     sx={{
-                      width: 24,
-                      height: 24,
+                      width: 32,
+                      height: 32,
                       borderRadius: '50%',
                       bgcolor: vehicle.colorVariants[selectedColor].hex,
-                      border: '2px solid rgba(0,0,0,0.1)'
+                      border: '3px solid white',
+                      boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
                     }}
                   />
-                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                    {vehicle.colorVariants[selectedColor].name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    ({vehicle.colorVariants[selectedColor].stock} xe có sẵn)
-                  </Typography>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                      {vehicle.colorVariants[selectedColor].name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {vehicle.colorVariants[selectedColor].stock} xe có sẵn
+                    </Typography>
+                  </Box>
+                  <Chip 
+                    label="Đã chọn" 
+                    color="primary" 
+                    size="small"
+                    sx={{ fontWeight: 600 }}
+                  />
                 </Stack>
-              </Box>
+              </Paper>
             )}
 
             {/* Customer Information */}
@@ -970,6 +1340,11 @@ const VehicleDetail = () => {
               value={reservationData.customerName}
               onChange={(e) => handleReservationInputChange('customerName', e.target.value)}
               disabled={reservationLoading}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2
+                }
+              }}
             />
 
             <TextField
@@ -980,6 +1355,11 @@ const VehicleDetail = () => {
               value={reservationData.customerEmail}
               onChange={(e) => handleReservationInputChange('customerEmail', e.target.value)}
               disabled={reservationLoading}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2
+                }
+              }}
             />
 
             <TextField
@@ -989,6 +1369,11 @@ const VehicleDetail = () => {
               value={reservationData.customerPhone}
               onChange={(e) => handleReservationInputChange('customerPhone', e.target.value)}
               disabled={reservationLoading}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2
+                }
+              }}
             />
 
             <FormControl fullWidth>
@@ -998,6 +1383,7 @@ const VehicleDetail = () => {
                 onChange={(e) => handleReservationInputChange('quantity', e.target.value)}
                 label="Số lượng"
                 disabled={reservationLoading}
+                sx={{ borderRadius: 2 }}
               >
                 {[1, 2, 3, 4, 5].map((num) => (
                   <MenuItem key={num} value={num} disabled={num > vehicle?.stockQuantity}>
@@ -1015,29 +1401,40 @@ const VehicleDetail = () => {
               value={reservationData.notes}
               onChange={(e) => handleReservationInputChange('notes', e.target.value)}
               disabled={reservationLoading}
-              placeholder="Ví dụ: Muốn xem xe trực tiếp, thời gian rảnh..."
+              placeholder="Ví dụ: Muốn xem xe trực tiếp, thời gian rảnh, yêu cầu đặc biệt..."
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2
+                }
+              }}
             />
 
             {/* Price Summary */}
-            <Box sx={{ p: 2, bgcolor: 'primary.50', borderRadius: 2 }}>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-                Tổng tiền dự kiến:
+            <Paper sx={{ p: 3, bgcolor: 'success.50', borderRadius: 3, border: '1px solid', borderColor: 'success.100' }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: 'success.dark' }}>
+                💰 Tổng tiền dự kiến:
               </Typography>
-              <Typography variant="h5" color="primary.main" sx={{ fontWeight: 'bold' }}>
+              <Typography variant="h4" color="success.main" sx={{ fontWeight: 800, mb: 1 }}>
                 ${((vehicle?.price || 0) * reservationData.quantity).toLocaleString()} VND
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Giá có thể thay đổi tùy theo phụ kiện và khuyến mãi
+                Giá có thể thay đổi tùy theo phụ kiện và chương trình khuyến mãi hiện tại
               </Typography>
-            </Box>
+            </Paper>
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ p: 3, gap: 1 }}>
+        <DialogActions sx={{ p: 3, gap: 2 }}>
           <Button
             onClick={() => setReservationDialogOpen(false)}
             variant="outlined"
             disabled={reservationLoading}
-            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, px: 3 }}
+            sx={{ 
+              borderRadius: 2, 
+              textTransform: 'none', 
+              fontWeight: 600, 
+              px: 4,
+              py: 1
+            }}
           >
             Hủy
           </Button>
@@ -1046,7 +1443,19 @@ const VehicleDetail = () => {
             variant="contained"
             disabled={reservationLoading || !reservationData.customerName || !reservationData.customerEmail || !reservationData.customerPhone}
             startIcon={reservationLoading ? <CircularProgress size={20} /> : <CartIcon />}
-            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, px: 3 }}
+            sx={{ 
+              borderRadius: 2, 
+              textTransform: 'none', 
+              fontWeight: 600, 
+              px: 4,
+              py: 1,
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)'
+              },
+              transition: 'all 0.3s ease'
+            }}
           >
             {reservationLoading ? 'Đang đặt...' : 'Xác nhận đặt mua'}
           </Button>
@@ -1060,34 +1469,46 @@ const VehicleDetail = () => {
         maxWidth="sm"
         fullWidth
         PaperProps={{
-          sx: { borderRadius: 3 }
+          sx: { 
+            borderRadius: 4,
+            textAlign: 'center'
+          }
         }}
       >
-        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', pt: 4 }}>
+        <DialogTitle sx={{ 
+          fontWeight: 800, 
+          pt: 4,
+          pb: 2,
+          background: 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)',
+          color: 'white'
+        }}>
           ✅ Đặt mua thành công!
         </DialogTitle>
-        <DialogContent sx={{ textAlign: 'center', pb: 2 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
+        <DialogContent sx={{ py: 4 }}>
+          <Box sx={{ mb: 3 }}>
+            <CheckIcon sx={{ fontSize: 80, color: 'success.main', mb: 2 }} />
+          </Box>
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, color: 'success.dark' }}>
             Cảm ơn bạn đã đặt mua {vehicle?.model}
           </Typography>
           {reservationResult && (
-            <Box sx={{ p: 3, bgcolor: 'grey.50', borderRadius: 2, mb: 3 }}>
-              <Typography variant="body2" sx={{ mb: 1 }}>
+            <Paper sx={{ p: 3, bgcolor: 'success.50', borderRadius: 3, mb: 3, textAlign: 'left' }}>
+              <Typography variant="body1" sx={{ mb: 1, fontWeight: 600 }}>
                 <strong>Mã đặt hàng:</strong> #{reservationResult.id}
               </Typography>
-              <Typography variant="body2" sx={{ mb: 1 }}>
+              <Typography variant="body1" sx={{ mb: 1 }}>
                 <strong>Tên khách hàng:</strong> {reservationResult.customerName}
               </Typography>
-              <Typography variant="body2" sx={{ mb: 1 }}>
+              <Typography variant="body1" sx={{ mb: 1 }}>
                 <strong>Email:</strong> {reservationResult.customerEmail}
               </Typography>
-              <Typography variant="body2" sx={{ mb: 1 }}>
+              <Typography variant="body1" sx={{ mb: 1 }}>
                 <strong>Số lượng:</strong> {reservationResult.quantity} xe
               </Typography>
-              <Typography variant="body2">
+              <Typography variant="body1">
                 <strong>Tổng tiền:</strong> ${reservationResult.totalPrice?.toLocaleString()} VND
               </Typography>
-            </Box>
+            </Paper>
           )}
           <Typography variant="body1" color="text.secondary">
             Chúng tôi sẽ liên hệ với bạn trong vòng 24 giờ để xác nhận đơn hàng và hướng dẫn các bước tiếp theo.
@@ -1097,7 +1518,13 @@ const VehicleDetail = () => {
           <Button
             onClick={() => setReservationSuccess(false)}
             variant="contained"
-            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, px: 4 }}
+            sx={{ 
+              borderRadius: 2, 
+              textTransform: 'none', 
+              fontWeight: 600, 
+              px: 4,
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+            }}
           >
             Đóng
           </Button>
@@ -1109,24 +1536,29 @@ const VehicleDetail = () => {
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         PaperProps={{
-          sx: { borderRadius: 3 }
+          sx: { borderRadius: 4 }
         }}
       >
         <DialogTitle sx={{
-          fontWeight: 'bold',
+          fontWeight: 800,
           borderBottom: 1,
           borderColor: 'divider',
-          pb: 2
+          pb: 3,
+          textAlign: 'center',
+          color: 'error.main'
         }}>
           🗑️ Xóa Xe
         </DialogTitle>
-        <DialogContent sx={{ pt: 3 }}>
-          <DialogContentText sx={{ fontSize: '1.1rem' }}>
+        <DialogContent sx={{ pt: 3, textAlign: 'center' }}>
+          <DeleteIcon sx={{ fontSize: 64, color: 'error.main', mb: 2, opacity: 0.8 }} />
+          <DialogContentText sx={{ fontSize: '1.1rem', fontWeight: 500 }}>
             Bạn có chắc chắn muốn xóa <strong>"{vehicle?.model}"</strong>?
+          </DialogContentText>
+          <DialogContentText sx={{ mt: 1, color: 'text.secondary' }}>
             Hành động này không thể hoàn tác và tất cả dữ liệu xe sẽ bị mất vĩnh viễn.
           </DialogContentText>
         </DialogContent>
-        <DialogActions sx={{ p: 3, gap: 1 }}>
+        <DialogActions sx={{ p: 3, gap: 2, justifyContent: 'center' }}>
           <Button
             onClick={() => setDeleteDialogOpen(false)}
             variant="outlined"
@@ -1134,7 +1566,7 @@ const VehicleDetail = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 600,
-              px: 3
+              px: 4
             }}
           >
             Hủy
@@ -1149,14 +1581,14 @@ const VehicleDetail = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 600,
-              px: 3
+              px: 4
             }}
           >
             {deleting ? 'Đang xóa...' : 'Xóa Xe'}
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </Box>
   )
 }
 

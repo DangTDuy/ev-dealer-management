@@ -130,3 +130,7 @@ D:\Nam_3\ev-dealer-management\ev-dealer-management\VehicleService\obj\Debug\net8
 D:\Nam_3\ev-dealer-management\ev-dealer-management\VehicleService\obj\Debug\net8.0\VehicleService.pdb
 D:\Nam_3\ev-dealer-management\ev-dealer-management\VehicleService\obj\Debug\net8.0\VehicleService.genruntimeconfig.cache
 D:\Nam_3\ev-dealer-management\ev-dealer-management\VehicleService\obj\Debug\net8.0\ref\VehicleService.dll
+D:\Nam_3\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\net8.0\wwwroot\images\3632bb08-1a03-4485-bb4b-168d23ade800_vinfastvf6-4.png
+D:\Nam_3\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\net8.0\wwwroot\images\88f8c184-34d9-4837-912a-bc30e258245a_tesla-cybertruck-1.webp
+D:\Nam_3\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\net8.0\wwwroot\images\92fe5c25-2363-44e9-a7c2-ee64c66e07fc_Do.jpg
+D:\Nam_3\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\net8.0\wwwroot\images\cdcbf044-96c7-43a5-8898-85c6d7152533_images.jpg
