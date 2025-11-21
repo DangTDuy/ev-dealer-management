@@ -664,7 +664,7 @@
           "lib/netstandard2.0/Mono.TextTemplating.dll": {}
         }
       },
-      "RabbitMQ.Client/6.8.1": {
+      "RabbitMQ.Client/6.6.0": {
         "type": "package",
         "dependencies": {
           "System.Memory": "4.5.5",
@@ -2405,10 +2405,10 @@
         "mono.texttemplating.nuspec"
       ]
     },
-    "RabbitMQ.Client/6.8.1": {
-      "sha512": "jNsmGgmCNw2S/NzskeN2ijtGywtH4Sk/G6jWUTD5sY9SrC27Xz6BsLIiB8hdsfjeyWCa4j4GvCIGkpE8wrjU1Q==",
+    "RabbitMQ.Client/6.6.0": {
+      "sha512": "klht0KBLO7xs/uIn8uejq1VC5wJJ8dHJSm2GmFmJHWQnFzWK5YTNUta6IrnuzitR1T5psxIuqwdQqalbTLPtcA==",
       "type": "package",
-      "path": "rabbitmq.client/6.8.1",
+      "path": "rabbitmq.client/6.6.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -2418,7 +2418,7 @@
         "lib/net462/RabbitMQ.Client.xml",
         "lib/netstandard2.0/RabbitMQ.Client.dll",
         "lib/netstandard2.0/RabbitMQ.Client.xml",
-        "rabbitmq.client.6.8.1.nupkg.sha512",
+        "rabbitmq.client.6.6.0.nupkg.sha512",
         "rabbitmq.client.nuspec"
       ]
     },
@@ -3047,29 +3047,37 @@
       "Microsoft.EntityFrameworkCore >= 8.0.0",
       "Microsoft.EntityFrameworkCore.Sqlite >= 8.0.0",
       "Microsoft.EntityFrameworkCore.Tools >= 8.0.0",
-      "RabbitMQ.Client >= 6.8.1",
+      "RabbitMQ.Client >= 6.6.0",
       "Swashbuckle.AspNetCore >= 6.4.0"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Admin\\.nuget\\packages\\": {}
+    "C:\\Users\\thanh\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj",
+      "projectUniqueName": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj",
       "projectName": "VehicleService",
-      "projectPath": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj",
-      "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
-      "outputPath": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\obj\\",
+      "projectPath": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj",
+      "packagesPath": "C:\\Users\\thanh\\.nuget\\packages\\",
+      "outputPath": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\thanh\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -3087,7 +3095,8 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      }
+      },
+      "SdkAnalysisLevel": "9.0.200"
     },
     "frameworks": {
       "net8.0": {
@@ -3113,7 +3122,7 @@
           },
           "RabbitMQ.Client": {
             "target": "Package",
-            "version": "[6.8.1, )"
+            "version": "[6.6.0, )"
           },
           "Swashbuckle.AspNetCore": {
             "target": "Package",
@@ -3139,7 +3148,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.414/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.200/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

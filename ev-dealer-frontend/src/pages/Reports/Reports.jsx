@@ -4,7 +4,6 @@ import {
   Grid,
   Paper,
   TextField,
-  MenuItem,
   Button,
   Typography,
   Divider,
@@ -17,6 +16,14 @@ import {
   Skeleton,
   Alert,
   CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  TableContainer,
+  Chip,
+  LinearProgress,
 } from "@mui/material";
 import {
   Assessment as ChartIcon,
@@ -39,8 +46,11 @@ import {
   PieChart,
   Pie,
   Cell,
+  LineChart,
+  Line,
 } from "recharts";
 import { reportService } from "../../services/reportService"; // Giữ nguyên import
+import authService from "../../services/authService";
 
 const COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#06B6D4", "#8B5CF6"];
 
@@ -140,6 +150,12 @@ const Reports = () => {
   // eslint-disable-next-line no-unused-vars
   const [topVehicles, setTopVehicles] = useState([]);
   const [exporting, setExporting] = useState(false);
+  const [staffPerformance, setStaffPerformance] = useState([]);
+  const [customerDebt, setCustomerDebt] = useState([]);
+  const [manufacturerDebt, setManufacturerDebt] = useState([]);
+  const [dealerSales, setDealerSales] = useState([]);
+  const [inventoryTrends, setInventoryTrends] = useState([]);
+  const [demandForecast, setDemandForecast] = useState(null);
 
   // derived values for donut chart (sales share)
   const pieData = useMemo(
@@ -158,7 +174,17 @@ const Reports = () => {
         type: reportType,
       };
 
-      const [summaryRes, regionsRes, proportionRes, topRes] = await Promise.all([
+      const [
+        summaryRes,
+        regionsRes,
+        proportionRes,
+        topRes,
+        staffRes,
+        debtRes,
+        dealerSalesRes,
+        inventoryTrendRes,
+        forecastRes,
+      ] = await Promise.all([
         reportService.getSummary(params).catch((e) => {
           console.error("Error fetching summary:", e);
           return null;
@@ -175,6 +201,26 @@ const Reports = () => {
           console.error("Error fetching top vehicles:", e);
           return [];
         }),
+        reportService.getSalesByStaff(params).catch((e) => {
+          console.error("Error fetching staff performance:", e);
+          return [];
+        }),
+        reportService.getDebtReport(params).catch((e) => {
+          console.error("Error fetching debt report:", e);
+          return { customers: [], manufacturers: [] };
+        }),
+        reportService.getSalesByDealer(params).catch((e) => {
+          console.error("Error fetching sales by dealer:", e);
+          return [];
+        }),
+        reportService.getInventoryTrends(params).catch((e) => {
+          console.error("Error fetching inventory trends:", e);
+          return [];
+        }),
+        reportService.getDemandForecast(params).catch((e) => {
+          console.error("Error fetching demand forecast:", e);
+          return null;
+        }),
       ]);
 
       if (summaryRes) setSummary(summaryRes);
@@ -190,6 +236,22 @@ const Reports = () => {
       }
       if (topRes && Array.isArray(topRes)) {
         setTopVehicles(topRes);
+      }
+      if (staffRes && Array.isArray(staffRes)) {
+        setStaffPerformance(staffRes);
+      }
+      if (debtRes) {
+        setCustomerDebt(debtRes.customers || []);
+        setManufacturerDebt(debtRes.manufacturers || []);
+      }
+      if (dealerSalesRes && Array.isArray(dealerSalesRes)) {
+        setDealerSales(dealerSalesRes);
+      }
+      if (inventoryTrendRes && Array.isArray(inventoryTrendRes)) {
+        setInventoryTrends(inventoryTrendRes);
+      }
+      if (forecastRes) {
+        setDemandForecast(forecastRes);
       }
     } catch (err) {
       console.error("Error fetching report data:", err);
@@ -238,6 +300,20 @@ const Reports = () => {
   };
 
   const theme = useTheme();
+  const userRole = (authService.getCurrentUser()?.role || "").toLowerCase();
+  const canViewManufacturerInsights = ["evmstaff", "admin"].includes(userRole);
+  const formatCurrency = (value) =>
+    `${Number(value || 0).toLocaleString("vi-VN")} VNĐ`;
+  const formatPercent = (value) =>
+    `${Number(value || 0).toFixed(1)}%`;
+  const formatDate = (value) =>
+    value ? new Date(value).toLocaleDateString("vi-VN") : "—";
+  const getDueStatus = (days) => {
+    if (days == null) return { label: "N/A", color: "default" };
+    if (days <= 7) return { label: "Khẩn cấp", color: "error" };
+    if (days <= 21) return { label: "Sắp đến hạn", color: "warning" };
+    return { label: "Ổn định", color: "success" };
+  };
 
   return (
     <Box
@@ -289,37 +365,6 @@ const Reports = () => {
               alignItems="center"
               justifyContent="center"
             >
-              <Grid item xs={12} md={4} lg={3}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Loại báo cáo"
-                  value={reportType}
-                  onChange={(e) => setReportType(e.target.value)}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: "8px",
-                      backgroundColor: "white",
-                      "&:hover": {
-                        backgroundColor: "#F8FAFC",
-                      },
-                      "&.Mui-focused": {
-                        backgroundColor: "white",
-                      },
-                    },
-                    "& .MuiInputLabel-root": {
-                      fontWeight: 500,
-                      color: "#64748B",
-                    },
-                  }}
-                >
-                  <MenuItem value="sales">Báo cáo doanh số</MenuItem>
-                  <MenuItem value="inventory">Báo cáo tồn kho</MenuItem>
-                  <MenuItem value="revenue">Báo cáo doanh thu</MenuItem>
-                  <MenuItem value="performance">Báo cáo hiệu suất</MenuItem>
-                </TextField>
-              </Grid>
-
               <Grid item xs={6} md={3} lg={2}>
                 <TextField
                   type="date"
@@ -926,6 +971,368 @@ const Reports = () => {
           </Button>
         </Box>
       </Container>
+
+      {/* Sales by Staff */}
+      <Container maxWidth="xl" sx={{ mt: 4 }}>
+        <Paper
+          sx={{
+            p: 4,
+            borderRadius: "12px",
+            backgroundColor: "white",
+            border: "1px solid #E2E8F0",
+            boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
+          }}
+        >
+          <Box sx={{ mb: 3, textAlign: "center" }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: "#0F172A" }}>
+              Doanh số theo nhân viên bán hàng
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#64748B" }}>
+              Theo dõi hiệu suất theo từng nhân viên, số giao dịch và tỷ lệ chuyển đổi
+            </Typography>
+          </Box>
+          {loading ? (
+            <Skeleton variant="rectangular" height={260} sx={{ borderRadius: 2 }} />
+          ) : staffPerformance.length > 0 ? (
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Nhân viên</TableCell>
+                    <TableCell>Vai trò</TableCell>
+                    <TableCell align="right">Giao dịch</TableCell>
+                    <TableCell align="right">Xe bán</TableCell>
+                    <TableCell align="right">Doanh thu</TableCell>
+                    <TableCell align="right">Tỷ lệ chuyển đổi</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {staffPerformance.map((staff) => (
+                    <TableRow
+                      key={staff.id || staff.name}
+                      sx={{
+                        "&:hover": { backgroundColor: "#F8FAFC" },
+                      }}
+                    >
+                      <TableCell>
+                        <Typography sx={{ fontWeight: 600 }}>{staff.name}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          size="small"
+                          label={staff.role || "N/A"}
+                          sx={{ fontWeight: 600, textTransform: "capitalize" }}
+                        />
+                      </TableCell>
+                      <TableCell align="right">{staff.totalDeals ?? 0}</TableCell>
+                      <TableCell align="right">{staff.totalSales ?? 0}</TableCell>
+                      <TableCell align="right">{formatCurrency(staff.revenue)}</TableCell>
+                      <TableCell align="right">{formatPercent((staff.conversionRate || 0) * 100)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          ) : (
+            <Typography variant="body2" sx={{ color: "#64748B", textAlign: "center" }}>
+              Không có dữ liệu nhân viên
+            </Typography>
+          )}
+        </Paper>
+      </Container>
+
+      {/* Debt Report */}
+      <Container maxWidth="xl" sx={{ mt: 4 }}>
+        <Box sx={{ mb: 3, textAlign: "center" }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, color: "#0F172A" }}>
+            Báo cáo công nợ
+          </Typography>
+          <Typography variant="body2" sx={{ color: "#64748B" }}>
+            Theo dõi công nợ khách hàng và hãng xe để chủ động kế hoạch thu hồi, thanh toán
+          </Typography>
+        </Box>
+        <Grid container spacing={3} justifyContent="center">
+          <Grid item xs={12} md={6} lg={5} sx={{ display: "flex", justifyContent: "center" }}>
+            <Paper
+              sx={{
+                p: 3,
+                borderRadius: "12px",
+                backgroundColor: "white",
+                border: "1px solid #E2E8F0",
+                height: "100%",
+                width: "100%",
+                maxWidth: 520,
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  Công nợ khách hàng
+                </Typography>
+                <Chip
+                  size="small"
+                  label="Cần thu"
+                  color="success"
+                  sx={{ fontWeight: 600 }}
+                />
+              </Box>
+              {loading ? (
+                <Skeleton variant="rectangular" height={220} sx={{ borderRadius: 2 }} />
+              ) : customerDebt.length > 0 ? (
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Khách hàng</TableCell>
+                        <TableCell align="right">Công nợ</TableCell>
+                        <TableCell align="center">Tình trạng</TableCell>
+                        <TableCell align="right">Thanh toán gần nhất</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {customerDebt.map((item) => {
+                        const status = getDueStatus(item.dueInDays);
+                        return (
+                          <TableRow key={item.id || item.name}>
+                            <TableCell>
+                              <Typography sx={{ fontWeight: 600 }}>{item.name}</Typography>
+                            </TableCell>
+                            <TableCell align="right">{formatCurrency(item.outstanding)}</TableCell>
+                            <TableCell align="center">
+                              <Chip
+                                size="small"
+                                label={status.label}
+                                color={status.color === "default" ? "default" : status.color}
+                                sx={{
+                                  fontWeight: 600,
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell align="right">{formatDate(item.lastPaymentDate)}</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              ) : (
+                <Typography variant="body2" sx={{ color: "#64748B" }}>
+                  Không có dữ liệu công nợ khách hàng
+                </Typography>
+              )}
+            </Paper>
+          </Grid>
+          <Grid item xs={12} md={6} lg={5} sx={{ display: "flex", justifyContent: "center" }}>
+            <Paper
+              sx={{
+                p: 3,
+                borderRadius: "12px",
+                backgroundColor: "white",
+                border: "1px solid #E2E8F0",
+                height: "100%",
+                width: "100%",
+                maxWidth: 520,
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  Công nợ hãng xe
+                </Typography>
+                <Chip
+                  size="small"
+                  label="Cần trả"
+                  color="warning"
+                  sx={{ fontWeight: 600 }}
+                />
+              </Box>
+              {loading ? (
+                <Skeleton variant="rectangular" height={220} sx={{ borderRadius: 2 }} />
+              ) : manufacturerDebt.length > 0 ? (
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Hãng xe</TableCell>
+                        <TableCell align="right">Công nợ</TableCell>
+                        <TableCell align="center">Tình trạng</TableCell>
+                        <TableCell align="right">Thanh toán gần nhất</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {manufacturerDebt.map((item) => {
+                        const status = getDueStatus(item.dueInDays);
+                        return (
+                          <TableRow key={item.id || item.name}>
+                            <TableCell>
+                              <Typography sx={{ fontWeight: 600 }}>{item.name}</Typography>
+                            </TableCell>
+                            <TableCell align="right">{formatCurrency(item.outstanding)}</TableCell>
+                            <TableCell align="center">
+                              <Chip
+                                size="small"
+                                label={status.label}
+                                color={status.color === "default" ? "default" : status.color}
+                                sx={{ fontWeight: 600 }}
+                              />
+                            </TableCell>
+                            <TableCell align="right">{formatDate(item.lastPaymentDate)}</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              ) : (
+                <Typography variant="body2" sx={{ color: "#64748B" }}>
+                  Không có dữ liệu công nợ hãng xe
+                </Typography>
+              )}
+            </Paper>
+          </Grid>
+        </Grid>
+      </Container>
+
+      {/* Manufacturer Insights */}
+      {canViewManufacturerInsights && (
+        <Container maxWidth="xl" sx={{ mt: 4 }}>
+          <Grid container spacing={3} justifyContent="center">
+            <Grid item xs={12} md={6} sx={{ display: "flex", justifyContent: "center" }}>
+              <Paper
+                sx={{
+                  p: 3,
+                  borderRadius: "12px",
+                  backgroundColor: "white",
+                  border: "1px solid #E2E8F0",
+                  height: "100%",
+                  width: "100%",
+                  maxWidth: 520,
+                }}
+              >
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                  Doanh số theo đại lý
+                </Typography>
+                {loading ? (
+                  <Skeleton variant="rectangular" height={280} sx={{ borderRadius: 2 }} />
+                ) : dealerSales.length > 0 ? (
+                  <TableContainer>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Đại lý</TableCell>
+                          <TableCell align="right">Khu vực</TableCell>
+                          <TableCell align="right">Xe bán</TableCell>
+                          <TableCell align="right">Doanh thu</TableCell>
+                          <TableCell align="right">Tiến độ</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {dealerSales.map((dealer) => {
+                          const progress =
+                            dealer.target > 0 ? Math.min((dealer.totalSales / dealer.target) * 100, 120) : 0;
+                          return (
+                            <TableRow key={dealer.dealerId || dealer.dealerName}>
+                              <TableCell>
+                                <Typography sx={{ fontWeight: 600 }}>{dealer.dealerName}</Typography>
+                              </TableCell>
+                              <TableCell align="right">{dealer.region}</TableCell>
+                              <TableCell align="right">{dealer.totalSales}</TableCell>
+                              <TableCell align="right">{formatCurrency(dealer.revenue)}</TableCell>
+                              <TableCell align="right" sx={{ minWidth: 120 }}>
+                                <LinearProgress
+                                  variant="determinate"
+                                  value={Math.min(progress, 100)}
+                                  sx={{
+                                    height: 8,
+                                    borderRadius: 5,
+                                    mb: 0.5,
+                                  }}
+                                />
+                                <Typography variant="caption" color="text.secondary">
+                                  {progress.toFixed(0)}% mục tiêu
+                                </Typography>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                ) : (
+                  <Typography variant="body2" sx={{ color: "#64748B" }}>
+                    Không có dữ liệu đại lý
+                  </Typography>
+                )}
+              </Paper>
+            </Grid>
+
+            <Grid item xs={12} md={6} sx={{ display: "flex", justifyContent: "center" }}>
+              <Paper
+                sx={{
+                  p: 3,
+                  borderRadius: "12px",
+                  backgroundColor: "white",
+                  border: "1px solid #E2E8F0",
+                  height: "100%",
+                  width: "100%",
+                  maxWidth: 520,
+                }}
+              >
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                  Tồn kho & tốc độ tiêu thụ
+                </Typography>
+                {loading ? (
+                  <Skeleton variant="rectangular" height={280} sx={{ borderRadius: 2 }} />
+                ) : inventoryTrends.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={260}>
+                    <LineChart data={inventoryTrends} margin={{ top: 20, right: 30, left: 10, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                      <XAxis dataKey="month" tick={{ fill: "#64748B" }} />
+                      <YAxis tick={{ fill: "#64748B" }} />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="inventory" stroke="#3B82F6" strokeWidth={2} name="Tồn kho" />
+                      <Line type="monotone" dataKey="sold" stroke="#10B981" strokeWidth={2} name="Xe bán" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <Typography variant="body2" sx={{ color: "#64748B" }}>
+                    Không có dữ liệu tồn kho
+                  </Typography>
+                )}
+              </Paper>
+            </Grid>
+          </Grid>
+
+          <Paper
+            sx={{
+              mt: 3,
+              p: 4,
+              borderRadius: "12px",
+              backgroundColor: "white",
+              border: "1px solid #E2E8F0",
+              maxWidth: 1080,
+              mx: "auto",
+            }}
+          >
+            <Box sx={{ textAlign: "center", mb: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                Dự báo nhu cầu (AI)
+              </Typography>
+              <Chip
+                label="Tính năng đang phát triển"
+                color="warning"
+                size="small"
+                sx={{ mt: 1, fontWeight: 600 }}
+              />
+              <Typography variant="body2" sx={{ color: "#64748B", mt: 1 }}>
+                Dữ liệu dựa trên xu hướng bán hàng và tín hiệu thị trường
+              </Typography>
+            </Box>
+            <Typography variant="body2" sx={{ color: "#64748B", textAlign: "center" }}>
+              Tính năng đang phát triển – dữ liệu sẽ được cập nhật khi hoàn tất.
+            </Typography>
+          </Paper>
+        </Container>
+      )}
     </Box>
   );
 };

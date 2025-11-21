@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "UfelVf3E2NX5KFJqBfusgdkGaxPvJ8JfUb3syOUXuGA=",
+  "Hash": "IA1M/3E4EyEAsczrF5mpdqS6YfpxrejfSy0lGU8pwm0=",
   "Source": "VehicleService",
   "BasePath": "_content/VehicleService",
   "Mode": "Default",
@@ -10,144 +10,734 @@
     {
       "Name": "VehicleService\\wwwroot",
       "Source": "VehicleService",
-      "ContentRoot": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\",
+      "ContentRoot": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\",
       "BasePath": "_content/VehicleService",
       "Pattern": "**"
     }
   ],
   "Assets": [
     {
-      "Identity": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\2a2ba449-6fd3-48ee-9535-07198627cc15_1757045201878-qla5igg2ej.webp",
+      "Identity": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\2a2ba449-6fd3-48ee-9535-07198627cc15_1757045201878-qla5igg2ej.webp",
       "SourceId": "VehicleService",
       "SourceType": "Discovered",
-      "ContentRoot": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\",
+      "ContentRoot": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\",
       "BasePath": "_content/VehicleService",
-      "RelativePath": "images/2a2ba449-6fd3-48ee-9535-07198627cc15_1757045201878-qla5igg2ej.webp",
+      "RelativePath": "images/2a2ba449-6fd3-48ee-9535-07198627cc15_1757045201878-qla5igg2ej#[.{fingerprint}]?.webp",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
-      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeBehavior": "",
       "AssetMergeSource": "",
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
+      "Fingerprint": "3gsu7wxe8p",
+      "Integrity": "g2LCo9HVxPkIWJEZqEf/jPGYQk3wvpqPs3lhPBShrFI=",
       "CopyToOutputDirectory": "PreserveNewest",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\images\\2a2ba449-6fd3-48ee-9535-07198627cc15_1757045201878-qla5igg2ej.webp"
     },
     {
-      "Identity": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\3632bb08-1a03-4485-bb4b-168d23ade800_vinfastvf6-4.png",
+      "Identity": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\3632bb08-1a03-4485-bb4b-168d23ade800_vinfastvf6-4.png",
       "SourceId": "VehicleService",
       "SourceType": "Discovered",
-      "ContentRoot": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\",
+      "ContentRoot": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\",
       "BasePath": "_content/VehicleService",
-      "RelativePath": "images/3632bb08-1a03-4485-bb4b-168d23ade800_vinfastvf6-4.png",
+      "RelativePath": "images/3632bb08-1a03-4485-bb4b-168d23ade800_vinfastvf6-4#[.{fingerprint}]?.png",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
-      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeBehavior": "",
       "AssetMergeSource": "",
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
+      "Fingerprint": "d41ambz6tp",
+      "Integrity": "00mqa5WLNGnCo7dASbEnP6jHzruMkMLCmu0sKEsh2zI=",
       "CopyToOutputDirectory": "PreserveNewest",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\images\\3632bb08-1a03-4485-bb4b-168d23ade800_vinfastvf6-4.png"
     },
     {
-      "Identity": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\88f8c184-34d9-4837-912a-bc30e258245a_tesla-cybertruck-1.webp",
+      "Identity": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\88f8c184-34d9-4837-912a-bc30e258245a_tesla-cybertruck-1.webp",
       "SourceId": "VehicleService",
       "SourceType": "Discovered",
-      "ContentRoot": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\",
+      "ContentRoot": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\",
       "BasePath": "_content/VehicleService",
-      "RelativePath": "images/88f8c184-34d9-4837-912a-bc30e258245a_tesla-cybertruck-1.webp",
+      "RelativePath": "images/88f8c184-34d9-4837-912a-bc30e258245a_tesla-cybertruck-1#[.{fingerprint}]?.webp",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
-      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeBehavior": "",
       "AssetMergeSource": "",
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
+      "Fingerprint": "vt3oib8hgg",
+      "Integrity": "nbjx+hLfQAyuOCuI6nj9kYsGRILZaxb7RyoyrVt+Kjs=",
       "CopyToOutputDirectory": "PreserveNewest",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\images\\88f8c184-34d9-4837-912a-bc30e258245a_tesla-cybertruck-1.webp"
     },
     {
-      "Identity": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\92fe5c25-2363-44e9-a7c2-ee64c66e07fc_Do.jpg",
+      "Identity": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\92fe5c25-2363-44e9-a7c2-ee64c66e07fc_Do.jpg",
       "SourceId": "VehicleService",
       "SourceType": "Discovered",
-      "ContentRoot": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\",
+      "ContentRoot": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\",
       "BasePath": "_content/VehicleService",
-      "RelativePath": "images/92fe5c25-2363-44e9-a7c2-ee64c66e07fc_Do.jpg",
+      "RelativePath": "images/92fe5c25-2363-44e9-a7c2-ee64c66e07fc_Do#[.{fingerprint}]?.jpg",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
-      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeBehavior": "",
       "AssetMergeSource": "",
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
+      "Fingerprint": "reveassuma",
+      "Integrity": "fe/70GnusiSdwCjGG3U5CS9ynzzlugh0/c5lBEfMdqI=",
       "CopyToOutputDirectory": "PreserveNewest",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\images\\92fe5c25-2363-44e9-a7c2-ee64c66e07fc_Do.jpg"
     },
     {
-      "Identity": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\b2bb537e-a33c-4d60-98c4-76ef510aafa1_tesla-cybertruck-1.webp",
+      "Identity": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\b2bb537e-a33c-4d60-98c4-76ef510aafa1_tesla-cybertruck-1.webp",
       "SourceId": "VehicleService",
       "SourceType": "Discovered",
-      "ContentRoot": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\",
+      "ContentRoot": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\",
       "BasePath": "_content/VehicleService",
-      "RelativePath": "images/b2bb537e-a33c-4d60-98c4-76ef510aafa1_tesla-cybertruck-1.webp",
+      "RelativePath": "images/b2bb537e-a33c-4d60-98c4-76ef510aafa1_tesla-cybertruck-1#[.{fingerprint}]?.webp",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
-      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeBehavior": "",
       "AssetMergeSource": "",
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
+      "Fingerprint": "vt3oib8hgg",
+      "Integrity": "nbjx+hLfQAyuOCuI6nj9kYsGRILZaxb7RyoyrVt+Kjs=",
       "CopyToOutputDirectory": "PreserveNewest",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\images\\b2bb537e-a33c-4d60-98c4-76ef510aafa1_tesla-cybertruck-1.webp"
     },
     {
-      "Identity": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\cdcbf044-96c7-43a5-8898-85c6d7152533_images.jpg",
+      "Identity": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\cdcbf044-96c7-43a5-8898-85c6d7152533_images.jpg",
       "SourceId": "VehicleService",
       "SourceType": "Discovered",
-      "ContentRoot": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\",
+      "ContentRoot": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\",
       "BasePath": "_content/VehicleService",
-      "RelativePath": "images/cdcbf044-96c7-43a5-8898-85c6d7152533_images.jpg",
+      "RelativePath": "images/cdcbf044-96c7-43a5-8898-85c6d7152533_images#[.{fingerprint}]?.jpg",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
-      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeBehavior": "",
       "AssetMergeSource": "",
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
+      "Fingerprint": "1rnega6g4n",
+      "Integrity": "Q7iybFr3gEWlU/662jD4SADq2GFFwZlo7tJTs3AR56Q=",
       "CopyToOutputDirectory": "PreserveNewest",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\images\\cdcbf044-96c7-43a5-8898-85c6d7152533_images.jpg"
     },
     {
-      "Identity": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\ce23ab5a-8356-498c-9cfe-059edfdafcfb_tesla-model-3-thumb.png",
+      "Identity": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\ce23ab5a-8356-498c-9cfe-059edfdafcfb_tesla-model-3-thumb.png",
       "SourceId": "VehicleService",
       "SourceType": "Discovered",
-      "ContentRoot": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\",
+      "ContentRoot": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\",
       "BasePath": "_content/VehicleService",
-      "RelativePath": "images/ce23ab5a-8356-498c-9cfe-059edfdafcfb_tesla-model-3-thumb.png",
+      "RelativePath": "images/ce23ab5a-8356-498c-9cfe-059edfdafcfb_tesla-model-3-thumb#[.{fingerprint}]?.png",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
-      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeBehavior": "",
       "AssetMergeSource": "",
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
+      "Fingerprint": "i0tle7fhq5",
+      "Integrity": "IgBjSAmsOIUE5eIbRRz7fHt4EifhDvohbNJT3BRMsMk=",
       "CopyToOutputDirectory": "PreserveNewest",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\images\\ce23ab5a-8356-498c-9cfe-059edfdafcfb_tesla-model-3-thumb.png"
+    }
+  ],
+  "Endpoints": [
+    {
+      "Route": "images/2a2ba449-6fd3-48ee-9535-07198627cc15_1757045201878-qla5igg2ej.3gsu7wxe8p.webp",
+      "AssetFile": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\2a2ba449-6fd3-48ee-9535-07198627cc15_1757045201878-qla5igg2ej.webp",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "19338"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/webp"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"g2LCo9HVxPkIWJEZqEf/jPGYQk3wvpqPs3lhPBShrFI=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 21 Nov 2025 04:16:44 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "3gsu7wxe8p"
+        },
+        {
+          "Name": "label",
+          "Value": "images/2a2ba449-6fd3-48ee-9535-07198627cc15_1757045201878-qla5igg2ej.webp"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-g2LCo9HVxPkIWJEZqEf/jPGYQk3wvpqPs3lhPBShrFI="
+        }
+      ]
+    },
+    {
+      "Route": "images/2a2ba449-6fd3-48ee-9535-07198627cc15_1757045201878-qla5igg2ej.webp",
+      "AssetFile": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\2a2ba449-6fd3-48ee-9535-07198627cc15_1757045201878-qla5igg2ej.webp",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "19338"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/webp"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"g2LCo9HVxPkIWJEZqEf/jPGYQk3wvpqPs3lhPBShrFI=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 21 Nov 2025 04:16:44 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-g2LCo9HVxPkIWJEZqEf/jPGYQk3wvpqPs3lhPBShrFI="
+        }
+      ]
+    },
+    {
+      "Route": "images/3632bb08-1a03-4485-bb4b-168d23ade800_vinfastvf6-4.d41ambz6tp.png",
+      "AssetFile": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\3632bb08-1a03-4485-bb4b-168d23ade800_vinfastvf6-4.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "165905"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"00mqa5WLNGnCo7dASbEnP6jHzruMkMLCmu0sKEsh2zI=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 21 Nov 2025 04:16:44 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "d41ambz6tp"
+        },
+        {
+          "Name": "label",
+          "Value": "images/3632bb08-1a03-4485-bb4b-168d23ade800_vinfastvf6-4.png"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-00mqa5WLNGnCo7dASbEnP6jHzruMkMLCmu0sKEsh2zI="
+        }
+      ]
+    },
+    {
+      "Route": "images/3632bb08-1a03-4485-bb4b-168d23ade800_vinfastvf6-4.png",
+      "AssetFile": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\3632bb08-1a03-4485-bb4b-168d23ade800_vinfastvf6-4.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "165905"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"00mqa5WLNGnCo7dASbEnP6jHzruMkMLCmu0sKEsh2zI=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 21 Nov 2025 04:16:44 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-00mqa5WLNGnCo7dASbEnP6jHzruMkMLCmu0sKEsh2zI="
+        }
+      ]
+    },
+    {
+      "Route": "images/88f8c184-34d9-4837-912a-bc30e258245a_tesla-cybertruck-1.vt3oib8hgg.webp",
+      "AssetFile": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\88f8c184-34d9-4837-912a-bc30e258245a_tesla-cybertruck-1.webp",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "74098"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/webp"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"nbjx+hLfQAyuOCuI6nj9kYsGRILZaxb7RyoyrVt+Kjs=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 21 Nov 2025 04:16:44 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "vt3oib8hgg"
+        },
+        {
+          "Name": "label",
+          "Value": "images/88f8c184-34d9-4837-912a-bc30e258245a_tesla-cybertruck-1.webp"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-nbjx+hLfQAyuOCuI6nj9kYsGRILZaxb7RyoyrVt+Kjs="
+        }
+      ]
+    },
+    {
+      "Route": "images/88f8c184-34d9-4837-912a-bc30e258245a_tesla-cybertruck-1.webp",
+      "AssetFile": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\88f8c184-34d9-4837-912a-bc30e258245a_tesla-cybertruck-1.webp",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "74098"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/webp"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"nbjx+hLfQAyuOCuI6nj9kYsGRILZaxb7RyoyrVt+Kjs=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 21 Nov 2025 04:16:44 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-nbjx+hLfQAyuOCuI6nj9kYsGRILZaxb7RyoyrVt+Kjs="
+        }
+      ]
+    },
+    {
+      "Route": "images/92fe5c25-2363-44e9-a7c2-ee64c66e07fc_Do.jpg",
+      "AssetFile": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\92fe5c25-2363-44e9-a7c2-ee64c66e07fc_Do.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "29588"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"fe/70GnusiSdwCjGG3U5CS9ynzzlugh0/c5lBEfMdqI=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 21 Nov 2025 04:16:44 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-fe/70GnusiSdwCjGG3U5CS9ynzzlugh0/c5lBEfMdqI="
+        }
+      ]
+    },
+    {
+      "Route": "images/92fe5c25-2363-44e9-a7c2-ee64c66e07fc_Do.reveassuma.jpg",
+      "AssetFile": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\92fe5c25-2363-44e9-a7c2-ee64c66e07fc_Do.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "29588"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"fe/70GnusiSdwCjGG3U5CS9ynzzlugh0/c5lBEfMdqI=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 21 Nov 2025 04:16:44 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "reveassuma"
+        },
+        {
+          "Name": "label",
+          "Value": "images/92fe5c25-2363-44e9-a7c2-ee64c66e07fc_Do.jpg"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-fe/70GnusiSdwCjGG3U5CS9ynzzlugh0/c5lBEfMdqI="
+        }
+      ]
+    },
+    {
+      "Route": "images/b2bb537e-a33c-4d60-98c4-76ef510aafa1_tesla-cybertruck-1.vt3oib8hgg.webp",
+      "AssetFile": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\b2bb537e-a33c-4d60-98c4-76ef510aafa1_tesla-cybertruck-1.webp",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "74098"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/webp"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"nbjx+hLfQAyuOCuI6nj9kYsGRILZaxb7RyoyrVt+Kjs=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 21 Nov 2025 04:16:44 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "vt3oib8hgg"
+        },
+        {
+          "Name": "label",
+          "Value": "images/b2bb537e-a33c-4d60-98c4-76ef510aafa1_tesla-cybertruck-1.webp"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-nbjx+hLfQAyuOCuI6nj9kYsGRILZaxb7RyoyrVt+Kjs="
+        }
+      ]
+    },
+    {
+      "Route": "images/b2bb537e-a33c-4d60-98c4-76ef510aafa1_tesla-cybertruck-1.webp",
+      "AssetFile": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\b2bb537e-a33c-4d60-98c4-76ef510aafa1_tesla-cybertruck-1.webp",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "74098"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/webp"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"nbjx+hLfQAyuOCuI6nj9kYsGRILZaxb7RyoyrVt+Kjs=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 21 Nov 2025 04:16:44 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-nbjx+hLfQAyuOCuI6nj9kYsGRILZaxb7RyoyrVt+Kjs="
+        }
+      ]
+    },
+    {
+      "Route": "images/cdcbf044-96c7-43a5-8898-85c6d7152533_images.1rnega6g4n.jpg",
+      "AssetFile": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\cdcbf044-96c7-43a5-8898-85c6d7152533_images.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "4335"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"Q7iybFr3gEWlU/662jD4SADq2GFFwZlo7tJTs3AR56Q=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 21 Nov 2025 04:16:44 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "1rnega6g4n"
+        },
+        {
+          "Name": "label",
+          "Value": "images/cdcbf044-96c7-43a5-8898-85c6d7152533_images.jpg"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-Q7iybFr3gEWlU/662jD4SADq2GFFwZlo7tJTs3AR56Q="
+        }
+      ]
+    },
+    {
+      "Route": "images/cdcbf044-96c7-43a5-8898-85c6d7152533_images.jpg",
+      "AssetFile": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\cdcbf044-96c7-43a5-8898-85c6d7152533_images.jpg",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "4335"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/jpeg"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"Q7iybFr3gEWlU/662jD4SADq2GFFwZlo7tJTs3AR56Q=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 21 Nov 2025 04:16:44 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-Q7iybFr3gEWlU/662jD4SADq2GFFwZlo7tJTs3AR56Q="
+        }
+      ]
+    },
+    {
+      "Route": "images/ce23ab5a-8356-498c-9cfe-059edfdafcfb_tesla-model-3-thumb.i0tle7fhq5.png",
+      "AssetFile": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\ce23ab5a-8356-498c-9cfe-059edfdafcfb_tesla-model-3-thumb.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "294092"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"IgBjSAmsOIUE5eIbRRz7fHt4EifhDvohbNJT3BRMsMk=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 21 Nov 2025 04:16:44 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "i0tle7fhq5"
+        },
+        {
+          "Name": "label",
+          "Value": "images/ce23ab5a-8356-498c-9cfe-059edfdafcfb_tesla-model-3-thumb.png"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-IgBjSAmsOIUE5eIbRRz7fHt4EifhDvohbNJT3BRMsMk="
+        }
+      ]
+    },
+    {
+      "Route": "images/ce23ab5a-8356-498c-9cfe-059edfdafcfb_tesla-model-3-thumb.png",
+      "AssetFile": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\VehicleService\\wwwroot\\images\\ce23ab5a-8356-498c-9cfe-059edfdafcfb_tesla-model-3-thumb.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "294092"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"IgBjSAmsOIUE5eIbRRz7fHt4EifhDvohbNJT3BRMsMk=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 21 Nov 2025 04:16:44 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-IgBjSAmsOIUE5eIbRRz7fHt4EifhDvohbNJT3BRMsMk="
+        }
+      ]
     }
   ]
 }

@@ -1,25 +1,32 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\SalesService\\SalesService.csproj": {}
+    "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\SalesService\\SalesService.csproj": {}
   },
   "projects": {
-    "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\SalesService\\SalesService.csproj": {
+    "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\SalesService\\SalesService.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\SalesService\\SalesService.csproj",
+        "projectUniqueName": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\SalesService\\SalesService.csproj",
         "projectName": "SalesService",
-        "projectPath": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\SalesService\\SalesService.csproj",
-        "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
-        "outputPath": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\SalesService\\obj\\",
+        "projectPath": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\SalesService\\SalesService.csproj",
+        "packagesPath": "C:\\Users\\thanh\\.nuget\\packages\\",
+        "outputPath": "D:\\gitclone\\ev-dealer-management\\ev-dealer-management\\SalesService\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\thanh\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -37,7 +44,8 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "9.0.200"
       },
       "frameworks": {
         "net8.0": {
@@ -46,6 +54,10 @@
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[8.0.20, )"
+            },
+            "RabbitMQ.Client": {
+              "target": "Package",
+              "version": "[6.6.0, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
@@ -71,7 +83,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.414/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.200/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

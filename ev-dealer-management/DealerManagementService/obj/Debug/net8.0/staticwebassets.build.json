@@ -1,11 +1,12 @@
 {
   "Version": 1,
-  "Hash": "p8/aoze3K0notd7IkFLfW/mO2FQgts1kdIpJL3DxjGM=",
+  "Hash": "CBDHpd7mtr6+cNqk0qvPduu2cendsYCxee+4wJYtZTY=",
   "Source": "DealerManagementService",
   "BasePath": "_content/DealerManagementService",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
   "DiscoveryPatterns": [],
-  "Assets": []
+  "Assets": [],
+  "Endpoints": []
 }
