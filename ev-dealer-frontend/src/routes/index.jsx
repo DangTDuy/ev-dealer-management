@@ -1,5 +1,6 @@
 /**
  * Route Configuration
+ * TODO: Configure all application routes with React Router
  */
 
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -67,24 +68,41 @@ const AppRoutes = () => {
         }
       >
         <Route path="/dashboard" element={<Dashboard />} />
+
+        {/* Vehicle Routes */}
         <Route path="/vehicles" element={<VehicleList />} />
         <Route path="/vehicles/new" element={<VehicleForm />} />
         <Route path="/vehicles/:id" element={<VehicleDetail />} />
         <Route path="/vehicles/:id/edit" element={<VehicleForm />} />
+
+        {/* Sales Routes */}
         <Route path="/sales" element={<SalesList />} />
         <Route path="/sales/quote/new" element={<QuoteCreate />} />
         <Route path="/sales/:id" element={<OrderDetail />} />
+
+        {/* Customer Routes */}
         <Route path="/customers" element={<CustomerList />} />
         <Route path="/customers/new" element={<CustomerNew />} />
         <Route path="/customers/:id" element={<CustomerDetail />} />
         <Route path="/customers/:id/edit" element={<CustomerEdit />} />
         <Route path="/customers/test-drive/new" element={<TestDriveForm />} />
+
+        {/* Dealer Routes */}
         <Route path="/dealers" element={<DealerList />} />
         <Route path="/dealers/:id" element={<DealerDetail />} />
+
+        {/* Reports */}
         <Route path="/reports" element={<Reports />} />
+
+        {/* Notifications (allow capitalized path for compatibility) */}
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/Notifications" element={<Notifications />} />
-        <Route path="/notifications/preferences" element={<NotificationPreferences />} />
+        <Route
+          path="/notifications/preferences"
+          element={<NotificationPreferences />}
+        />
+
+        {/* Settings */}
         <Route path="/settings" element={<Settings />} />
 
         {/* Admin Routes */}

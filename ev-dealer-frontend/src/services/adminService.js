@@ -23,6 +23,7 @@ const adminService = {
 
   rejectUser: async (userId) => {
     try {
+      // This will call the DELETE /api/users/{id} endpoint
       const response = await api.delete(`/users/${userId}`);
       return response;
     } catch (error) {

@@ -16,6 +16,24 @@ namespace UserService.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
 
+            modelBuilder.Entity("Dealer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Address")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Dealers");
+                });
+
             modelBuilder.Entity("PasswordResetToken", b =>
                 {
                     b.Property<int>("Id")
@@ -59,6 +77,9 @@ namespace UserService.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("DealerId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -87,6 +108,8 @@ namespace UserService.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DealerId");
+
                     b.HasIndex("Email");
 
                     b.HasIndex("Username")
@@ -102,6 +125,13 @@ namespace UserService.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("User", b =>
+                {
+                    b.HasOne("Dealer", null)
+                        .WithMany()
+                        .HasForeignKey("DealerId");
                 });
 #pragma warning restore 612, 618
         }

@@ -3,7 +3,7 @@ import api from './api'
 const dealerService = {
   getAllDealers: async () => {
     try {
-      // The api interceptor already returns response.data, so we just return the response directly.
+      // Fix: The api interceptor already returns response.data, so we just return the response directly.
       const response = await api.get('/dealers')
       return response
     } catch (error) {

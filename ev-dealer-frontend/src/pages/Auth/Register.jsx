@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import './Auth.css'
 import {
   Box,
@@ -25,8 +25,10 @@ import {
   Phone,
   Lock,
   CheckCircle,
+  Store,
 } from '@mui/icons-material'
 import authService from '../../services/authService'
+// Removed dealerService import as it's no longer needed for fetching dealers
 import {
   validateEmail,
   validatePhone,
@@ -37,8 +39,6 @@ import {
 } from '../../utils/validators'
 
 const Register = () => {
-  const navigate = useNavigate()
-
   // Form state
   const [formData, setFormData] = useState({
     name: '',
@@ -46,6 +46,7 @@ const Register = () => {
     phone: '',
     password: '',
     confirmPassword: '',
+    dealerId: '', // Changed to a simple text input
   })
 
   // UI state
@@ -60,6 +61,8 @@ const Register = () => {
   const passwordStrength = formData.password
     ? getPasswordStrength(formData.password)
     : null
+
+  // Removed useEffect for fetching dealers
 
   // Fix autocomplete text color
   useEffect(() => {
@@ -107,6 +110,12 @@ const Register = () => {
     } else if (!validatePhone(formData.phone)) {
       newErrors.phone = 'Số điện thoại không hợp lệ (VD: 0912345678)'
     }
+    
+    if (!validateRequired(formData.dealerId)) {
+      newErrors.dealerId = 'Vui lòng nhập ID Đại lý'
+    } else if (isNaN(formData.dealerId)) {
+      newErrors.dealerId = 'ID Đại lý phải là một con số'
+    }
 
     if (!validateRequired(formData.password)) {
       newErrors.password = 'Vui lòng nhập mật khẩu'
@@ -130,7 +139,6 @@ const Register = () => {
     setError('')
     setSuccess(false)
 
-    // Validate
     if (!validate()) {
       return
     }
@@ -140,18 +148,15 @@ const Register = () => {
     try {
       // Call register API
       await authService.register({
-        username: formData.email, // Use email as username
+        username: formData.email,
         email: formData.email,
         fullName: formData.name,
         password: formData.password,
+        dealerId: parseInt(formData.dealerId, 10), // Ensure dealerId is sent as a number
       })
 
       setSuccess(true)
 
-      // Redirect to login after 2 seconds
-      setTimeout(() => {
-        navigate('/login')
-      }, 2000)
     } catch (err) {
       setError(err || 'Đăng ký thất bại. Vui lòng thử lại.')
     } finally {
@@ -178,22 +183,18 @@ const Register = () => {
         Tham gia mạng lưới đại lý xe điện ngay hôm nay
       </Typography>
 
-      {/* Success Alert */}
       {success && (
         <Alert severity="success" icon={<CheckCircle />} sx={{ mb: 0.5, py: 0.3, fontSize: '0.75rem' }}>
-          <Typography variant="caption" fontSize="0.75rem">Đăng ký thành công! Đang chuyển đến trang đăng nhập...</Typography>
+          <Typography variant="caption" fontSize="0.75rem">Đăng ký thành công! Tài khoản của bạn đang chờ quản trị viên phê duyệt.</Typography>
         </Alert>
       )}
 
-      {/* Error Alert */}
       {error && (
         <Alert severity="error" sx={{ mb: 0.5, py: 0.3 }} onClose={() => setError('')}>
           <Typography variant="caption" fontSize="0.75rem">{error}</Typography>
         </Alert>
       )}
 
-
-      {/* Name Field */}
       <TextField
         fullWidth
         label="Họ và Tên"
@@ -206,11 +207,6 @@ const Register = () => {
         margin="dense"
         size="small"
         autoComplete="name"
-        inputProps={{
-          spellCheck: false,
-          autoCorrect: 'off',
-          autoCapitalize: 'words',
-        }}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
@@ -220,7 +216,6 @@ const Register = () => {
         }}
       />
 
-      {/* Email Field */}
       <TextField
         fullWidth
         label="Địa chỉ Email"
@@ -234,11 +229,6 @@ const Register = () => {
         margin="dense"
         size="small"
         autoComplete="email"
-        inputProps={{
-          spellCheck: false,
-          autoCorrect: 'off',
-          autoCapitalize: 'off',
-        }}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
@@ -248,7 +238,6 @@ const Register = () => {
         }}
       />
 
-      {/* Phone Field */}
       <TextField
         fullWidth
         label="Số Điện Thoại"
@@ -263,11 +252,6 @@ const Register = () => {
         size="small"
         placeholder="0912345678"
         autoComplete="tel"
-        inputProps={{
-          spellCheck: false,
-          autoCorrect: 'off',
-          autoCapitalize: 'off',
-        }}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
@@ -277,7 +261,29 @@ const Register = () => {
         }}
       />
 
-      {/* Password Field */}
+      {/* Changed Dealer Field to a simple text input */}
+      <TextField
+        fullWidth
+        label="ID Đại lý"
+        name="dealerId"
+        type="text"
+        value={formData.dealerId}
+        onChange={handleChange}
+        error={!!errors.dealerId}
+        helperText={errors.dealerId}
+        disabled={loading}
+        margin="dense"
+        size="small"
+        placeholder="Nhập ID đại lý của bạn"
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Store color="action" />
+            </InputAdornment>
+          ),
+        }}
+      />
+
       <TextField
         fullWidth
         label="Mật khẩu"
@@ -291,11 +297,6 @@ const Register = () => {
         margin="dense"
         size="small"
         autoComplete="new-password"
-        inputProps={{
-          spellCheck: false,
-          autoCorrect: 'off',
-          autoCapitalize: 'off',
-        }}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
@@ -312,7 +313,6 @@ const Register = () => {
         }}
       />
 
-      {/* Password Strength Indicator - Fixed Height */}
       <Box sx={{ height: '28px', mt: 0.2 }}>
         {formData.password && passwordStrength && (
           <Box>
@@ -340,7 +340,6 @@ const Register = () => {
         )}
       </Box>
 
-      {/* Confirm Password Field */}
       <TextField
         fullWidth
         label="Xác nhận mật khẩu"
@@ -354,11 +353,6 @@ const Register = () => {
         margin="dense"
         size="small"
         autoComplete="new-password"
-        inputProps={{
-          spellCheck: false,
-          autoCorrect: 'off',
-          autoCapitalize: 'off',
-        }}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
@@ -379,7 +373,6 @@ const Register = () => {
         }}
       />
 
-      {/* Register Button */}
       <Button
         type="submit"
         fullWidth
@@ -406,7 +399,6 @@ const Register = () => {
         {loading ? <CircularProgress size={20} color="inherit" /> : 'Tạo Tài Khoản'}
       </Button>
 
-      {/* Login Link */}
       <Typography variant="caption" align="center" color="text.secondary" sx={{ display: 'block', fontSize: '0.75rem' }}>
         Đã có tài khoản?{' '}
         <Link

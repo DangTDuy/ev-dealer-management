@@ -64,34 +64,21 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 
 var app = builder.Build();
 
-// Apply migrations at startup (ensure DB)
+// Apply migrations and seed data at startup
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<UserDbContext>();
     db.Database.Migrate();
 
-    // Check command line args for role update
-    var cmdArgs = Environment.GetCommandLineArgs();
-    if (cmdArgs.Length >= 4 && cmdArgs[1] == "--update-role")
+    // Seed Dealers if empty
+    if (!db.Dealers.Any())
     {
-        var username = cmdArgs[2];
-        var newRole = cmdArgs[3];
-
-        var user = db.Users.FirstOrDefault(u => u.Username == username);
-        if (user != null)
-        {
-            user.Role = newRole;
-            user.UpdatedAt = DateTime.UtcNow;
-            db.SaveChanges();
-            Console.WriteLine($"Updated user {username} role to {newRole}");
-        }
-        else
-        {
-            Console.WriteLine($"User {username} not found");
-        }
-
-        // Exit after update
-        Environment.Exit(0);
+        db.Dealers.AddRange(
+            new Dealer { Name = "VinFast Ocean Park", Address = "Vinhomes Ocean Park, Gia Lam, Ha Noi" },
+            new Dealer { Name = "VinFast Times City", Address = "458 Minh Khai, Hai Ba Trung, Ha Noi" },
+            new Dealer { Name = "VinFast Landmark 81", Address = "Vinhomes Central Park, Binh Thanh, TP.HCM" }
+        );
+        db.SaveChanges();
     }
 }
 
@@ -121,9 +108,7 @@ app.MapPost("/api/auth/login", async (LoginRequest req, IUserService userService
 
 app.MapPost("/api/auth/forgot-password", async ([FromBody] ForgotPasswordRequest req, IUserService userService) =>
 {
-    Console.WriteLine($"[DEBUG] Endpoint /api/auth/forgot-password called");
     var result = await userService.ForgotPasswordAsync(req);
-    Console.WriteLine($"[DEBUG] Result: {result.Success}, {result.Message}");
     return Results.Ok(result);
 });
 
@@ -157,7 +142,6 @@ app.MapGet("/api/users/{id:int}", [Microsoft.AspNetCore.Authorization.Authorize]
     if (!int.TryParse(currentUserIdClaim, out var currentUserId))
         return Results.Unauthorized();
 
-    // Allow self-view or admin view
     if (currentUserRole != "Admin" && currentUserId != id)
         return Results.Forbid();
 
@@ -184,26 +168,38 @@ app.MapDelete("/api/users/{id:int}", [Microsoft.AspNetCore.Authorization.Authori
     return result.Success ? Results.Ok(result) : Results.BadRequest(result);
 });
 
-app.MapPut("/api/users/{id:int}/role", [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")] async (int id, ChangeRoleRequest request, System.Security.Claims.ClaimsPrincipal user, IUserService userService) =>
+app.MapPut("/api/users/{id:int}/role", [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")] async (int id, ChangeRoleRequest request, IUserService userService) =>
 {
-    var currentUserRole = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-
-    var result = await userService.ChangeUserRoleAsync(id, request, currentUserRole);
+    var result = await userService.ChangeUserRoleAsync(id, request);
     return result.Success ? Results.Ok(result) : Results.BadRequest(result);
 });
+
+app.MapPut("/api/users/{id:int}/approve", [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")] async (int id, IUserService userService) =>
+{
+    var result = await userService.ApproveUserAsync(id);
+    return result.Success ? Results.Ok(result) : Results.BadRequest(result);
+});
+
+// Dealer endpoint
+app.MapGet("/api/dealers", async (UserDbContext db) =>
+{
+    var dealers = await db.Dealers.ToListAsync();
+    return Results.Ok(dealers);
+});
+
 
 app.Run();
 
 // DTOs and minimal implementations
-public record RegisterRequest(string Username, string Email, string FullName, string Password, string Role = "DealerStaff");
+public record RegisterRequest(string Username, string Email, string FullName, string Password, int? DealerId, string Role = "DealerStaff");
 public record LoginRequest(string Username, string Password);
 public record ForgotPasswordRequest([property: JsonPropertyName("email")] string Email);
 public record ResetPasswordRequest([property: JsonPropertyName("token")] string Token, [property: JsonPropertyName("newPassword")] string NewPassword);
-public record UserDto(int Id, string Username, string Email, string FullName, string Role, bool IsActive, DateTime CreatedAt, DateTime UpdatedAt);
+public record UserDto(int Id, string Username, string Email, string FullName, string Role, bool IsActive, int? DealerId, DateTime CreatedAt, DateTime UpdatedAt);
 public record UpdateUserRequest(string Email, string FullName);
 public record ChangeRoleRequest(string Role);
 
-public record AuthResult(bool Success, string Message, string? Token = null, int? UserId = null);
+public record AuthResult(bool Success, string Message, string? Token = null, int? UserId = null, UserDto? User = null);
 public record UserListResult(bool Success, string Message, IEnumerable<UserDto>? Users = null);
 public record UserResult(bool Success, string Message, UserDto? User = null);
 public record PasswordResetResult(bool Success, string Message);
@@ -214,6 +210,7 @@ public class UserDbContext : DbContext
     public UserDbContext(DbContextOptions<UserDbContext> options) : base(options) { }
     public DbSet<User> Users => Set<User>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+    public DbSet<Dealer> Dealers => Set<Dealer>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -222,6 +219,7 @@ public class UserDbContext : DbContext
             eb.HasKey(u => u.Id);
             eb.HasIndex(u => u.Username).IsUnique();
             eb.HasIndex(u => u.Email);
+            eb.HasOne<Dealer>().WithMany().HasForeignKey(u => u.DealerId);
         });
 
         modelBuilder.Entity<PasswordResetToken>(eb =>
@@ -229,10 +227,12 @@ public class UserDbContext : DbContext
             eb.HasKey(t => t.Id);
             eb.HasIndex(t => t.Token);
             eb.HasIndex(t => t.UserId);
-            eb.HasOne<User>()
-              .WithMany()
-              .HasForeignKey(t => t.UserId)
-              .OnDelete(DeleteBehavior.Cascade);
+            eb.HasOne<User>().WithMany().HasForeignKey(t => t.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Dealer>(eb =>
+        {
+            eb.HasKey(d => d.Id);
         });
     }
 }
@@ -245,9 +245,17 @@ public class User
     public string FullName { get; set; } = null!;
     public string PasswordHash { get; set; } = null!;
     public string Role { get; set; } = "DealerStaff";
-    public bool IsActive { get; set; } = true;
+    public bool IsActive { get; set; } = false; // Default to false, requires admin approval
+    public int? DealerId { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
+
+public class Dealer
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = null!;
+    public string? Address { get; set; }
 }
 
 public class PasswordResetToken
@@ -269,7 +277,8 @@ public interface IUserService
     Task<UserResult> GetUserByIdAsync(int id);
     Task<UserResult> UpdateUserAsync(int id, UpdateUserRequest request, string currentUserRole, int currentUserId);
     Task<UserResult> DeleteUserAsync(int id, string currentUserRole);
-    Task<UserResult> ChangeUserRoleAsync(int id, ChangeRoleRequest request, string currentUserRole);
+    Task<UserResult> ChangeUserRoleAsync(int id, ChangeRoleRequest request);
+    Task<UserResult> ApproveUserAsync(int id);
     Task<PasswordResetResult> ForgotPasswordAsync(ForgotPasswordRequest request);
     Task<PasswordResetResult> ResetPasswordAsync(ResetPasswordRequest request);
 }
@@ -299,6 +308,9 @@ public class UserServiceImpl : IUserService
         if (await _db.Users.AnyAsync(u => u.Email == request.Email))
             return new AuthResult(false, "Email already exists");
 
+        if (request.DealerId.HasValue && !await _db.Dealers.AnyAsync(d => d.Id == request.DealerId.Value))
+            return new AuthResult(false, "Invalid Dealer ID");
+
         var user = new User
         {
             Username = request.Username,
@@ -306,20 +318,24 @@ public class UserServiceImpl : IUserService
             FullName = request.FullName,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             Role = request.Role,
-            IsActive = true,
+            DealerId = request.DealerId,
+            IsActive = false, // Account requires approval
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
 
-        return new AuthResult(true, "User created", UserId: user.Id);
+        return new AuthResult(true, "User created successfully. Your account is pending approval.", UserId: user.Id);
     }
 
     public async Task<AuthResult> LoginAsync(LoginRequest request)
     {
         var user = await _db.Users.SingleOrDefaultAsync(u => u.Username == request.Username);
         if (user == null) return new AuthResult(false, "Tên đăng nhập hoặc mật khẩu không đúng.");
+
+        if (!user.IsActive)
+            return new AuthResult(false, "Tài khoản của bạn đang chờ phê duyệt từ quản trị viên.");
 
         if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             return new AuthResult(false, "Tên đăng nhập hoặc mật khẩu không đúng.");
@@ -347,15 +363,16 @@ public class UserServiceImpl : IUserService
 
         var token = tokenHandler.CreateToken(descriptor);
         var tokenString = tokenHandler.WriteToken(token);
+        
+        var userDto = new UserDto(user.Id, user.Username, user.Email, user.FullName, user.Role, user.IsActive, user.DealerId, user.CreatedAt, user.UpdatedAt);
 
-        return new AuthResult(true, "", Token: tokenString, UserId: user.Id);
+        return new AuthResult(true, "Login successful", Token: tokenString, UserId: user.Id, User: userDto);
     }
 
     public async Task<UserListResult> GetUsersAsync()
     {
         var users = await _db.Users
-            .Where(u => u.IsActive)
-            .Select(u => new UserDto(u.Id, u.Username, u.Email, u.FullName, u.Role, u.IsActive, u.CreatedAt, u.UpdatedAt))
+            .Select(u => new UserDto(u.Id, u.Username, u.Email, u.FullName, u.Role, u.IsActive, u.DealerId, u.CreatedAt, u.UpdatedAt))
             .ToListAsync();
 
         return new UserListResult(true, "Users retrieved successfully", users);
@@ -364,8 +381,8 @@ public class UserServiceImpl : IUserService
     public async Task<UserResult> GetUserByIdAsync(int id)
     {
         var user = await _db.Users
-            .Where(u => u.Id == id && u.IsActive)
-            .Select(u => new UserDto(u.Id, u.Username, u.Email, u.FullName, u.Role, u.IsActive, u.CreatedAt, u.UpdatedAt))
+            .Where(u => u.Id == id)
+            .Select(u => new UserDto(u.Id, u.Username, u.Email, u.FullName, u.Role, u.IsActive, u.DealerId, u.CreatedAt, u.UpdatedAt))
             .FirstOrDefaultAsync();
 
         if (user == null)
@@ -379,15 +396,13 @@ public class UserServiceImpl : IUserService
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.FullName))
             return new UserResult(false, "Email and full name are required");
 
-        // Only allow self-update or admin update
         if (currentUserRole != "Admin" && currentUserId != id)
             return new UserResult(false, "Unauthorized to update this user");
 
         var user = await _db.Users.FindAsync(id);
-        if (user == null || !user.IsActive)
+        if (user == null)
             return new UserResult(false, "User not found");
 
-        // Check if email is already taken by another user
         if (await _db.Users.AnyAsync(u => u.Email == request.Email && u.Id != id))
             return new UserResult(false, "Email already exists");
 
@@ -397,7 +412,7 @@ public class UserServiceImpl : IUserService
 
         await _db.SaveChangesAsync();
 
-        var userDto = new UserDto(user.Id, user.Username, user.Email, user.FullName, user.Role, user.IsActive, user.CreatedAt, user.UpdatedAt);
+        var userDto = new UserDto(user.Id, user.Username, user.Email, user.FullName, user.Role, user.IsActive, user.DealerId, user.CreatedAt, user.UpdatedAt);
         return new UserResult(true, "User updated successfully", userDto);
     }
 
@@ -407,28 +422,23 @@ public class UserServiceImpl : IUserService
             return new UserResult(false, "Only admins can delete users");
 
         var user = await _db.Users.FindAsync(id);
-        if (user == null || !user.IsActive)
+        if (user == null)
             return new UserResult(false, "User not found");
 
-        user.IsActive = false;
-        user.UpdatedAt = DateTime.UtcNow;
-
+        _db.Users.Remove(user); // Hard delete for this example
         await _db.SaveChangesAsync();
 
         return new UserResult(true, "User deleted successfully");
     }
 
-    public async Task<UserResult> ChangeUserRoleAsync(int id, ChangeRoleRequest request, string currentUserRole)
+    public async Task<UserResult> ChangeUserRoleAsync(int id, ChangeRoleRequest request)
     {
-        if (currentUserRole != "Admin")
-            return new UserResult(false, "Only admins can change user roles");
-
-        var validRoles = new[] { "DealerStaff", "DealerManager", "EVMStaff", "Admin", "Customer" };
+        var validRoles = new[] { "DealerStaff", "DealerManager", "EVMStaff", "Admin" };
         if (!validRoles.Contains(request.Role))
             return new UserResult(false, "Invalid role");
 
         var user = await _db.Users.FindAsync(id);
-        if (user == null || !user.IsActive)
+        if (user == null)
             return new UserResult(false, "User not found");
 
         user.Role = request.Role;
@@ -436,10 +446,26 @@ public class UserServiceImpl : IUserService
 
         await _db.SaveChangesAsync();
 
-        var userDto = new UserDto(user.Id, user.Username, user.Email, user.FullName, user.Role, user.IsActive, user.CreatedAt, user.UpdatedAt);
+        var userDto = new UserDto(user.Id, user.Username, user.Email, user.FullName, user.Role, user.IsActive, user.DealerId, user.CreatedAt, user.UpdatedAt);
         return new UserResult(true, "User role updated successfully", userDto);
     }
 
+    public async Task<UserResult> ApproveUserAsync(int id)
+    {
+        var user = await _db.Users.FindAsync(id);
+        if (user == null)
+            return new UserResult(false, "User not found");
+
+        user.IsActive = true;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+        
+        var userDto = new UserDto(user.Id, user.Username, user.Email, user.FullName, user.Role, user.IsActive, user.DealerId, user.CreatedAt, user.UpdatedAt);
+        return new UserResult(true, "User approved successfully", userDto);
+    }
+    
+    // ... (rest of the methods are the same)
     public async Task<PasswordResetResult> ForgotPasswordAsync(ForgotPasswordRequest request)
     {
         Console.WriteLine($"[DEBUG] ForgotPasswordAsync called with email: {request.Email}");
