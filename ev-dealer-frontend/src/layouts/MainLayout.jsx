@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
@@ -31,50 +31,13 @@ import {
   Notifications as NotificationsIcon,
   AccountCircle as AccountIcon,
   Menu as MenuIcon,
-  ChevronLeft as ChevronLeftIcon
+  ChevronLeft as ChevronLeftIcon,
+  AdminPanelSettings as AdminIcon,
 } from '@mui/icons-material';
+import authService from '../services/authService';
 
 const drawerWidth = 280;
 const miniDrawerWidth = 70;
-
-const navItems = [
-  { 
-    text: 'Bảng điều khiển', 
-    icon: <DashboardIcon />, 
-    path: '/dashboard',
-    badge: null
-  },
-  { 
-    text: 'Quản lý xe', 
-    icon: <CarIcon />, 
-    path: '/vehicles',
-    badge: null
-  },
-  { 
-    text: 'Khách hàng', 
-    icon: <PeopleIcon />, 
-    path: '/customers',
-    badge: '12'
-  },
-  { 
-    text: 'Bán hàng', 
-    icon: <SalesIcon />, 
-    path: '/sales',
-    badge: '3'
-  },
-  { 
-    text: 'Báo cáo', 
-    icon: <ReportIcon />, 
-    path: '/reports',
-    badge: null
-  },
-  { 
-    text: 'Cài đặt', 
-    icon: <SettingsIcon />, 
-    path: '/settings',
-    badge: null
-  },
-];
 
 const MainLayout = () => {
   const navigate = useNavigate();
@@ -83,6 +46,30 @@ const MainLayout = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [miniDrawer, setMiniDrawer] = useState(false);
+
+  const currentUser = authService.getCurrentUser();
+
+  const navItems = useMemo(() => {
+    const items = [
+      { text: 'Bảng điều khiển', icon: <DashboardIcon />, path: '/dashboard' },
+      { text: 'Quản lý xe', icon: <CarIcon />, path: '/vehicles' },
+      { text: 'Khách hàng', icon: <PeopleIcon />, path: '/customers' },
+      { text: 'Bán hàng', icon: <SalesIcon />, path: '/sales' },
+      { text: 'Báo cáo', icon: <ReportIcon />, path: '/reports' },
+    ];
+
+    if (currentUser && currentUser.role === 'Admin') {
+      items.push({
+        text: 'Quản lý người dùng',
+        icon: <AdminIcon />,
+        path: '/admin/users',
+      });
+    }
+
+    items.push({ text: 'Cài đặt', icon: <SettingsIcon />, path: '/settings' });
+
+    return items;
+  }, [currentUser]);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -96,7 +83,6 @@ const MainLayout = () => {
 
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Logo Section */}
       <Box
         sx={{
           p: 2,
@@ -141,11 +127,10 @@ const MainLayout = () => {
         )}
       </Box>
 
-      {/* Navigation Items */}
       <Box sx={{ flex: 1, py: 1 }}>
         <List sx={{ px: 1 }}>
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = location.pathname.startsWith(item.path);
             return (
               <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
                 <Tooltip title={miniDrawer ? item.text : ''} placement="right">
@@ -176,13 +161,7 @@ const MainLayout = () => {
                         color: isActive ? 'primary.contrastText' : 'text.secondary',
                       }}
                     >
-                      {item.badge ? (
-                        <Badge badgeContent={item.badge} color="error" size="small">
-                          {item.icon}
-                        </Badge>
-                      ) : (
-                        item.icon
-                      )}
+                      {item.icon}
                     </ListItemIcon>
                     {!miniDrawer && (
                       <ListItemText
@@ -201,9 +180,8 @@ const MainLayout = () => {
         </List>
       </Box>
 
-      {/* User Profile Section */}
       <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-        <Tooltip title={miniDrawer ? 'Admin User\nadmin@evdealer.com' : ''} placement="right">
+        <Tooltip title={miniDrawer ? `${currentUser?.fullName}\n${currentUser?.email}` : ''} placement="right">
           <ListItemButton
             sx={{
               borderRadius: 2,
@@ -223,15 +201,15 @@ const MainLayout = () => {
                 fontSize: miniDrawer ? '1.1rem' : '1rem',
               }}
             >
-              <AccountIcon />
+              {currentUser?.fullName?.charAt(0) || <AccountIcon />}
             </Avatar>
             {!miniDrawer && (
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Admin User
+                  {currentUser?.fullName || 'Người dùng'}
                 </Typography>
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                  admin@evdealer.com
+                  {currentUser?.email || 'user@example.com'}
                 </Typography>
               </Box>
             )}
@@ -245,7 +223,6 @@ const MainLayout = () => {
     <Box sx={{ display: 'flex', bgcolor: 'background.default', minHeight: '100vh' }}>
       <CssBaseline />
       
-      {/* App Bar */}
       <AppBar
         position="fixed"
         sx={{
@@ -260,7 +237,7 @@ const MainLayout = () => {
         <Toolbar>
           <IconButton
             color="inherit"
-            aria-label="open drawer"
+            aria-label="Mở menu"
             edge="start"
             onClick={isMobile ? handleDrawerToggle : handleMiniDrawerToggle}
             sx={{ mr: 2 }}
@@ -269,12 +246,7 @@ const MainLayout = () => {
           </IconButton>
           
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            {location.pathname === '/dashboard' && 'Bảng điều khiển'}
-            {location.pathname === '/vehicles' && 'Quản lý xe'}
-            {location.pathname === '/customers' && 'Quản lý khách hàng'}
-            {location.pathname === '/sales' && 'Bán hàng'}
-            {location.pathname === '/reports' && 'Báo cáo'}
-            {location.pathname === '/settings' && 'Cài đặt'}
+            {navItems.find(item => location.pathname.startsWith(item.path))?.text || 'Bảng điều khiển'}
           </Typography>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -282,7 +254,7 @@ const MainLayout = () => {
                 <IconButton
                   color="inherit"
                   aria-label="Thông báo"
-                  onClick={() => navigate('/Notifications')}
+                  onClick={() => navigate('/notifications')}
                 >
                   <Badge badgeContent={4} color="error">
                     <NotificationsIcon />
@@ -291,7 +263,7 @@ const MainLayout = () => {
               </Tooltip>
             
             <Chip
-              label="Online"
+              label="Trực tuyến"
               color="success"
               size="small"
               sx={{ 
@@ -305,18 +277,16 @@ const MainLayout = () => {
         </Toolbar>
       </AppBar>
 
-      {/* Drawer */}
       <Box
         component="nav"
         sx={{ width: { md: currentDrawerWidth }, flexShrink: { md: 0 } }}
       >
-        {/* Mobile drawer */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
+            keepMounted: true,
           }}
           sx={{
             display: { xs: 'block', md: 'none' },
@@ -329,7 +299,6 @@ const MainLayout = () => {
           {drawer}
         </Drawer>
         
-        {/* Desktop drawer */}
         <Drawer
           variant="permanent"
           sx={{
@@ -349,7 +318,6 @@ const MainLayout = () => {
         </Drawer>
       </Box>
 
-      {/* Main content */}
       <Box
         component="main"
         sx={{
