@@ -166,14 +166,26 @@ const VehicleList = () => {
 
     try {
       setDeleting(true)
+      setError(null) // Clear any previous errors
       await vehicleService.deleteVehicle(vehicleToDelete.id)
       setDeleteDialogOpen(false)
       setVehicleToDelete(null)
       // Reload the list
-      loadVehicles()
+      await loadVehicles()
     } catch (err) {
-      setError(err.message || 'Failed to delete vehicle')
       console.error('Error deleting vehicle:', err)
+      console.log('Error response:', err.response)
+      console.log('Error response data:', err.response?.data)
+      
+      // Try multiple ways to extract error message
+      const errorMessage = 
+        err.response?.data?.message || 
+        err.response?.data?.Message || 
+        err.message || 
+        'Không thể xóa xe'
+      
+      setError(errorMessage)
+      setDeleteDialogOpen(false) // Close dialog even on error so user can see error message
     } finally {
       setDeleting(false)
     }

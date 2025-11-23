@@ -1,10 +1,14 @@
 using SalesService.BackgroundServices;
+<<<<<<< HEAD
 using SalesService.Data;
 using SalesService.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
+=======
+using SalesService.Services;
+>>>>>>> cbe64c56a5e561b432393d9ee6c4eac729f9aaf1
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +30,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+<<<<<<< HEAD
 // Configure DbContext
 builder.Services.AddDbContext<SalesDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
@@ -35,6 +40,23 @@ builder.Services.AddDbContext<SalesDbContext>(options =>
 // Register IMessageProducer for RabbitMQ
 builder.Services.AddSingleton<IMessageProducer, RabbitMQProducer>();
 
+=======
+// Add CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
+// Register RabbitMQ Producer
+builder.Services.AddSingleton<IMessageProducer, RabbitMQProducerService>();
+
+// Register Background Consumer
+>>>>>>> cbe64c56a5e561b432393d9ee6c4eac729f9aaf1
 builder.Services.AddHostedService<SalesEventConsumer>();
 
 var app = builder.Build();
@@ -71,8 +93,13 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+<<<<<<< HEAD
 // REMOVED: Use CORS policy
 // app.UseCors("AllowFrontend");
+=======
+// Use CORS
+app.UseCors("AllowFrontend");
+>>>>>>> cbe64c56a5e561b432393d9ee6c4eac729f9aaf1
 
 app.MapControllers();
 

@@ -70,6 +70,7 @@ D:\gitclone\ev-dealer-management\ev-dealer-management\SalesService\obj\Debug\net
 D:\gitclone\ev-dealer-management\ev-dealer-management\SalesService\obj\Debug\net8.0\SalesService.genruntimeconfig.cache
 D:\gitclone\ev-dealer-management\ev-dealer-management\SalesService\obj\Debug\net8.0\ref\SalesService.dll
 d:\gitclone\ev-dealer-management\ev-dealer-management\SalesService\bin\Debug\net8.0\RabbitMQ.Client.dll
+<<<<<<< HEAD
 C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\SalesService\obj\Debug\net8.0\SalesService.csproj.AssemblyReference.cache
 C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\SalesService\obj\Debug\net8.0\SalesService.GeneratedMSBuildEditorConfig.editorconfig
 C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\SalesService\obj\Debug\net8.0\SalesService.AssemblyInfoInputs.cache
@@ -200,3 +201,6 @@ C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\SalesService\obj
 C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\SalesService\obj\Debug\net8.0\SalesSer.E8774783.Up2Date
 C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\SalesService\obj\Debug\net8.0\SalesService.genruntimeconfig.cache
 C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\SalesService\obj\Debug\net8.0\ref\SalesService.dll
+=======
+D:\Nam_3\ev-dealer-management\ev-dealer-management\SalesService\bin\Debug\net8.0\RabbitMQ.Client.dll
+>>>>>>> cbe64c56a5e561b432393d9ee6c4eac729f9aaf1

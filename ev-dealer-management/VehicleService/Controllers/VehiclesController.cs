@@ -143,12 +143,23 @@ public class VehiclesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteVehicle(int id)
     {
-        var deleted = await _vehicleService.DeleteVehicleAsync(id);
-        if (!deleted)
+        try
         {
-            return NotFound(new { message = "Vehicle not found" });
+            var deleted = await _vehicleService.DeleteVehicleAsync(id);
+            if (!deleted)
+            {
+                return NotFound(new { message = "Vehicle not found" });
+            }
+            return NoContent();
         }
-        return NoContent();
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = "Failed to delete vehicle: " + ex.Message });
+        }
     }
 
     [HttpPost("{id}/reserve")]

@@ -3344,11 +3344,16 @@
     ]
   },
   "packageFolders": {
+<<<<<<< HEAD
     "C:\\Users\\ASUS\\.nuget\\packages\\": {}
+=======
+    "C:\\Users\\Admin\\.nuget\\packages\\": {}
+>>>>>>> cbe64c56a5e561b432393d9ee6c4eac729f9aaf1
   },
   "project": {
     "version": "1.0.0",
     "restore": {
+<<<<<<< HEAD
       "projectUniqueName": "C:\\Code\\XD\\project_XD\\ev-dealer-management\\ev-dealer-management\\CustomerService\\CustomerService.csproj",
       "projectName": "CustomerService",
       "projectPath": "C:\\Code\\XD\\project_XD\\ev-dealer-management\\ev-dealer-management\\CustomerService\\CustomerService.csproj",
@@ -3358,6 +3363,16 @@
       "configFilePaths": [
         "C:\\Users\\ASUS\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+=======
+      "projectUniqueName": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\CustomerService\\CustomerService.csproj",
+      "projectName": "CustomerService",
+      "projectPath": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\CustomerService\\CustomerService.csproj",
+      "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+      "outputPath": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\CustomerService\\obj\\",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
+>>>>>>> cbe64c56a5e561b432393d9ee6c4eac729f9aaf1
       ],
       "originalTargetFrameworks": [
         "net8.0"

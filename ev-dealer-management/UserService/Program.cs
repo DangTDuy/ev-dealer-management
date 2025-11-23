@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
 using MailKit.Security;
+using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,6 +62,8 @@ builder.Services.AddAuthentication(options =>
 // Add minimal services
 builder.Services.AddScoped<IUserService, UserServiceImpl>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddLogging();
+
 
 var app = builder.Build();
 
@@ -191,7 +194,7 @@ app.MapGet("/api/dealers", async (UserDbContext db) =>
 app.Run();
 
 // DTOs and minimal implementations
-public record RegisterRequest(string Username, string Email, string FullName, string Password, int? DealerId, string Role = "DealerStaff");
+public record RegisterRequest(string Username, string Email, string FullName, string Password, string Role, int? DealerId);
 public record LoginRequest(string Username, string Password);
 public record ForgotPasswordRequest([property: JsonPropertyName("email")] string Email);
 public record ResetPasswordRequest([property: JsonPropertyName("token")] string Token, [property: JsonPropertyName("newPassword")] string NewPassword);
@@ -299,8 +302,14 @@ public class UserServiceImpl : IUserService
     public async Task<AuthResult> RegisterAsync(RegisterRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password) ||
-            string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.FullName))
+            string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.FullName) || string.IsNullOrWhiteSpace(request.Role))
             return new AuthResult(false, "All fields are required");
+
+        var validRoles = new[] { "DealerStaff", "DealerManager", "EVMStaff" };
+        if (!validRoles.Contains(request.Role, StringComparer.OrdinalIgnoreCase))
+        {
+            return new AuthResult(false, "Invalid role selected.");
+        }
 
         if (await _db.Users.AnyAsync(u => u.Username == request.Username))
             return new AuthResult(false, "Username already exists");

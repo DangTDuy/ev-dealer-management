@@ -16,6 +16,10 @@ import {
   InputAdornment,
   IconButton,
   LinearProgress,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
 } from '@mui/material'
 import {
   Visibility,
@@ -26,6 +30,7 @@ import {
   Lock,
   CheckCircle,
   Store,
+  Work,
 } from '@mui/icons-material'
 import authService from '../../services/authService'
 // Removed dealerService import as it's no longer needed for fetching dealers
@@ -47,6 +52,7 @@ const Register = () => {
     password: '',
     confirmPassword: '',
     dealerId: '', // Changed to a simple text input
+    role: '',
   })
 
   // UI state
@@ -117,6 +123,10 @@ const Register = () => {
       newErrors.dealerId = 'ID Đại lý phải là một con số'
     }
 
+    if (!validateRequired(formData.role)) {
+      newErrors.role = 'Vui lòng chọn chức vụ'
+    }
+
     if (!validateRequired(formData.password)) {
       newErrors.password = 'Vui lòng nhập mật khẩu'
     } else if (!validatePassword(formData.password)) {
@@ -153,6 +163,7 @@ const Register = () => {
         fullName: formData.name,
         password: formData.password,
         dealerId: parseInt(formData.dealerId, 10), // Ensure dealerId is sent as a number
+        role: formData.role,
       })
 
       setSuccess(true)
@@ -283,6 +294,29 @@ const Register = () => {
           ),
         }}
       />
+
+      <FormControl fullWidth margin="dense" size="small" error={!!errors.role}>
+        <InputLabel id="role-select-label">Chức vụ</InputLabel>
+        <Select
+          labelId="role-select-label"
+          id="role-select"
+          name="role"
+          value={formData.role}
+          label="Chức vụ"
+          onChange={handleChange}
+          disabled={loading}
+          startAdornment={(
+            <InputAdornment position="start">
+              <Work color="action" />
+            </InputAdornment>
+          )}
+        >
+          <MenuItem value={"Dealer Staff"}>Dealer Staff</MenuItem>
+          <MenuItem value={"Dealer Manager"}>Dealer Manager</MenuItem>
+          <MenuItem value={"EVM Staff"}>EVM Staff</MenuItem>
+        </Select>
+        {errors.role && <Typography variant="caption" color="error" sx={{ ml: 2 }}>{errors.role}</Typography>}
+      </FormControl>
 
       <TextField
         fullWidth

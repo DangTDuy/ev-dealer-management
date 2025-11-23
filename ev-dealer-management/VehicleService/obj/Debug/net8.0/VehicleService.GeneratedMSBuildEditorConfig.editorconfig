@@ -9,11 +9,19 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = VehicleService
 build_property.RootNamespace = VehicleService
+<<<<<<< HEAD
 build_property.ProjectDir = C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\VehicleService\
+=======
+build_property.ProjectDir = D:\Nam_3\ev-dealer-management\ev-dealer-management\VehicleService\
+>>>>>>> cbe64c56a5e561b432393d9ee6c4eac729f9aaf1
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 8.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+<<<<<<< HEAD
 build_property.MSBuildProjectDirectory = C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\VehicleService
+=======
+build_property.MSBuildProjectDirectory = D:\Nam_3\ev-dealer-management\ev-dealer-management\VehicleService
+>>>>>>> cbe64c56a5e561b432393d9ee6c4eac729f9aaf1
 build_property._RazorSourceGeneratorDebug = 
