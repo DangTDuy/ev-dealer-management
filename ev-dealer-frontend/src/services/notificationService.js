@@ -2,6 +2,83 @@ import api from './api'
 import { mockNotifications, mockNotificationStats } from '../data/mockNotifications'
 
 class NotificationService {
+  // ============ NotificationService Backend API Methods ============
+  
+  // Test send email
+  async sendTestEmail(to, subject, htmlContent) {
+    try {
+      const response = await api.post('/notifications/test-email', {
+        to,
+        subject,
+        htmlContent
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error sending test email:', error)
+      throw error
+    }
+  }
+
+  // Send order confirmation email
+  async sendOrderConfirmation(orderData) {
+    try {
+      const response = await api.post('/notifications/order-confirmation', orderData)
+      return response.data
+    } catch (error) {
+      console.error('Error sending order confirmation:', error)
+      throw error
+    }
+  }
+
+  // Send reservation confirmation SMS
+  async sendReservationConfirmation(reservationData) {
+    try {
+      const response = await api.post('/notifications/reservation-confirmation', reservationData)
+      return response.data
+    } catch (error) {
+      console.error('Error sending reservation confirmation:', error)
+      throw error
+    }
+  }
+
+  // Send test drive confirmation email
+  async sendTestDriveConfirmation(testDriveData) {
+    try {
+      const response = await api.post('/notifications/test-drive-confirmation', testDriveData)
+      return response.data
+    } catch (error) {
+      console.error('Error sending test drive confirmation:', error)
+      throw error
+    }
+  }
+
+  // Test send SMS
+  async sendTestSms(phoneNumber, message) {
+    try {
+      const response = await api.post('/notifications/test-sms', {
+        phoneNumber,
+        message
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error sending test SMS:', error)
+      throw error
+    }
+  }
+
+  // Check NotificationService health
+  async checkHealth() {
+    try {
+      const response = await api.get('/notifications/health')
+      return response.data
+    } catch (error) {
+      console.error('Error checking notification service health:', error)
+      throw error
+    }
+  }
+
+  // ============ Legacy Notification UI Methods ============
+  
   // Get all notifications
   async getNotifications() {
     try {

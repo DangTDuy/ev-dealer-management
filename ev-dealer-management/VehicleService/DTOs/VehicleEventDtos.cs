@@ -38,7 +38,15 @@ namespace VehicleService.DTOs
         public decimal TotalPrice { get; set; }
         public int? ColorVariantId { get; set; }
         public string? ColorVariantName { get; set; }
-        public int DealerId { get; set; }  // Thêm DealerId để tạo customer
+        public int DealerId { get; set; }
         public DateTime CreatedAt { get; set; }
+        
+        // Alias properties for NotificationService compatibility (camelCase JSON)
+        public string reservationId => ReservationId.ToString();
+        public string customerPhone => CustomerPhone;
+        public string customerName => CustomerName;
+        public string vehicleModel => VehicleModel;
+        public string colorName => ColorVariantName ?? "Standard";
+        public DateTime reservedAt => CreatedAt;
     }
 }

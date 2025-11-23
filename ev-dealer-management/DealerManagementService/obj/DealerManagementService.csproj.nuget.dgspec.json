@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\DealerManagementService\\DealerManagementService.csproj": {}
+    "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\DealerManagementService\\DealerManagementService.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\DealerManagementService\\DealerManagementService.csproj": {
+    "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\DealerManagementService\\DealerManagementService.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\DealerManagementService\\DealerManagementService.csproj",
+        "projectUniqueName": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\DealerManagementService\\DealerManagementService.csproj",
         "projectName": "DealerManagementService",
-        "projectPath": "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\DealerManagementService\\DealerManagementService.csproj",
-        "packagesPath": "C:\\Users\\Lenovo\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\DealerManagementService\\obj\\",
+        "projectPath": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\DealerManagementService\\DealerManagementService.csproj",
+        "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+        "outputPath": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\DealerManagementService\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"

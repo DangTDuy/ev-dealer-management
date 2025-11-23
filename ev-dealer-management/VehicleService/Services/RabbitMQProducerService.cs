@@ -33,9 +33,6 @@ namespace VehicleService.Services
                 _connection = factory.CreateConnection();
                 _channel = _connection.CreateModel();
 
-                // Declare exchange for vehicle events
-                _channel.ExchangeDeclare(exchange: "vehicle_events", type: ExchangeType.Topic, durable: true);
-
                 _logger.LogInformation("RabbitMQ producer connection and channel initialized successfully.");
             }
             catch (Exception ex)
@@ -62,27 +59,39 @@ namespace VehicleService.Services
                 var messageString = JsonSerializer.Serialize(message);
                 var body = Encoding.UTF8.GetBytes(messageString);
 
-                // Use specific routing key based on message type
-                var finalRoutingKey = routingKey;
-                if (string.IsNullOrEmpty(routingKey))
+                // Determine queue name based on routing key or message type
+                var queueName = routingKey;
+                if (string.IsNullOrEmpty(queueName))
                 {
-                    finalRoutingKey = typeof(T).Name switch
+                    queueName = typeof(T).Name switch
                     {
                         "VehicleCreatedEvent" => "vehicle.created",
                         "VehicleUpdatedEvent" => "vehicle.updated", 
                         "VehicleDeletedEvent" => "vehicle.deleted",
                         "VehicleReservedEvent" => "vehicle.reserved",
-                        _ => "vehicle.unknown"
+                        _ => "vehicle.events"
                     };
                 }
 
-                _channel.BasicPublish(exchange: "vehicle_events",
-                                    routingKey: finalRoutingKey,
-                                    basicProperties: null,
-                                    body: body);
+                // Declare queue if not exists (idempotent)
+                _channel.QueueDeclare(
+                    queue: queueName,
+                    durable: true,
+                    exclusive: false,
+                    autoDelete: false,
+                    arguments: null
+                );
 
-                _logger.LogInformation("Published message of type {MessageType} to exchange 'vehicle_events' with routing key '{RoutingKey}'", 
-                    typeof(T).Name, finalRoutingKey);
+                // Publish directly to queue (empty exchange = default exchange)
+                _channel.BasicPublish(
+                    exchange: "",
+                    routingKey: queueName,
+                    basicProperties: null,
+                    body: body
+                );
+
+                _logger.LogInformation("Published message of type {MessageType} to queue '{QueueName}'", 
+                    typeof(T).Name, queueName);
             }
             catch (Exception ex)
             {

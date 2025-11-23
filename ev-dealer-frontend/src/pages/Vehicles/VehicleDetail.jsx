@@ -69,6 +69,7 @@ import {
 
 import vehicleService from '../../services/vehicleService'
 import resolveImagePath from '../../utils/imageUtils'
+import NotificationToast from '../../components/Notification/NotificationToast'
 
 const VehicleDetail = () => {
   const { id } = useParams()
@@ -97,6 +98,21 @@ const VehicleDetail = () => {
   })
   const [reservationSuccess, setReservationSuccess] = useState(false)
   const [reservationResult, setReservationResult] = useState(null)
+
+  // Notification state
+  const [notification, setNotification] = useState({
+    open: false,
+    message: '',
+    severity: 'success' // success, error, warning, info
+  })
+
+  const showNotification = (message, severity = 'success') => {
+    setNotification({ open: true, message, severity })
+  }
+
+  const closeNotification = () => {
+    setNotification({ ...notification, open: false })
+  }
 
   const generatePlaceholderDataUrl = (text, width = 1200, height = 700) => {
     const bg = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
@@ -217,10 +233,21 @@ const VehicleDetail = () => {
       setReservationResult(result)
       setReservationSuccess(true)
       setReservationDialogOpen(false)
+      
+      // 🎉 Hiện thông báo thành công
+      showNotification(
+        `✅ Đặt xe thành công! Mã đặt chỗ: ${result.id}. SMS xác nhận đã được gửi đến ${reservationData.customerPhone}`,
+        'success'
+      )
+      
       // Reload vehicle data to update stock
       await loadVehicle()
     } catch (err) {
-      setError(err.message || 'Failed to create reservation')
+      // ❌ Hiện thông báo lỗi
+      showNotification(
+        `❌ Đặt xe thất bại: ${err.message || 'Vui lòng thử lại sau'}`,
+        'error'
+      )
       console.error('Error creating reservation:', err)
     } finally {
       setReservationLoading(false)
@@ -1588,6 +1615,16 @@ const VehicleDetail = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* 🔔 Notification Toast */}
+      <NotificationToast
+        open={notification.open}
+        message={notification.message}
+        severity={notification.severity}
+        onClose={closeNotification}
+        autoHideDuration={6000}
+        position={{ vertical: 'top', horizontal: 'right' }}
+      />
     </Box>
   )
 }
