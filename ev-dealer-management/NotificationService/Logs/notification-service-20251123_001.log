@@ -1,0 +1,202 @@
+2025-11-23 00:09:01.353 +07:00 [INF] Starting NotificationService...
+2025-11-23 00:09:01.672 +07:00 [INF] NotificationService started successfully on http://localhost:5051
+2025-11-23 00:09:01.838 +07:00 [INF] RabbitMQ consumer connection and channels initialized successfully.
+2025-11-23 00:09:01.853 +07:00 [INF] RabbitMQ Consumer Hosted Service running.
+2025-11-23 00:09:01.859 +07:00 [INF] Started consuming from queue: sales.completed
+2025-11-23 00:09:01.862 +07:00 [INF] Started consuming from queue: vehicle.reserved
+2025-11-23 00:09:01.866 +07:00 [INF] Started consuming from queue: testdrive.scheduled
+2025-11-23 00:09:01.866 +07:00 [INF] Started consuming messages from all queues.
+2025-11-23 00:09:01.951 +07:00 [ERR] Hosting failed to start
+System.IO.IOException: Failed to bind to address http://127.0.0.1:5051: address already in use.
+ ---> Microsoft.AspNetCore.Connections.AddressInUseException: Only one usage of each socket address (protocol/network address/port) is normally permitted.
+ ---> System.Net.Sockets.SocketException (10048): Only one usage of each socket address (protocol/network address/port) is normally permitted.
+   at System.Net.Sockets.Socket.UpdateStatusAfterSocketErrorAndThrowException(SocketError error, Boolean disconnectOnFailure, String callerName)
+   at System.Net.Sockets.Socket.DoBind(EndPoint endPointSnapshot, SocketAddress socketAddress)
+   at System.Net.Sockets.Socket.Bind(EndPoint localEP)
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketTransportOptions.CreateDefaultBoundListenSocket(EndPoint endpoint)
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketConnectionListener.Bind()
+   --- End of inner exception stack trace ---
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketConnectionListener.Bind()
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketTransportFactory.BindAsync(EndPoint endpoint, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.TransportManager.BindAsync(EndPoint endPoint, ConnectionDelegate connectionDelegate, EndpointConfig endpointConfig, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.<>c__DisplayClass28_0`1.<<StartAsync>g__OnBind|0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.LocalhostListenOptions.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.AddressesStrategy.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindAsync(ListenOptions[] listenOptions, AddressBindContext context, Func`2 useHttps, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.BindAsync(CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.StartAsync[TContext](IHttpApplication`1 application, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Hosting.GenericWebHostService.StartAsync(CancellationToken cancellationToken)
+   at Microsoft.Extensions.Hosting.Internal.Host.<StartAsync>b__15_1(IHostedService service, CancellationToken token)
+   at Microsoft.Extensions.Hosting.Internal.Host.ForeachService[T](IEnumerable`1 services, CancellationToken token, Boolean concurrent, Boolean abortOnFirstException, List`1 exceptions, Func`3 operation)
+2025-11-23 00:09:02.027 +07:00 [INF] RabbitMQ consumer connection closed.
+2025-11-23 00:09:02.030 +07:00 [FTL] NotificationService failed to start
+System.IO.IOException: Failed to bind to address http://127.0.0.1:5051: address already in use.
+ ---> Microsoft.AspNetCore.Connections.AddressInUseException: Only one usage of each socket address (protocol/network address/port) is normally permitted.
+ ---> System.Net.Sockets.SocketException (10048): Only one usage of each socket address (protocol/network address/port) is normally permitted.
+   at System.Net.Sockets.Socket.UpdateStatusAfterSocketErrorAndThrowException(SocketError error, Boolean disconnectOnFailure, String callerName)
+   at System.Net.Sockets.Socket.DoBind(EndPoint endPointSnapshot, SocketAddress socketAddress)
+   at System.Net.Sockets.Socket.Bind(EndPoint localEP)
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketTransportOptions.CreateDefaultBoundListenSocket(EndPoint endpoint)
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketConnectionListener.Bind()
+   --- End of inner exception stack trace ---
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketConnectionListener.Bind()
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketTransportFactory.BindAsync(EndPoint endpoint, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.TransportManager.BindAsync(EndPoint endPoint, ConnectionDelegate connectionDelegate, EndpointConfig endpointConfig, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.<>c__DisplayClass28_0`1.<<StartAsync>g__OnBind|0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.LocalhostListenOptions.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.AddressesStrategy.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindAsync(ListenOptions[] listenOptions, AddressBindContext context, Func`2 useHttps, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.BindAsync(CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.StartAsync[TContext](IHttpApplication`1 application, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Hosting.GenericWebHostService.StartAsync(CancellationToken cancellationToken)
+   at Microsoft.Extensions.Hosting.Internal.Host.<StartAsync>b__15_1(IHostedService service, CancellationToken token)
+   at Microsoft.Extensions.Hosting.Internal.Host.ForeachService[T](IEnumerable`1 services, CancellationToken token, Boolean concurrent, Boolean abortOnFirstException, List`1 exceptions, Func`3 operation)
+   at Microsoft.Extensions.Hosting.Internal.Host.StartAsync(CancellationToken cancellationToken)
+   at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
+   at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
+   at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.Run(IHost host)
+   at Program.<Main>$(String[] args) in D:\Nam_3\ev-dealer-management\ev-dealer-management\NotificationService\Program.cs:line 64
+2025-11-23 00:10:53.194 +07:00 [INF] Starting NotificationService...
+2025-11-23 00:10:53.433 +07:00 [INF] NotificationService started successfully on http://localhost:5051
+2025-11-23 00:10:53.593 +07:00 [INF] RabbitMQ consumer connection and channels initialized successfully.
+2025-11-23 00:10:53.606 +07:00 [INF] RabbitMQ Consumer Hosted Service running.
+2025-11-23 00:10:53.614 +07:00 [INF] Started consuming from queue: sales.completed
+2025-11-23 00:10:53.617 +07:00 [INF] Started consuming from queue: vehicle.reserved
+2025-11-23 00:10:53.618 +07:00 [INF] Started consuming from queue: testdrive.scheduled
+2025-11-23 00:10:53.619 +07:00 [INF] Started consuming messages from all queues.
+2025-11-23 00:11:17.575 +07:00 [INF] RabbitMQ Consumer Hosted Service is stopping.
+2025-11-23 00:11:17.575 +07:00 [INF] Stopping RabbitMQ consumer.
+2025-11-23 00:11:17.588 +07:00 [INF] RabbitMQ consumer connection closed.
+2025-11-23 00:11:17.593 +07:00 [FTL] NotificationService failed to start
+System.Threading.Channels.ChannelClosedException: The channel has been closed.
+   at System.Threading.Channels.ChannelWriter`1.Complete(Exception error)
+   at RabbitMQ.Client.Framing.Impl.AutorecoveringConnection.StopRecoveryLoop()
+   at RabbitMQ.Client.Framing.Impl.AutorecoveringConnection.Close()
+   at NotificationService.Services.RabbitMQConsumerService.Dispose() in D:\Nam_3\ev-dealer-management\ev-dealer-management\NotificationService\Services\RabbitMQConsumerService.cs:line 192
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.ServiceProviderEngineScope.DisposeAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.Extensions.Hosting.Internal.Host.<DisposeAsync>g__DisposeAsync|21_0(Object o)
+   at Microsoft.Extensions.Hosting.Internal.Host.DisposeAsync()
+   at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
+   at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.Run(IHost host)
+   at Program.<Main>$(String[] args) in D:\Nam_3\ev-dealer-management\ev-dealer-management\NotificationService\Program.cs:line 64
+2025-11-23 00:11:45.060 +07:00 [INF] Starting NotificationService...
+2025-11-23 00:11:45.523 +07:00 [INF] NotificationService started successfully on http://localhost:5051
+2025-11-23 00:11:45.979 +07:00 [INF] RabbitMQ consumer connection and channels initialized successfully.
+2025-11-23 00:11:45.991 +07:00 [INF] RabbitMQ Consumer Hosted Service running.
+2025-11-23 00:11:46.019 +07:00 [INF] Started consuming from queue: sales.completed
+2025-11-23 00:11:46.021 +07:00 [INF] Started consuming from queue: vehicle.reserved
+2025-11-23 00:11:46.023 +07:00 [INF] Started consuming from queue: testdrive.scheduled
+2025-11-23 00:11:46.023 +07:00 [INF] Started consuming messages from all queues.
+2025-11-23 00:11:55.730 +07:00 [WRN] Failed to determine the https port for redirect.
+2025-11-23 00:13:06.495 +07:00 [INF] Starting NotificationService...
+2025-11-23 00:13:06.738 +07:00 [INF] NotificationService started successfully on http://localhost:5051
+2025-11-23 00:13:06.854 +07:00 [INF] RabbitMQ consumer connection and channels initialized successfully.
+2025-11-23 00:13:06.865 +07:00 [INF] RabbitMQ Consumer Hosted Service running.
+2025-11-23 00:13:06.873 +07:00 [INF] Started consuming from queue: sales.completed
+2025-11-23 00:13:06.875 +07:00 [INF] Started consuming from queue: vehicle.reserved
+2025-11-23 00:13:06.877 +07:00 [INF] Started consuming from queue: testdrive.scheduled
+2025-11-23 00:13:06.877 +07:00 [INF] Started consuming messages from all queues.
+2025-11-23 00:14:39.871 +07:00 [INF] Received TestDriveScheduled message: {"CustomerEmail":"huynhdang1872005@gmail.com","CustomerName":"Hu\u1EF3nh Nguy\u1EC5n \u0110\u0103ng","VehicleModel":"Vehicle #2","ScheduledDate":"2025-11-13T03:00:00Z"}
+2025-11-23 00:25:38.531 +07:00 [INF] Starting NotificationService...
+2025-11-23 00:25:38.846 +07:00 [INF] NotificationService started successfully on http://localhost:5051
+2025-11-23 00:25:38.974 +07:00 [INF] RabbitMQ consumer connection and channels initialized successfully.
+2025-11-23 00:25:38.986 +07:00 [INF] RabbitMQ Consumer Hosted Service running.
+2025-11-23 00:25:38.991 +07:00 [INF] Started consuming from queue: sales.completed
+2025-11-23 00:25:38.993 +07:00 [INF] Started consuming from queue: vehicle.reserved
+2025-11-23 00:25:38.996 +07:00 [INF] Started consuming from queue: testdrive.scheduled
+2025-11-23 00:25:38.997 +07:00 [INF] Started consuming messages from all queues.
+2025-11-23 00:27:23.647 +07:00 [INF] RabbitMQ Consumer Hosted Service is stopping.
+2025-11-23 00:27:23.648 +07:00 [INF] Stopping RabbitMQ consumer.
+2025-11-23 00:27:23.675 +07:00 [INF] RabbitMQ consumer connection closed.
+2025-11-23 00:27:23.683 +07:00 [FTL] NotificationService failed to start
+System.Threading.Channels.ChannelClosedException: The channel has been closed.
+   at System.Threading.Channels.ChannelWriter`1.Complete(Exception error)
+   at RabbitMQ.Client.Framing.Impl.AutorecoveringConnection.StopRecoveryLoop()
+   at RabbitMQ.Client.Framing.Impl.AutorecoveringConnection.Close()
+   at NotificationService.Services.RabbitMQConsumerService.Dispose() in D:\Nam_3\ev-dealer-management\ev-dealer-management\NotificationService\Services\RabbitMQConsumerService.cs:line 217
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.ServiceProviderEngineScope.DisposeAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.Extensions.Hosting.Internal.Host.<DisposeAsync>g__DisposeAsync|21_0(Object o)
+   at Microsoft.Extensions.Hosting.Internal.Host.DisposeAsync()
+   at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
+   at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.Run(IHost host)
+   at Program.<Main>$(String[] args) in D:\Nam_3\ev-dealer-management\ev-dealer-management\NotificationService\Program.cs:line 64
+2025-11-23 00:28:28.275 +07:00 [INF] Starting NotificationService...
+2025-11-23 00:28:28.496 +07:00 [INF] NotificationService started successfully on http://localhost:5051
+2025-11-23 00:28:28.619 +07:00 [INF] RabbitMQ consumer connection and channels initialized successfully.
+2025-11-23 00:28:28.632 +07:00 [INF] RabbitMQ Consumer Hosted Service running.
+2025-11-23 00:28:28.638 +07:00 [INF] Started consuming from queue: sales.completed
+2025-11-23 00:28:28.641 +07:00 [INF] Started consuming from queue: vehicle.reserved
+2025-11-23 00:28:28.643 +07:00 [INF] Started consuming from queue: testdrive.scheduled
+2025-11-23 00:28:28.643 +07:00 [INF] Started consuming messages from all queues.
+2025-11-23 00:29:03.722 +07:00 [INF] Received TestDriveScheduled message: {"CustomerEmail":"huynhdang1872005@gmail.com","CustomerName":"Hu\u1EF3nh Nguy\u1EC5n \u0110\u0103ng","VehicleModel":"Vehicle #1","ScheduledDate":"2025-11-06T06:00:00Z"}
+2025-11-23 00:29:03.823 +07:00 [INF] Processing TestDriveScheduledEvent for customer huynhdang1872005@gmail.com
+2025-11-23 00:29:05.366 +07:00 [INF] Email sent successfully to huynhdang1872005@gmail.com. Subject: Test Drive Confirmation - EV Dealer Management
+2025-11-23 00:29:05.372 +07:00 [INF] Test drive confirmation email sent successfully to huynhdang1872005@gmail.com
+2025-11-23 12:48:05.359 +07:00 [INF] Starting NotificationService...
+2025-11-23 12:48:07.919 +07:00 [INF] NotificationService started successfully on http://localhost:5051
+2025-11-23 12:48:08.317 +07:00 [INF] RabbitMQ consumer connection and channels initialized successfully.
+2025-11-23 12:48:08.340 +07:00 [INF] RabbitMQ Consumer Hosted Service running.
+2025-11-23 12:48:08.373 +07:00 [INF] Started consuming from queue: sales.completed
+2025-11-23 12:48:08.387 +07:00 [INF] Started consuming from queue: vehicle.reserved
+2025-11-23 12:48:08.397 +07:00 [INF] Started consuming from queue: testdrive.scheduled
+2025-11-23 12:48:08.412 +07:00 [INF] Started consuming messages from all queues.
+2025-11-23 14:43:18.635 +07:00 [INF] Starting NotificationService...
+2025-11-23 14:43:19.892 +07:00 [INF] NotificationService started successfully on http://localhost:5051
+2025-11-23 14:43:20.021 +07:00 [INF] RabbitMQ consumer connection and channels initialized successfully.
+2025-11-23 14:43:20.034 +07:00 [INF] RabbitMQ Consumer Hosted Service running.
+2025-11-23 14:43:20.046 +07:00 [INF] Started consuming from queue: sales.completed
+2025-11-23 14:43:20.055 +07:00 [INF] Started consuming from queue: vehicle.reserved
+2025-11-23 14:43:20.062 +07:00 [INF] Started consuming from queue: testdrive.scheduled
+2025-11-23 14:43:20.064 +07:00 [INF] Started consuming messages from all queues.
+2025-11-23 14:46:09.538 +07:00 [INF] Received TestDriveScheduled message: {"CustomerEmail":"huynhdang1872005@gmail.com","CustomerName":"Hu\u1EF3nh Nguy\u1EC5n \u0110\u0103ng","VehicleModel":"Vehicle #1","ScheduledDate":"2025-11-04T03:00:00Z"}
+2025-11-23 14:46:09.625 +07:00 [INF] Processing TestDriveScheduledEvent for customer huynhdang1872005@gmail.com
+2025-11-23 14:46:11.451 +07:00 [INF] Email sent successfully to huynhdang1872005@gmail.com. Subject: Test Drive Confirmation - EV Dealer Management
+2025-11-23 14:46:11.452 +07:00 [INF] Test drive confirmation email sent successfully to huynhdang1872005@gmail.com
+2025-11-23 14:46:20.857 +07:00 [INF] Processing SaleCompletedEvent for Order: ORD-20251123-8F878006
+2025-11-23 14:46:21.337 +07:00 [INF] Email sent successfully to nguyenvana@email.com. Subject: Order Confirmation - EV Dealer Management
+2025-11-23 14:46:21.338 +07:00 [INF] Order confirmation email sent for Order: ORD-20251123-8F878006
+2025-11-23 14:47:55.567 +07:00 [INF] SmsService started in MOCK mode (Gia lap).
+2025-11-23 14:47:57.000 +07:00 [ERR] Error processing VehicleReservedEvent
+System.Text.Json.JsonException: The JSON value could not be converted to System.String. Path: $.ReservationId | LineNumber: 0 | BytePositionInLine: 18.
+ ---> System.InvalidOperationException: Cannot get the value of a token type 'Number' as a string.
+   at System.Text.Json.ThrowHelper.ThrowInvalidOperationException_ExpectedString(JsonTokenType tokenType)
+   at System.Text.Json.Utf8JsonReader.GetString()
+   at System.Text.Json.Serialization.Converters.StringConverter.Read(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options)
+   at System.Text.Json.Serialization.Metadata.JsonPropertyInfo`1.ReadJsonAndSetMember(Object obj, ReadStack& state, Utf8JsonReader& reader)
+   at System.Text.Json.Serialization.Converters.ObjectDefaultConverter`1.OnTryRead(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options, ReadStack& state, T& value)
+   at System.Text.Json.Serialization.JsonConverter`1.TryRead(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options, ReadStack& state, T& value, Boolean& isPopulatedValue)
+   at System.Text.Json.Serialization.JsonConverter`1.ReadCore(Utf8JsonReader& reader, T& value, JsonSerializerOptions options, ReadStack& state)
+   --- End of inner exception stack trace ---
+   at System.Text.Json.ThrowHelper.ReThrowWithPath(ReadStack& state, Utf8JsonReader& reader, Exception ex)
+   at System.Text.Json.Serialization.JsonConverter`1.ReadCore(Utf8JsonReader& reader, T& value, JsonSerializerOptions options, ReadStack& state)
+   at System.Text.Json.Serialization.Metadata.JsonTypeInfo`1.Deserialize(Utf8JsonReader& reader, ReadStack& state)
+   at System.Text.Json.JsonSerializer.ReadFromSpan[TValue](ReadOnlySpan`1 utf8Json, JsonTypeInfo`1 jsonTypeInfo, Nullable`1 actualByteCount)
+   at System.Text.Json.JsonSerializer.ReadFromSpan[TValue](ReadOnlySpan`1 json, JsonTypeInfo`1 jsonTypeInfo)
+   at System.Text.Json.JsonSerializer.Deserialize[TValue](String json, JsonSerializerOptions options)
+   at NotificationService.Consumers.VehicleReservedConsumer.HandleAsync(String message) in D:\Nam_3\ev-dealer-management\ev-dealer-management\NotificationService\Consumers\VehicleReservedConsumer.cs:line 21
+2025-11-23 15:31:30.680 +07:00 [INF] RabbitMQ Consumer Hosted Service is stopping.
+2025-11-23 15:31:30.689 +07:00 [INF] Stopping RabbitMQ consumer.
+2025-11-23 15:31:30.719 +07:00 [INF] RabbitMQ consumer connection closed.
+2025-11-23 15:31:30.755 +07:00 [FTL] NotificationService failed to start
+System.Threading.Channels.ChannelClosedException: The channel has been closed.
+   at System.Threading.Channels.ChannelWriter`1.Complete(Exception error)
+   at RabbitMQ.Client.Framing.Impl.AutorecoveringConnection.StopRecoveryLoop()
+   at RabbitMQ.Client.Framing.Impl.AutorecoveringConnection.Close()
+   at NotificationService.Services.RabbitMQConsumerService.Dispose() in D:\Nam_3\ev-dealer-management\ev-dealer-management\NotificationService\Services\RabbitMQConsumerService.cs:line 217
+   at Microsoft.Extensions.DependencyInjection.ServiceLookup.ServiceProviderEngineScope.DisposeAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.Extensions.Hosting.Internal.Host.<DisposeAsync>g__DisposeAsync|21_0(Object o)
+   at Microsoft.Extensions.Hosting.Internal.Host.DisposeAsync()
+   at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
+   at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.Run(IHost host)
+   at Program.<Main>$(String[] args) in D:\Nam_3\ev-dealer-management\ev-dealer-management\NotificationService\Program.cs:line 64
