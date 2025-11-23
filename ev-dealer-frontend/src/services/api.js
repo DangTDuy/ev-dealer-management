@@ -42,13 +42,16 @@ api.interceptors.response.use(
         window.location.href = "/login";
       }
 
-      return Promise.reject(data.message || "An error occurred");
+      // Keep the error response structure so frontend can access error.response.data.message
+      const errorWithResponse = new Error(data.message || data.Message || "An error occurred");
+      errorWithResponse.response = error.response;
+      return Promise.reject(errorWithResponse);
     } else if (error.request) {
       // Request made but no response
-      return Promise.reject("Network error. Please check your connection.");
+      return Promise.reject(new Error("Network error. Please check your connection."));
     } else {
       // Something else happened
-      return Promise.reject(error.message);
+      return Promise.reject(error);
     }
   },
 );

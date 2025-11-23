@@ -200,3 +200,28 @@ System.Threading.Channels.ChannelClosedException: The channel has been closed.
    at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
    at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.Run(IHost host)
    at Program.<Main>$(String[] args) in D:\Nam_3\ev-dealer-management\ev-dealer-management\NotificationService\Program.cs:line 64
+2025-11-23 16:16:01.413 +07:00 [INF] Starting NotificationService...
+2025-11-23 16:16:03.502 +07:00 [INF] NotificationService started successfully on http://localhost:5051
+2025-11-23 16:16:03.923 +07:00 [INF] RabbitMQ consumer connection and channels initialized successfully.
+2025-11-23 16:16:03.971 +07:00 [INF] RabbitMQ Consumer Hosted Service running.
+2025-11-23 16:16:04.008 +07:00 [INF] Started consuming from queue: sales.completed
+2025-11-23 16:16:04.045 +07:00 [INF] Started consuming from queue: vehicle.reserved
+2025-11-23 16:16:04.086 +07:00 [INF] Started consuming from queue: testdrive.scheduled
+2025-11-23 16:16:04.106 +07:00 [INF] Started consuming messages from all queues.
+2025-11-23 16:17:41.217 +07:00 [INF] Received TestDriveScheduled message: {"CustomerEmail":"huynhdang1872005@gmail.com","CustomerName":"Hu\u1EF3nh Nguy\u1EC5n \u0110\u0103ng","VehicleModel":"Vehicle #2","ScheduledDate":"2025-11-06T04:00:00Z"}
+2025-11-23 16:17:41.540 +07:00 [INF] Processing TestDriveScheduledEvent for customer huynhdang1872005@gmail.com
+2025-11-23 16:17:41.662 +07:00 [ERR] Exception occurred while sending email to huynhdang1872005@gmail.com
+System.ArgumentNullException: Value cannot be null. (Parameter 'apiKey')
+   at SendGrid.SendGridClientOptions.set_ApiKey(String value)
+   at SendGrid.SendGridClient.buildOptions(String apiKey, String host, Dictionary`2 requestHeaders, String version, String urlPath, Boolean httpErrorAsException)
+   at SendGrid.SendGridClient..ctor(String apiKey, String host, Dictionary`2 requestHeaders, String version, String urlPath)
+   at NotificationService.Services.EmailService.SendEmailAsync(String to, String subject, String htmlContent, String plainTextContent) in D:\Nam_3\ev-dealer-management\ev-dealer-management\NotificationService\Services\EmailService.cs:line 24
+2025-11-23 16:17:41.740 +07:00 [ERR] Failed to send test drive confirmation email to huynhdang1872005@gmail.com
+2025-11-23 16:17:48.674 +07:00 [INF] Processing SaleCompletedEvent for Order: ORD-20251123-CA7D032C
+2025-11-23 16:17:48.680 +07:00 [ERR] Exception occurred while sending email to nguyenvana@email.com
+System.ArgumentNullException: Value cannot be null. (Parameter 'apiKey')
+   at SendGrid.SendGridClientOptions.set_ApiKey(String value)
+   at SendGrid.SendGridClient.buildOptions(String apiKey, String host, Dictionary`2 requestHeaders, String version, String urlPath, Boolean httpErrorAsException)
+   at SendGrid.SendGridClient..ctor(String apiKey, String host, Dictionary`2 requestHeaders, String version, String urlPath)
+   at NotificationService.Services.EmailService.SendEmailAsync(String to, String subject, String htmlContent, String plainTextContent) in D:\Nam_3\ev-dealer-management\ev-dealer-management\NotificationService\Services\EmailService.cs:line 24
+2025-11-23 16:17:48.684 +07:00 [ERR] Failed to send order confirmation email for Order: ORD-20251123-CA7D032C

@@ -169,8 +169,13 @@ const vehicleService = {
       }
       return response
     } catch (error) {
-      // Fallback to mock implementation if API fails
-      console.warn('API call failed, using mock implementation:', error.message)
+      // If error has response, it means backend responded with an error (not network issue)
+      if (error.response) {
+        throw error
+      }
+      
+      // Only fallback to mock implementation if it's a network error
+      console.warn('API call failed (network error), using mock implementation:', error.message)
 
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 800))
@@ -219,8 +224,13 @@ const vehicleService = {
       const response = await api.put(`/vehicles/${id}`, form, { headers: { 'Content-Type': 'multipart/form-data' } })
       return response
     } catch (error) {
-      // Fallback to mock implementation if API fails
-      console.warn('API call failed, using mock implementation:', error.message)
+      // If error has response, it means backend responded with an error (not network issue)
+      if (error.response) {
+        throw error
+      }
+      
+      // Only fallback to mock implementation if it's a network error
+      console.warn('API call failed (network error), using mock implementation:', error.message)
 
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 800))
@@ -249,8 +259,14 @@ const vehicleService = {
       const response = await api.delete(`/vehicles/${id}`)
       return response
     } catch (error) {
-      // Fallback to mock implementation if API fails
-      console.warn('API call failed, using mock implementation:', error.message)
+      // If error has response, it means backend responded with an error (not network issue)
+      // In this case, throw the error instead of falling back to mock
+      if (error.response) {
+        throw error
+      }
+
+      // Only fallback to mock implementation if it's a network error
+      console.warn('API call failed (network error), using mock implementation:', error.message)
 
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1200))

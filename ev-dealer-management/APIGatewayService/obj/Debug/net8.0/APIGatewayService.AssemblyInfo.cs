@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("APIGatewayService")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d46fb3fa2c7d1f01c29e10e26676a010a2652c32")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e47dcf5f96fb54f71a17c36703d304bc675a7d10")]
 [assembly: System.Reflection.AssemblyProductAttribute("APIGatewayService")]
 [assembly: System.Reflection.AssemblyTitleAttribute("APIGatewayService")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

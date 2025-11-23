@@ -442,6 +442,13 @@ public class VehicleService : IVehicleService
         var vehicle = await _context.Vehicles.FindAsync(id);
         if (vehicle == null) return false;
 
+        // Check if there are any reservations for this vehicle
+        var hasReservations = await _context.Reservations.AnyAsync(r => r.VehicleId == id);
+        if (hasReservations)
+        {
+            throw new InvalidOperationException("Không thể xóa xe này vì đã có đặt chỗ (reservations). Vui lòng hủy hoặc hoàn thành các đặt chỗ trước.");
+        }
+
         _context.Vehicles.Remove(vehicle);
         await _context.SaveChangesAsync();
 
