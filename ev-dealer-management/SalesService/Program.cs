@@ -1,46 +1,24 @@
-using SalesService.BackgroundServices;
-<<<<<<< HEAD
 using SalesService.Data;
-using SalesService.Messaging;
+// Removed: using SalesService.BackgroundServices; // No longer needed
+// Removed: using SalesService.Services; // No longer needed as IMessageProducer and RabbitMQProducerService are removed
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
-=======
-using SalesService.Services;
->>>>>>> cbe64c56a5e561b432393d9ee6c4eac729f9aaf1
+using QuestPDF.Infrastructure; // Required for LicenseType
 
 var builder = WebApplication.CreateBuilder(args);
 
-// REMOVED: Add CORS services
-// builder.Services.AddCors(options =>
-// {
-//     options.AddPolicy("AllowFrontend",
-//         policy =>
-//         {
-//             policy.WithOrigins("http://localhost:5173") // Allow your frontend origin
-//                   .AllowAnyHeader()
-//                   .AllowAnyMethod()
-//                   .AllowCredentials(); // If you're using cookies/authentication
-//         });
-// });
+// Configure QuestPDF license
+QuestPDF.Settings.License = LicenseType.Community;
 
-// Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// NOTE: older QuestPDF font registration APIs changed in newer versions.
+// The explicit `FontManager.RegisterTag(...)` and `Font.FromFile(...)`
+// calls were removed because they reference APIs not present in the
+// project QuestPDF version. If you need custom fonts, register them
+// using the QuestPDF recommended approach for your package version.
 
-<<<<<<< HEAD
-// Configure DbContext
-builder.Services.AddDbContext<SalesDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
-           .LogTo(Console.WriteLine, LogLevel.Information)
-           .EnableSensitiveDataLogging());
 
-// Register IMessageProducer for RabbitMQ
-builder.Services.AddSingleton<IMessageProducer, RabbitMQProducer>();
-
-=======
 // Add CORS
 builder.Services.AddCors(options =>
 {
@@ -52,12 +30,22 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Register RabbitMQ Producer
-builder.Services.AddSingleton<IMessageProducer, RabbitMQProducerService>();
+// Add services to the container.
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-// Register Background Consumer
->>>>>>> cbe64c56a5e561b432393d9ee6c4eac729f9aaf1
-builder.Services.AddHostedService<SalesEventConsumer>();
+// Configure DbContext
+builder.Services.AddDbContext<SalesDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
+           .LogTo(Console.WriteLine, LogLevel.Information)
+           .EnableSensitiveDataLogging());
+
+// Removed: Register IMessageProducer for RabbitMQ
+// Removed: builder.Services.AddSingleton<SalesService.Services.IMessageProducer, RabbitMQProducerService>();
+
+// Removed: Register Background Consumer
+// Removed: builder.Services.AddHostedService<SalesEventConsumer>();
 
 var app = builder.Build();
 
@@ -93,13 +81,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-<<<<<<< HEAD
-// REMOVED: Use CORS policy
-// app.UseCors("AllowFrontend");
-=======
 // Use CORS
 app.UseCors("AllowFrontend");
->>>>>>> cbe64c56a5e561b432393d9ee6c4eac729f9aaf1
 
 app.MapControllers();
 

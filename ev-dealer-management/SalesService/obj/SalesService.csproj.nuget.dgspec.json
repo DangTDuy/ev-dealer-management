@@ -1,7 +1,6 @@
 {
   "format": 1,
   "restore": {
-<<<<<<< HEAD
     "C:\\Code\\XD\\project_XD\\ev-dealer-management\\ev-dealer-management\\SalesService\\SalesService.csproj": {}
   },
   "projects": {
@@ -17,22 +16,6 @@
         "configFilePaths": [
           "C:\\Users\\ASUS\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
-=======
-    "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\SalesService\\SalesService.csproj": {}
-  },
-  "projects": {
-    "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\SalesService\\SalesService.csproj": {
-      "version": "1.0.0",
-      "restore": {
-        "projectUniqueName": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\SalesService\\SalesService.csproj",
-        "projectName": "SalesService",
-        "projectPath": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\SalesService\\SalesService.csproj",
-        "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
-        "outputPath": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\SalesService\\obj\\",
-        "projectStyle": "PackageReference",
-        "configFilePaths": [
-          "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
->>>>>>> cbe64c56a5e561b432393d9ee6c4eac729f9aaf1
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -79,6 +62,10 @@
             "Microsoft.EntityFrameworkCore.Sqlite": {
               "target": "Package",
               "version": "[8.0.0, )"
+            },
+            "QuestPDF": {
+              "target": "Package",
+              "version": "[2023.12.1, )"
             },
             "RabbitMQ.Client": {
               "target": "Package",

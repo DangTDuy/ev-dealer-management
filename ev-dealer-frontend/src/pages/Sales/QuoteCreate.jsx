@@ -15,16 +15,17 @@ const PlusIcon = () => (
   </svg>
 );
 
-const TrashIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+// Modified TrashIcon to accept color and size props
+const TrashIcon = ({ color = "currentColor", size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
     <polyline points="3 6 5 6 21 6"/>
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 0 0 1 2 2v2"/>
+    <path d="M19 6v14a2 0 0 1-2 2H7a2 0 0 1-2-2V6m3 0V4a2 0 0 1 2-2h4a2 0 0 1 2 2v2"/>
   </svg>
 );
 
 const DownloadIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+    <path d="M21 15v4a2 0 0 1-2 2H5a2 0 0 1-2-2v-4"/>
     <polyline points="7 10 12 15 17 10"/>
     <line x1="12" y1="15" x2="12" y2="3"/>
   </svg>
@@ -41,6 +42,9 @@ export default function QuoteCreate() {
   const [fetchingCustomers, setFetchingCustomers] = useState(true);
   const [customersError, setCustomersError] = useState(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState(''); // State for selected customer ID from dropdown
+  const [customerSearchTerm, setCustomerSearchTerm] = useState(''); // New state for customer search
+
+  // Removed salesPersons state and fetching logic
   
   // Customer info
   const [customerInfo, setCustomerInfo] = useState({
@@ -54,7 +58,7 @@ export default function QuoteCreate() {
   
   // Quote items
   const [quoteItems, setQuoteItems] = useState([
-    { vehicleId: '', vehicleName: '', quantity: 1, unitPrice: 0, discount: 0 }
+    { vehicleId: '', vehicleName: '', quantity: 1, unitPrice: 0, discount: 0, stockQuantity: 0 }
   ]);
   
   // Payment info
@@ -69,7 +73,7 @@ export default function QuoteCreate() {
   const [additionalInfo, setAdditionalInfo] = useState({
     deliveryDate: '',
     notes: '',
-    salesPerson: 'User John Doe',
+    salesPerson: '', // Reverted to text input for sales person name
     validUntil: ''
   });
 
@@ -108,34 +112,43 @@ export default function QuoteCreate() {
     fetchCustomers();
   }, []);
 
+  // Filter customers based on search term
+  const filteredCustomers = customers.filter(customer => 
+    customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
+    customer.phone.includes(customerSearchTerm) ||
+    customer.email.toLowerCase().includes(customerSearchTerm.toLowerCase())
+  );
+
   // Handle customer selection from dropdown
   const handleCustomerSelectChange = (e) => {
-    setSelectedCustomerId(e.target.value);
-    // Clear displayed customer info when selection changes
-    setCustomerInfo({
-      id: '',
-      name: '',
-      phone: '',
-      email: '',
-      address: '',
-      idNumber: ''
-    });
-  };
+    const customerId = e.target.value;
+    setSelectedCustomerId(customerId);
 
-  // Handle "Check Customer" button click
-  const handleCheckCustomer = () => {
-    const customer = customers.find(c => c.id === parseInt(selectedCustomerId));
-    if (customer) {
-      setCustomerInfo({
-        id: customer.id,
-        name: customer.name,
-        phone: customer.phone,
-        email: customer.email,
-        address: customer.address,
-        idNumber: '' // Assuming CustomerDto doesn't have idNumber
-      });
+    if (customerId) {
+      const customer = customers.find(c => c.id === parseInt(customerId));
+      if (customer) {
+        setCustomerInfo({
+          id: customer.id,
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email,
+          address: customer.address,
+          idNumber: '' // Assuming CustomerDto doesn't have idNumber
+        });
+      } else {
+        // Should not happen if customerId is valid and in the list
+        console.warn('Selected customer ID not found in fetched customers:', customerId);
+        setCustomerInfo({
+          id: '',
+          name: '',
+          phone: '',
+          email: '',
+          address: '',
+          idNumber: ''
+        });
+      }
     } else {
-      alert('Không tìm thấy khách hàng với ID đã chọn.');
+      // If "Choose customer" option is selected
       setCustomerInfo({
         id: '',
         name: '',
@@ -150,17 +163,12 @@ export default function QuoteCreate() {
   // Validation form
 const validateForm = () => {
   if (!customerInfo.id) {
-    alert('Vui lòng chọn và kiểm tra thông tin khách hàng.');
+    alert('Vui lòng chọn khách hàng.');
     return false;
   }
   
-  if (!customerInfo.name.trim()) {
-    alert('Thông tin khách hàng chưa được tải hoặc không hợp lệ.');
-    return false;
-  }
-  
-  if (!customerInfo.phone.trim()) {
-    alert('Thông tin khách hàng chưa được tải hoặc không hợp lệ.');
+  if (!additionalInfo.salesPerson.trim()) { // Validate salesPerson text input
+    alert('Vui lòng nhập tên nhân viên bán hàng.');
     return false;
   }
 
@@ -173,8 +181,17 @@ const validateForm = () => {
 
   // Kiểm tra từng xe đã chọn
   for (let item of quoteItems) {
-    if (item.vehicleId && item.quantity < 1) {
+    if (!item.vehicleId) {
+      alert('Vui lòng chọn xe cho tất cả các mục.');
+      return false;
+    }
+    if (item.quantity < 1) {
       alert('Số lượng phải lớn hơn 0.');
+      return false;
+    }
+    const selectedVehicle = vehicles.find(v => v.id === parseInt(item.vehicleId));
+    if (selectedVehicle && item.quantity > selectedVehicle.stockQuantity) {
+      alert(`Số lượng xe "${selectedVehicle.model}" vượt quá số lượng tồn kho (${selectedVehicle.stockQuantity}).`);
       return false;
     }
   }
@@ -232,8 +249,24 @@ const validateForm = () => {
     
     if (monthlyRate === 0) return loanAmount / numPayments;
     
+    // Check for division by zero or invalid inputs
+    if (numPayments === 0 || monthlyRate < 0) return 0; // Or handle as error
+    
     return loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / 
            (Math.pow(1 + monthlyRate, numPayments) - 1);
+  };
+
+  // Calculate total payment for installment
+  const calculateInstallmentTotalPayment = () => {
+    if (paymentInfo.type === 'full') {
+      return calculateTotal();
+    } else {
+      const downPayment = calculateDownPayment();
+      const monthlyPayment = calculateMonthlyPayment();
+      const loanTerm = paymentInfo.loanTerm;
+      // Ensure loanTerm is a number and not zero to avoid NaN
+      return downPayment + (monthlyPayment * (loanTerm > 0 ? loanTerm : 0));
+    }
   };
 
   const addQuoteItem = () => {
@@ -242,7 +275,8 @@ const validateForm = () => {
       vehicleName: '', 
       quantity: 1, 
       unitPrice: 0, 
-      discount: 0 
+      discount: 0,
+      stockQuantity: 0
     }]);
   };
 
@@ -253,7 +287,8 @@ const validateForm = () => {
       vehicleName: '', 
       quantity: 1, 
       unitPrice: 0, 
-      discount: 0 
+      discount: 0,
+      stockQuantity: 0
     }]);
   };
 
@@ -267,6 +302,16 @@ const validateForm = () => {
       if (vehicle) {
         newItems[index].vehicleName = vehicle.model; // Use vehicle.model for name
         newItems[index].unitPrice = vehicle.price;
+        newItems[index].stockQuantity = vehicle.stockQuantity; // Update stock quantity
+        // Reset quantity if it exceeds new stock or is 0
+        if (newItems[index].quantity > vehicle.stockQuantity || newItems[index].quantity === 0) {
+          newItems[index].quantity = vehicle.stockQuantity > 0 ? 1 : 0;
+        }
+      } else {
+        newItems[index].vehicleName = '';
+        newItems[index].unitPrice = 0;
+        newItems[index].stockQuantity = 0;
+        newItems[index].quantity = 0;
       }
     }
     
@@ -294,6 +339,7 @@ const handleGenerateQuote = async () => {
       vehicleId: parseInt(firstQuoteItem.vehicleId),
       quantity: firstQuoteItem.quantity,
       notes: additionalInfo.notes || `Quote for ${customerInfo.name} - ${firstQuoteItem.vehicleName}`,
+      salesPerson: additionalInfo.salesPerson, // Include sales person name from text input
       
       // Include payment details
       paymentType: paymentInfo.type === 'full' ? 'Full' : 'Installment',
@@ -333,12 +379,80 @@ const handleGenerateQuote = async () => {
   }
 };
 
-  const handleDownloadQuote = () => {
-    // Simulate PDF download
-    alert('Đang tải xuống báo giá PDF...');
+  const handleDownloadQuote = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const payload = {
+        customerInfo: {
+          id: customerInfo.id,
+          name: customerInfo.name,
+          phone: customerInfo.phone,
+          email: customerInfo.email,
+          address: customerInfo.address,
+        },
+        quoteItems: quoteItems.map(item => ({
+          vehicleId: parseInt(item.vehicleId),
+          vehicleName: item.vehicleName,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          discount: item.discount,
+          itemTotal: (item.unitPrice * item.quantity) * (1 - item.discount / 100)
+        })),
+        paymentInfo: {
+          type: paymentInfo.type,
+          downPaymentPercent: paymentInfo.downPaymentPercent,
+          loanTerm: paymentInfo.loanTerm,
+          interestRate: paymentInfo.interestRate,
+        },
+        additionalInfo: {
+          deliveryDate: additionalInfo.deliveryDate,
+          notes: additionalInfo.notes,
+          salesPerson: additionalInfo.salesPerson,
+          validUntil: additionalInfo.validUntil,
+        },
+        totalCalculatedAmount: calculateTotal(),
+        downPaymentCalculated: calculateDownPayment(),
+        monthlyPaymentCalculated: calculateMonthlyPayment(),
+        installmentTotalPaymentCalculated: calculateInstallmentTotalPayment(),
+      };
+
+      const response = await axios.post(
+        'http://localhost:5036/api/Sales/generate-quote-pdf',
+        payload,
+        {
+          responseType: 'blob', // Important: responseType must be 'blob' for file downloads
+        }
+      );
+
+      // Create a blob from the response data
+      const file = new Blob([response.data], { type: 'application/pdf' });
+
+      // Create a link element, set its href to the blob, and click it to download
+      const fileURL = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = fileURL;
+      link.setAttribute('download', `BaoGiaXeDien_${new Date().toISOString().slice(0,10)}.pdf`); // Dynamic filename
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(fileURL); // Clean up the URL object
+
+      alert('Đã tạo và tải xuống báo giá PDF thành công!');
+
+    } catch (error) {
+      console.error('Error generating PDF:', error.response ? error.response.data : error.message);
+      alert('Tạo báo giá PDF thất bại. Vui lòng kiểm tra console để biết chi tiết.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (fetchingVehicles || fetchingCustomers) {
+  if (fetchingVehicles || fetchingCustomers) { // Removed fetchingSalesPersons
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <div>Đang tải dữ liệu...</div>
@@ -346,7 +460,7 @@ const handleGenerateQuote = async () => {
     );
   }
 
-  if (vehiclesError || customersError) {
+  if (vehiclesError || customersError) { // Removed salesPersonsError
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'red' }}>
         <div>Lỗi tải dữ liệu: {vehiclesError || customersError}</div>
@@ -463,49 +577,53 @@ const handleGenerateQuote = async () => {
               </h2>
               
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
-                <div style={{ minWidth: 0 }}>
+                <div style={{ minWidth: 0, gridColumn: 'span 2' }}> {/* Make select span 2 columns */}
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
-                    Chọn khách hàng *
+                    Tìm kiếm khách hàng (Tên, SĐT, Email)
                   </label>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <select
-                      value={selectedCustomerId}
-                      onChange={handleCustomerSelectChange}
-                      style={{
-                        flexGrow: 1,
-                        padding: '10px 12px',
-                        border: '1px solid #CBD5E1',
-                        borderRadius: '8px',
-                        fontSize: '14px',
-                        backgroundColor: '#F8FAFC',
-                        height: '40px',
-                        boxSizing: 'border-box'
-                      }}
-                    >
-                      <option value="">-- Chọn khách hàng --</option>
-                      {customers.map(customer => (
-                        <option key={customer.id} value={customer.id}>
-                          {customer.name} ({customer.phone})
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      onClick={handleCheckCustomer}
-                      style={{
-                        padding: '8px 16px',
-                        backgroundColor: '#3B82F6',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        height: '40px'
-                      }}
-                    >
-                      Kiểm tra
-                    </button>
-                  </div>
+                  <input
+                    type="text"
+                    placeholder="Nhập tên, số điện thoại hoặc email..."
+                    value={customerSearchTerm}
+                    onChange={(e) => setCustomerSearchTerm(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      border: '1px solid #CBD5E1',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      backgroundColor: '#F8FAFC',
+                      height: '40px',
+                      boxSizing: 'border-box',
+                      marginBottom: '12px',
+                      color: '#374151'
+                    }}
+                  />
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
+                    Chọn khách hàng <span style={{ color: 'red' }}>*</span>
+                  </label>
+                  <select
+                    value={selectedCustomerId}
+                    onChange={handleCustomerSelectChange}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      border: '1px solid #CBD5E1',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      backgroundColor: '#F8FAFC',
+                      height: '40px',
+                      boxSizing: 'border-box',
+                      color: '#374151' // Ensure text color is visible
+                    }}
+                  >
+                    <option value="">-- Chọn khách hàng --</option>
+                    {filteredCustomers.map(customer => ( // Use filteredCustomers here
+                      <option key={customer.id} value={customer.id}>
+                        {customer.name} ({customer.phone}) - {customer.email}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div style={{ minWidth: 0 }}>
@@ -524,7 +642,8 @@ const handleGenerateQuote = async () => {
                       fontSize: '14px',
                       backgroundColor: '#F1F5F9',
                       height: '40px',
-                      boxSizing: 'border-box'
+                      boxSizing: 'border-box',
+                      color: '#374151' // Ensure text color is visible
                     }}
                   />
                 </div>
@@ -545,7 +664,8 @@ const handleGenerateQuote = async () => {
                       fontSize: '14px',
                       backgroundColor: '#F1F5F9',
                       height: '40px',
-                      boxSizing: 'border-box'
+                      boxSizing: 'border-box',
+                      color: '#374151' // Ensure text color is visible
                     }}
                   />
                 </div>
@@ -566,7 +686,8 @@ const handleGenerateQuote = async () => {
                       fontSize: '14px',
                       backgroundColor: '#F1F5F9',
                       height: '40px',
-                      boxSizing: 'border-box'
+                      boxSizing: 'border-box',
+                      color: '#374151' // Ensure text color is visible
                     }}
                   />
                 </div>
@@ -587,7 +708,8 @@ const handleGenerateQuote = async () => {
                       fontSize: '14px',
                       backgroundColor: '#F1F5F9',
                       height: '40px',
-                      boxSizing: 'border-box'
+                      boxSizing: 'border-box',
+                      color: '#374151' // Ensure text color is visible
                     }}
                   />
                 </div>
@@ -605,7 +727,7 @@ const handleGenerateQuote = async () => {
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#0F172A', margin: 0 }}>
-                  Chi tiết xe
+                  Chi tiết xe <span style={{ color: 'red' }}>*</span>
                 </h2>
                 <button
                   onClick={addQuoteItem}
@@ -657,13 +779,19 @@ const handleGenerateQuote = async () => {
                           fontSize: '14px',
                           backgroundColor: '#F8FAFC',
                           height: '40px',
-                          boxSizing: 'border-box'
+                          boxSizing: 'border-box',
+                          color: '#374151' // Ensure text color is visible
                         }}
                       >
                         <option value="">-- Chọn xe --</option>
                         {vehicles.map(vehicle => (
-                          <option key={vehicle.id} value={vehicle.id}>
-                            {vehicle.model} - {formatCurrency(vehicle.price)}
+                          <option 
+                            key={vehicle.id} 
+                            value={vehicle.id}
+                            disabled={vehicle.stockQuantity === 0} // Disable if stock is 0
+                            style={{ color: vehicle.stockQuantity === 0 ? '#9CA3AF' : '#374151' }} // Gray out if stock is 0
+                          >
+                            {vehicle.model} - {formatCurrency(vehicle.price)} ({vehicle.stockQuantity === 0 ? 'Hết hàng' : `Còn: ${vehicle.stockQuantity}`})
                           </option>
                         ))}
                       </select>
@@ -676,8 +804,10 @@ const handleGenerateQuote = async () => {
                       <input
                         type="number"
                         min="1"
+                        max={item.stockQuantity > 0 ? item.stockQuantity : 1} // Max quantity based on stock
                         value={item.quantity}
                         onChange={(e) => updateQuoteItem(index, 'quantity', parseInt(e.target.value) || 1)}
+                        disabled={!item.vehicleId || item.stockQuantity === 0} // Disable if no vehicle selected or out of stock
                         style={{
                           width: '100%',
                           padding: '10px 12px',
@@ -686,7 +816,8 @@ const handleGenerateQuote = async () => {
                           fontSize: '14px',
                           backgroundColor: '#F8FAFC',
                           height: '40px',
-                          boxSizing: 'border-box'
+                          boxSizing: 'border-box',
+                          color: '#374151' // Ensure text color is visible
                         }}
                       />
                     </div>
@@ -707,7 +838,8 @@ const handleGenerateQuote = async () => {
                           fontSize: '14px',
                           backgroundColor: '#F1F5F9',
                           height: '40px',
-                          boxSizing: 'border-box'
+                          boxSizing: 'border-box',
+                          color: '#374151' // Ensure text color is visible
                         }}
                       />
                     </div>
@@ -730,7 +862,8 @@ const handleGenerateQuote = async () => {
                           fontSize: '14px',
                           backgroundColor: '#F8FAFC',
                           height: '40px',
-                          boxSizing: 'border-box'
+                          boxSizing: 'border-box',
+                          color: '#374151' // Ensure text color is visible
                         }}
                       />
                     </div>
@@ -744,7 +877,6 @@ const handleGenerateQuote = async () => {
                         border: 'none',
                         borderRadius: '8px',
                         cursor: quoteItems.length === 1 ? 'not-allowed' : 'pointer',
-                        color: quoteItems.length === 1 ? '#94A3B8' : '#DC2626',
                         height: '40px',
                         width: '40px',
                         display: 'flex',
@@ -752,7 +884,8 @@ const handleGenerateQuote = async () => {
                         justifyContent: 'center'
                       }}
                     >
-                      <TrashIcon />
+                      {/* Pass color directly to TrashIcon */}
+                      <TrashIcon color={quoteItems.length === 1 ? '#94A3B8' : '#DC2626'} size={20} />
                     </button>
                   </div>
                   
@@ -831,7 +964,8 @@ const handleGenerateQuote = async () => {
                         fontSize: '14px',
                         backgroundColor: '#F8FAFC',
                         height: '40px',
-                        boxSizing: 'border-box'
+                        boxSizing: 'border-box',
+                        color: '#374151' // Ensure text color is visible
                       }}
                     />
                   </div>
@@ -851,7 +985,8 @@ const handleGenerateQuote = async () => {
                         fontSize: '14px',
                         backgroundColor: '#F8FAFC',
                         height: '40px',
-                        boxSizing: 'border-box'
+                        boxSizing: 'border-box',
+                        color: '#374151' // Ensure text color is visible
                       }}
                     >
                       <option value={6}>6 tháng</option>
@@ -880,7 +1015,8 @@ const handleGenerateQuote = async () => {
                         fontSize: '14px',
                         backgroundColor: '#F8FAFC',
                         height: '40px',
-                        boxSizing: 'border-box'
+                        boxSizing: 'border-box',
+                        color: '#374151' // Ensure text color is visible
                       }}
                     />
                   </div>
@@ -906,7 +1042,7 @@ const handleGenerateQuote = async () => {
               
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
-                  Nhân viên bán hàng
+                  Nhân viên bán hàng <span style={{ color: 'red' }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -920,8 +1056,10 @@ const handleGenerateQuote = async () => {
                     fontSize: '14px',
                     backgroundColor: '#F8FAFC',
                     height: '40px',
-                    boxSizing: 'border-box'
+                    boxSizing: 'border-box',
+                    color: '#374151' // Ensure text color is visible
                   }}
+                  placeholder="Nhập tên nhân viên bán hàng"
                 />
               </div>
               
@@ -941,7 +1079,8 @@ const handleGenerateQuote = async () => {
                     fontSize: '14px',
                     backgroundColor: '#F8FAFC',
                     height: '40px',
-                    boxSizing: 'border-box'
+                    boxSizing: 'border-box',
+                    color: '#374151' // Ensure text color is visible
                   }}
                 />
               </div>
@@ -962,7 +1101,8 @@ const handleGenerateQuote = async () => {
                     fontSize: '14px',
                     backgroundColor: '#F8FAFC',
                     height: '40px',
-                    boxSizing: 'border-box'
+                    boxSizing: 'border-box',
+                    color: '#374151' // Ensure text color is visible
                   }}
                 />
               </div>
@@ -984,7 +1124,8 @@ const handleGenerateQuote = async () => {
                     backgroundColor: '#F8FAFC',
                     resize: 'vertical',
                     boxSizing: 'border-box',
-                    minHeight: '80px'
+                    minHeight: '80px',
+                    color: '#374151' // Ensure text color is visible
                   }}
                   placeholder="Thêm ghi chú cho báo giá..."
                 />
@@ -1036,7 +1177,7 @@ const handleGenerateQuote = async () => {
               }}>
                 <span style={{ fontSize: '16px', fontWeight: '600', color: '#0F172A' }}>Tổng thanh toán:</span>
                 <span style={{ fontSize: '20px', fontWeight: '700', color: '#3B82F6' }}>
-                  {formatCurrency(calculateTotal())}
+                  {formatCurrency(calculateInstallmentTotalPayment())}
                 </span>
               </div>
             </div>
@@ -1052,6 +1193,7 @@ const handleGenerateQuote = async () => {
           box-sizing: border-box !important;
           min-width: 100% !important;
           max-width: 100% !important;
+          color: #374151; /* Ensure text color is visible */
         }
         
         select {
@@ -1065,6 +1207,7 @@ const handleGenerateQuote = async () => {
           box-sizing: border-box !important;
           min-width: 100% !important;
           max-width: 100% !important;
+          color: #374151; /* Ensure text color is visible */
         }
         
         /* Cải thiện hiển thị options trong select */

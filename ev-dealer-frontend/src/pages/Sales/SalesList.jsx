@@ -509,12 +509,7 @@ export default function SalesDashboard() {
               tableLayout: 'fixed'
             }}>
               <colgroup>
-                <col style={{ width: '15%' }} /> {/* Mã đơn hàng */}
-                <col style={{ width: '20%' }} /> {/* Khách hàng ID */}
-                <col style={{ width: '20%' }} /> {/* Xe điện ID */}
-                <col style={{ width: '15%' }} /> {/* Tổng tiền */}
-                <col style={{ width: '15%' }} /> {/* Trạng thái */}
-                <col style={{ width: '15%' }} /> {/* Thao tác */}
+                <col style={{ width: '15%' }} /><col style={{ width: '20%' }} /><col style={{ width: '20%' }} /><col style={{ width: '15%' }} /><col style={{ width: '15%' }} /><col style={{ width: '15%' }} />
               </colgroup>
               <thead style={{ 
                 backgroundColor: '#F8FAFC', 

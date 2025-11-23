@@ -2,9 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using SalesService.DTOs;
 using SalesService.Models;
 using SalesService.Data;
-using SalesService.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using QuestPDF.Fluent; // Add this using directive
+using SalesService.PdfDocuments; // Add this using directive
 
 namespace SalesService.Controllers
 {
@@ -13,13 +14,11 @@ namespace SalesService.Controllers
     public class SalesController : ControllerBase
     {
         private readonly SalesDbContext _context;
-        private readonly IMessageProducer _messageProducer;
         private readonly ILogger<SalesController> _logger;
 
-        public SalesController(SalesDbContext context, IMessageProducer messageProducer, ILogger<SalesController> logger)
+        public SalesController(SalesDbContext context, ILogger<SalesController> logger)
         {
             _context = context;
-            _messageProducer = messageProducer;
             _logger = logger;
         }
 
@@ -402,25 +401,46 @@ namespace SalesService.Controllers
                 Timestamp = DateTime.UtcNow
             };
 
-            const string routingKey = "manufacturer.order.created";
-            try
-            {
-                _messageProducer.SendMessage(manufacturerOrderEvent, routingKey);
-                _logger.LogInformation("Manufacturer order request sent for DealerId: {DealerId}, VehicleId: {VehicleId}", manufacturerOrderEvent.DealerId, manufacturerOrderEvent.VehicleId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error sending manufacturer order message to RabbitMQ.");
-                return StatusCode(500, "Internal server error when sending manufacturer order.");
-            }
+            // const string routingKey = "manufacturer.order.created";
+            // try
+            // {
+            //     _messageProducer.PublishMessage(manufacturerOrderEvent, routingKey);
+            //     _logger.LogInformation("Manufacturer order request sent for DealerId: {DealerId}, VehicleId: {VehicleId}", manufacturerOrderEvent.DealerId, manufacturerOrderEvent.VehicleId);
+            // }
+            // catch (Exception ex)
+            // {
+            //     _logger.LogError(ex, "Error sending manufacturer order message to RabbitMQ.");
+            //     return StatusCode(500, "Internal server error when sending manufacturer order.");
+            // }
+
+            _logger.LogInformation("Manufacturer order request received but message queueing is disabled. Details: DealerId: {DealerId}, VehicleId: {VehicleId}", manufacturerOrderEvent.DealerId, manufacturerOrderEvent.VehicleId);
+
 
             return Ok(new
             {
-                Message = "Manufacturer order request sent.",
+                Message = "Manufacturer order request received. Message queueing is disabled.",
                 ManufacturerOrderId = manufacturerOrderEvent.ManufacturerOrderId,
                 manufacturerOrderEvent.DealerId,
                 manufacturerOrderEvent.VehicleId
             });
+        }
+
+        // --- PDF Generation Endpoint ---
+        [HttpPost("generate-quote-pdf")]
+        public IActionResult GenerateQuotePdf([FromBody] GenerateQuotePdfRequestDto request)
+        {
+            try
+            {
+                var document = new QuotePdfDocument(request);
+                byte[] pdfBytes = document.GeneratePdf();
+
+                return File(pdfBytes, "application/pdf", $"BaoGiaXeDien_{DateTime.Now:yyyyMMddHHmmss}.pdf");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating quote PDF.");
+                return StatusCode(500, "Internal server error when generating PDF.");
+            }
         }
     }
 }

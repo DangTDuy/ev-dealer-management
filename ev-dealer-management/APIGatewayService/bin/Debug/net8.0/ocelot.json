@@ -99,40 +99,24 @@
       "DownstreamHttpVersion": "1.1"
     },
     {
-<<<<<<< HEAD
       "DownstreamPathTemplate": "/api/Sales/{everything}",
-=======
-      "DownstreamPathTemplate": "/api/orders/{everything}",
->>>>>>> cbe64c56a5e561b432393d9ee6c4eac729f9aaf1
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-<<<<<<< HEAD
           "Port": 5077
         }
       ],
       "UpstreamPathTemplate": "/api/Sales/{everything}",
-=======
-          "Port": 5003
-        }
-      ],
-      "UpstreamPathTemplate": "/api/orders/{everything}",
->>>>>>> cbe64c56a5e561b432393d9ee6c4eac729f9aaf1
       "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
       "DownstreamHttpVersion": "1.1"
     },
     {
-<<<<<<< HEAD
       "DownstreamPathTemplate": "/api/Payments/{everything}",
-=======
-      "DownstreamPathTemplate": "/notifications/{everything}",
->>>>>>> cbe64c56a5e561b432393d9ee6c4eac729f9aaf1
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-<<<<<<< HEAD
           "Port": 5077
         }
       ],
@@ -142,22 +126,10 @@
     },
     {
       "DownstreamPathTemplate": "/api/Contracts/{everything}",
-=======
-          "Port": 5051
-        }
-      ],
-      "UpstreamPathTemplate": "/api/notifications/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST" ],
-      "DownstreamHttpVersion": "1.1"
-    },
-    {
-      "DownstreamPathTemplate": "/api/testdrives/{everything}",
->>>>>>> cbe64c56a5e561b432393d9ee6c4eac729f9aaf1
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-<<<<<<< HEAD
           "Port": 5077
         }
       ],
@@ -176,13 +148,6 @@
       ],
       "UpstreamPathTemplate": "/api/Promotions/{everything}",
       "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
-=======
-          "Port": 5039
-        }
-      ],
-      "UpstreamPathTemplate": "/api/testdrives/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
->>>>>>> cbe64c56a5e561b432393d9ee6c4eac729f9aaf1
       "DownstreamHttpVersion": "1.1"
     }
   ],
