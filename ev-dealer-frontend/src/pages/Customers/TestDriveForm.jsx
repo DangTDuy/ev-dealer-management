@@ -123,10 +123,63 @@ const ModernTestDriveForm = () => {
     setActiveStep((prevStep) => prevStep - 1);
   };
 
-  const handleSubmit = () => {
-    console.log('Test drive booking submitted:', formData);
-    // API call would go here
-    navigate('/customers');
+  const handleSubmit = async () => {
+    try {
+      // Find customer by email or create new one
+      let customerId = null;
+      
+      // Check if customer exists
+      const customersResponse = await fetch('http://localhost:5039/api/customers');
+      const customers = await customersResponse.json();
+      const existingCustomer = customers.find(c => c.email === formData.customerEmail);
+      
+      if (existingCustomer) {
+        customerId = existingCustomer.id;
+      } else {
+        // Create new customer
+        const createCustomerResponse = await fetch('http://localhost:5039/api/customers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: formData.customerName,
+            email: formData.customerEmail,
+            phone: formData.customerPhone,
+            address: formData.location
+          })
+        });
+        const newCustomer = await createCustomerResponse.json();
+        customerId = newCustomer.id;
+      }
+      
+      // Create test drive appointment
+      const appointmentDateTime = new Date(`${formData.preferredDate}T${formData.preferredTime}:00`);
+      
+      const testDriveResponse = await fetch('http://localhost:5039/api/testdrives', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerId: customerId,
+          vehicleId: formData.selectedVehicle,
+          dealerId: 1, // Default dealer
+          appointmentDate: appointmentDateTime.toISOString(),
+          notes: formData.specialRequests
+        })
+      });
+      
+      if (testDriveResponse.ok) {
+        const testDrive = await testDriveResponse.json();
+        console.log('Test drive created:', testDrive);
+        alert(`✅ Đặt lịch thành công! Mã test drive: ${testDrive.id}\n📧 Email xác nhận đã được gửi đến ${formData.customerEmail}`);
+        navigate('/customers');
+      } else {
+        const error = await testDriveResponse.text();
+        console.error('Failed to create test drive:', error);
+        alert('❌ Đặt lịch thất bại. Vui lòng thử lại!');
+      }
+    } catch (error) {
+      console.error('Error submitting test drive:', error);
+      alert('❌ Có lỗi xảy ra. Vui lòng kiểm tra kết nối và thử lại!');
+    }
   };
 
   const getStepContent = (step) => {

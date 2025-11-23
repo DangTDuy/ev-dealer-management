@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\NotificationService\\NotificationService.csproj": {}
+    "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\NotificationService\\NotificationService.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\NotificationService\\NotificationService.csproj": {
+    "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\NotificationService\\NotificationService.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\NotificationService\\NotificationService.csproj",
+        "projectUniqueName": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\NotificationService\\NotificationService.csproj",
         "projectName": "NotificationService",
-        "projectPath": "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\NotificationService\\NotificationService.csproj",
-        "packagesPath": "C:\\Users\\Lenovo\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\NotificationService\\obj\\",
+        "projectPath": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\NotificationService\\NotificationService.csproj",
+        "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+        "outputPath": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\NotificationService\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -59,9 +59,29 @@
               "target": "Package",
               "version": "[6.8.1, )"
             },
+            "SendGrid": {
+              "target": "Package",
+              "version": "[9.29.3, )"
+            },
+            "Serilog.AspNetCore": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Serilog.Sinks.Console": {
+              "target": "Package",
+              "version": "[6.1.1, )"
+            },
+            "Serilog.Sinks.File": {
+              "target": "Package",
+              "version": "[7.0.0, )"
+            },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[6.6.2, )"
+            },
+            "Twilio": {
+              "target": "Package",
+              "version": "[7.13.7, )"
             }
           },
           "imports": [

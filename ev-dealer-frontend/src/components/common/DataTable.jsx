@@ -138,7 +138,10 @@ const DataTable = ({
   }
 
   const renderCellContent = (column, row) => {
-    const value = row[column.field];
+    // Support valueGetter function for computed values
+    const value = column.valueGetter 
+      ? column.valueGetter({ row, field: column.field }) 
+      : row[column.field];
 
     switch (column.type) {
       case 'avatar':
@@ -213,6 +216,22 @@ const DataTable = ({
             </Typography>
           );
         }
+        // Handle objects and arrays
+        if (value && typeof value === 'object') {
+          if (Array.isArray(value)) {
+            return (
+              <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                {value.length} items
+              </Typography>
+            );
+          }
+          return (
+            <Typography variant="body2" sx={{ color: 'text.primary' }}>
+              {JSON.stringify(value)}
+            </Typography>
+          );
+        }
+        
         return (
           <Typography variant="body2" sx={{ color: 'text.primary' }}>
             {value}

@@ -1,48 +1,73 @@
-var builder = WebApplication.CreateBuilder(args);
+using Serilog;
+using NotificationService.Services;
+using NotificationService.Consumers;
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(new ConfigurationBuilder()
+        .AddJsonFile("appsettings.json")
+        .Build())
+    .CreateLogger();
 
-// Register RabbitMQ Consumer Service
-builder.Services.AddSingleton<NotificationService.Services.IMessageConsumer, NotificationService.Services.RabbitMQConsumerService>();
-builder.Services.AddHostedService<NotificationService.Services.RabbitMQConsumerHostedService>();
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+try
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    Log.Information("Starting NotificationService...");
+
+    var builder = WebApplication.CreateBuilder(args);
+
+    // Add Serilog
+    builder.Host.UseSerilog();
+
+    // Add services to the container.
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+
+    // Register Email and SMS Services
+    builder.Services.AddScoped<IEmailService, EmailService>();
+    builder.Services.AddScoped<ISmsService, SmsService>();
+
+    // Register Consumers
+    builder.Services.AddScoped<SaleCompletedConsumer>();
+    builder.Services.AddScoped<VehicleReservedConsumer>();
+    builder.Services.AddScoped<TestDriveScheduledConsumer>();
+
+    // Register RabbitMQ Consumer Service
+    builder.Services.AddSingleton<IMessageConsumer, RabbitMQConsumerService>();
+    builder.Services.AddHostedService<RabbitMQConsumerHostedService>();
+
+    // Add Controllers
+    builder.Services.AddControllers();
+
+    var app = builder.Build();
+
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseHttpsRedirection();
+    app.MapControllers();
+
+    // Health check endpoint
+    app.MapGet("/health", () => Results.Ok(new { 
+        status = "healthy", 
+        service = "NotificationService",
+        timestamp = DateTime.UtcNow 
+    }))
+    .WithName("HealthCheck")
+    .WithOpenApi();
+
+    Log.Information("NotificationService started successfully on {Urls}", string.Join(", ", builder.WebHost.GetSetting("urls") ?? "http://localhost:5000"));
+    
+    app.Run();
 }
-
-app.UseHttpsRedirection();
-
-var summaries = new[]
+catch (Exception ex)
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
+    Log.Fatal(ex, "NotificationService failed to start");
+}
+finally
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
-
-app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    Log.CloseAndFlush();
 }

@@ -2,22 +2,25 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
-using NotificationService.DTOs; // Assuming DTOs folder exists or will be created
+using NotificationService.DTOs;
+using NotificationService.Consumers;
+using Serilog;
 
 namespace NotificationService.Services
 {
     public class RabbitMQConsumerService : IMessageConsumer, IDisposable
     {
         private readonly IConfiguration _configuration;
-        private readonly ILogger<RabbitMQConsumerService> _logger;
+        private readonly IServiceProvider _serviceProvider;
         private IConnection? _connection;
-        private IModel? _channel;
-        private readonly string _queueName = "customer_created_queue"; // Specific queue for customer created events
+        private IModel? _saleChannel;
+        private IModel? _reservationChannel;
+        private IModel? _testDriveChannel;
 
-        public RabbitMQConsumerService(IConfiguration configuration, ILogger<RabbitMQConsumerService> logger)
+        public RabbitMQConsumerService(IConfiguration configuration, IServiceProvider serviceProvider)
         {
             _configuration = configuration;
-            _logger = logger;
+            _serviceProvider = serviceProvider;
             InitializeRabbitMQ();
         }
 
@@ -34,86 +37,185 @@ namespace NotificationService.Services
                 };
 
                 _connection = factory.CreateConnection();
-                _channel = _connection.CreateModel();
 
-                _channel.ExchangeDeclare(exchange: "customer_exchange", type: ExchangeType.Fanout);
-                _channel.QueueDeclare(queue: _queueName,
-                                     durable: true,
-                                     exclusive: false,
-                                     autoDelete: false,
-                                     arguments: null);
-                _channel.QueueBind(queue: _queueName,
-                                  exchange: "customer_exchange",
-                                  routingKey: ""); // Fanout exchange ignores routing key
+                // Channel for SaleCompleted events
+                _saleChannel = _connection.CreateModel();
+                var saleQueue = _configuration["RabbitMQ:Queues:SaleCompleted"] ?? "sales.completed";
+                _saleChannel.QueueDeclare(queue: saleQueue, durable: true, exclusive: false, autoDelete: false, arguments: null);
 
-                _logger.LogInformation("RabbitMQ consumer connection and channel initialized successfully.");
+                // Channel for VehicleReserved events
+                _reservationChannel = _connection.CreateModel();
+                var reservationQueue = _configuration["RabbitMQ:Queues:VehicleReserved"] ?? "vehicle.reserved";
+                _reservationChannel.QueueDeclare(queue: reservationQueue, durable: true, exclusive: false, autoDelete: false, arguments: null);
+
+                // Channel for TestDriveScheduled events
+                _testDriveChannel = _connection.CreateModel();
+                var testDriveQueue = _configuration["RabbitMQ:Queues:TestDriveScheduled"] ?? "testdrive.scheduled";
+                _testDriveChannel.QueueDeclare(queue: testDriveQueue, durable: true, exclusive: false, autoDelete: false, arguments: null);
+
+                Log.Information("RabbitMQ consumer connection and channels initialized successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Could not connect to RabbitMQ for consuming. Check connection settings.");
+                Log.Error(ex, "Could not connect to RabbitMQ for consuming. Check connection settings.");
             }
         }
 
         public void StartConsuming()
         {
-            if (_channel == null || !_channel.IsOpen)
+            if (_connection == null || !_connection.IsOpen)
             {
-                _logger.LogWarning("RabbitMQ channel is not open. Attempting to re-initialize for consuming.");
+                Log.Warning("RabbitMQ connection is not open. Attempting to re-initialize.");
                 InitializeRabbitMQ();
-                if (_channel == null || !_channel.IsOpen)
+                if (_connection == null || !_connection.IsOpen)
                 {
-                    _logger.LogError("Failed to start consuming: RabbitMQ channel is still not open.");
+                    Log.Error("Failed to start consuming: RabbitMQ connection is still not open.");
                     return;
                 }
             }
 
-            var consumer = new EventingBasicConsumer(_channel);
-            consumer.Received += (model, ea) =>
+            // Start consuming SaleCompleted events
+            StartConsumingSaleCompleted();
+
+            // Start consuming VehicleReserved events
+            StartConsumingVehicleReserved();
+
+            // Start consuming TestDriveScheduled events
+            StartConsumingTestDriveScheduled();
+
+            Log.Information("Started consuming messages from all queues.");
+        }
+
+        private void StartConsumingSaleCompleted()
+        {
+            if (_saleChannel == null || !_saleChannel.IsOpen) return;
+
+            var saleQueue = _configuration["RabbitMQ:Queues:SaleCompleted"] ?? "sales.completed";
+            var consumer = new EventingBasicConsumer(_saleChannel);
+
+            consumer.Received += async (model, ea) =>
             {
                 var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
-                _logger.LogInformation("Received message: {Message}", message);
 
                 try
                 {
-                    var customerCreatedEvent = JsonSerializer.Deserialize<CustomerCreatedEvent>(message);
-                    if (customerCreatedEvent != null)
-                    {
-                        _logger.LogInformation("Processing CustomerCreatedEvent for CustomerId: {CustomerId}, Name: {Name}",
-                            customerCreatedEvent.CustomerId, customerCreatedEvent.Name);
-                        // Here you would add logic to handle the event, e.g., send a notification
-                    }
-                    _channel.BasicAck(ea.DeliveryTag, false);
-                }
-                catch (JsonException ex)
-                {
-                    _logger.LogError(ex, "Error deserializing message: {Message}", message);
-                    _channel.BasicNack(ea.DeliveryTag, false, false); // Nack the message, don't re-queue
+                    using var scope = _serviceProvider.CreateScope();
+                    var saleConsumer = scope.ServiceProvider.GetRequiredService<SaleCompletedConsumer>();
+                    await saleConsumer.HandleAsync(message);
+                    _saleChannel.BasicAck(ea.DeliveryTag, false);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error processing message: {Message}", message);
-                    _channel.BasicNack(ea.DeliveryTag, false, true); // Nack and re-queue for retry
+                    Log.Error(ex, "Error processing SaleCompleted message: {Message}", message);
+                    _saleChannel.BasicNack(ea.DeliveryTag, false, true);
                 }
             };
 
-            _channel.BasicConsume(queue: _queueName,
-                                 autoAck: false, // We'll manually acknowledge
-                                 consumer: consumer);
-            _logger.LogInformation("Started consuming messages from queue: {QueueName}", _queueName);
+            _saleChannel.BasicConsume(queue: saleQueue, autoAck: false, consumer: consumer);
+            Log.Information("Started consuming from queue: {QueueName}", saleQueue);
+        }
+
+        private void StartConsumingVehicleReserved()
+        {
+            if (_reservationChannel == null || !_reservationChannel.IsOpen) return;
+
+            var reservationQueue = _configuration["RabbitMQ:Queues:VehicleReserved"] ?? "vehicle.reserved";
+            var consumer = new EventingBasicConsumer(_reservationChannel);
+
+            consumer.Received += async (model, ea) =>
+            {
+                var body = ea.Body.ToArray();
+                var message = Encoding.UTF8.GetString(body);
+
+                try
+                {
+                    using var scope = _serviceProvider.CreateScope();
+                    var reservationConsumer = scope.ServiceProvider.GetRequiredService<VehicleReservedConsumer>();
+                    await reservationConsumer.HandleAsync(message);
+                    _reservationChannel.BasicAck(ea.DeliveryTag, false);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error processing VehicleReserved message: {Message}", message);
+                    _reservationChannel.BasicNack(ea.DeliveryTag, false, true);
+                }
+            };
+
+            _reservationChannel.BasicConsume(queue: reservationQueue, autoAck: false, consumer: consumer);
+            Log.Information("Started consuming from queue: {QueueName}", reservationQueue);
+        }
+
+        private void StartConsumingTestDriveScheduled()
+        {
+            if (_testDriveChannel == null || !_testDriveChannel.IsOpen) return;
+
+            var testDriveQueue = _configuration["RabbitMQ:Queues:TestDriveScheduled"] ?? "testdrive.scheduled";
+            var consumer = new EventingBasicConsumer(_testDriveChannel);
+
+            consumer.Received += async (model, ea) =>
+            {
+                var body = ea.Body.ToArray();
+                var message = Encoding.UTF8.GetString(body);
+
+                try
+                {
+                    using var scope = _serviceProvider.CreateScope();
+                    var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                    
+                    Log.Information("Received TestDriveScheduled message: {Message}", message);
+                    
+                    // Deserialize message
+                    var testDriveEvent = JsonSerializer.Deserialize<DTOs.TestDriveScheduledEvent>(message);
+                    
+                    if (testDriveEvent != null)
+                    {
+                        Log.Information("Processing TestDriveScheduledEvent for customer {CustomerEmail}", testDriveEvent.CustomerEmail);
+                        
+                        // Send test drive confirmation email
+                        var success = await emailService.SendTestDriveConfirmationAsync(
+                            testDriveEvent.CustomerEmail,
+                            testDriveEvent.CustomerName,
+                            testDriveEvent.VehicleModel,
+                            testDriveEvent.ScheduledDate
+                        );
+                        
+                        if (success)
+                        {
+                            Log.Information("Test drive confirmation email sent successfully to {CustomerEmail}", testDriveEvent.CustomerEmail);
+                        }
+                        else
+                        {
+                            Log.Error("Failed to send test drive confirmation email to {CustomerEmail}", testDriveEvent.CustomerEmail);
+                        }
+                    }
+                    
+                    _testDriveChannel.BasicAck(ea.DeliveryTag, false);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error processing TestDriveScheduled message: {Message}", message);
+                    _testDriveChannel.BasicNack(ea.DeliveryTag, false, true);
+                }
+            };
+
+            _testDriveChannel.BasicConsume(queue: testDriveQueue, autoAck: false, consumer: consumer);
+            Log.Information("Started consuming from queue: {QueueName}", testDriveQueue);
         }
 
         public void StopConsuming()
         {
-            _logger.LogInformation("Stopping RabbitMQ consumer.");
+            Log.Information("Stopping RabbitMQ consumer.");
             Dispose();
         }
 
         public void Dispose()
         {
-            _channel?.Close();
+            _saleChannel?.Close();
+            _reservationChannel?.Close();
+            _testDriveChannel?.Close();
             _connection?.Close();
-            _logger.LogInformation("RabbitMQ consumer connection closed.");
+            Log.Information("RabbitMQ consumer connection closed.");
         }
     }
 }

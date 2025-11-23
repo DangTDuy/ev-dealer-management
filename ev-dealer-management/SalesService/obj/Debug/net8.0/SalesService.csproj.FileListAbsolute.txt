@@ -70,3 +70,4 @@ D:\gitclone\ev-dealer-management\ev-dealer-management\SalesService\obj\Debug\net
 D:\gitclone\ev-dealer-management\ev-dealer-management\SalesService\obj\Debug\net8.0\SalesService.genruntimeconfig.cache
 D:\gitclone\ev-dealer-management\ev-dealer-management\SalesService\obj\Debug\net8.0\ref\SalesService.dll
 d:\gitclone\ev-dealer-management\ev-dealer-management\SalesService\bin\Debug\net8.0\RabbitMQ.Client.dll
+D:\Nam_3\ev-dealer-management\ev-dealer-management\SalesService\bin\Debug\net8.0\RabbitMQ.Client.dll

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using CustomerService.Data;
 using CustomerService.Models;
 using CustomerService.DTOs;
+using CustomerService.Services;
 
 namespace CustomerService.Controllers
 {
@@ -11,10 +12,17 @@ namespace CustomerService.Controllers
     public class TestDrivesController : ControllerBase
     {
         private readonly CustomerDbContext _context;
+        private readonly IMessageProducer _messageProducer;
+        private readonly ILogger<TestDrivesController> _logger;
 
-        public TestDrivesController(CustomerDbContext context)
+        public TestDrivesController(
+            CustomerDbContext context,
+            IMessageProducer messageProducer,
+            ILogger<TestDrivesController> logger)
         {
             _context = context;
+            _messageProducer = messageProducer;
+            _logger = logger;
         }
 
         // GET: api/TestDrives
@@ -71,8 +79,8 @@ namespace CustomerService.Controllers
         [HttpPost]
         public async Task<ActionResult<TestDriveDto>> PostTestDrive(CreateTestDriveRequest createTestDriveRequest)
         {
-            var customerExists = await _context.Customers.AnyAsync(c => c.Id == createTestDriveRequest.CustomerId);
-            if (!customerExists)
+            var customer = await _context.Customers.FindAsync(createTestDriveRequest.CustomerId);
+            if (customer == null)
             {
                 return BadRequest("Customer not found.");
             }
@@ -91,6 +99,26 @@ namespace CustomerService.Controllers
             _context.TestDrives.Add(testDrive);
             await _context.SaveChangesAsync();
 
+            // Publish event to RabbitMQ for notification
+            try
+            {
+                var testDriveEvent = new TestDriveScheduledEvent
+                {
+                    CustomerEmail = customer.Email,
+                    CustomerName = customer.Name,
+                    VehicleModel = $"Vehicle #{createTestDriveRequest.VehicleId}", // TODO: Fetch from VehicleService
+                    ScheduledDate = createTestDriveRequest.AppointmentDate
+                };
+
+                _messageProducer.PublishMessage(testDriveEvent, "testdrive.scheduled");
+                _logger.LogInformation($"Published TestDriveScheduledEvent for customer {customer.Email}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to publish TestDriveScheduledEvent");
+                // Don't fail the request if notification fails
+            }
+
             var testDriveDto = new TestDriveDto
             {
                 Id = testDrive.Id,
@@ -101,7 +129,7 @@ namespace CustomerService.Controllers
                 Status = testDrive.Status,
                 Notes = testDrive.Notes,
                 CreatedAt = testDrive.CreatedAt,
-                CustomerName = (await _context.Customers.FindAsync(testDrive.CustomerId))?.Name
+                CustomerName = customer.Name
             };
 
             return CreatedAtAction(nameof(GetTestDrive), new { id = testDrive.Id }, testDriveDto);

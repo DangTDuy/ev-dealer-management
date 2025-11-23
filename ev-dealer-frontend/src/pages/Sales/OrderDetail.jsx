@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { mockOrder, mockPaymentSchedule, mockContracts } from '../../data/mockDataSales';
+import NotificationToast from '../../components/Notification/NotificationToast';
 
 // Icons
 const BackIcon = () => (
@@ -74,6 +75,8 @@ export default function OrderDetail() {
   const [newStatus, setNewStatus] = useState('');
   const [contracts, setContracts] = useState([]);
   const [payments, setPayments] = useState([]);
+  const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
+  const [completing, setCompleting] = useState(false);
 
   useEffect(() => {
     // Simulate API call
@@ -163,6 +166,76 @@ const handleUpdateStatus = () => {
   setShowStatusModal(false);
   setNewStatus('');
   alert('Cập nhật trạng thái thành công!');
+};
+
+const handleCompleteOrder = async () => {
+  if (completing) return;
+  
+  // Validation
+  if (!order.customer.email) {
+    setNotification({
+      open: true,
+      message: 'Email khách hàng không hợp lệ',
+      severity: 'error'
+    });
+    return;
+  }
+  
+  setCompleting(true);
+  
+  try {
+    const requestData = {
+      customerName: order.customer.name,
+      customerEmail: order.customer.email,
+      vehicleModel: order.vehicle.model || order.vehicle.name,
+      totalAmount: order.orderInfo.totalPrice,
+      paymentMethod: order.payment.type === 'full' ? 'Full Payment' : 'Installment',
+      quantity: 1
+    };
+    
+    const response = await fetch('http://localhost:5003/api/orders/complete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestData)
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to complete order');
+    }
+    
+    const result = await response.json();
+    
+    // Update order status to completed
+    setOrder({
+      ...order,
+      orderInfo: {
+        ...order.orderInfo,
+        status: 'completed'
+      }
+    });
+    
+    setNotification({
+      open: true,
+      message: `Đơn hàng hoàn tất thành công! Email xác nhận đã được gửi đến ${order.customer.email}. Mã đơn: ${result.orderId}`,
+      severity: 'success'
+    });
+  } catch (error) {
+    console.error('Error completing order:', error);
+    setNotification({
+      open: true,
+      message: `Lỗi khi hoàn tất đơn hàng: ${error.message}`,
+      severity: 'error'
+    });
+  } finally {
+    setCompleting(false);
+  }
+};
+
+const handleCloseNotification = () => {
+  setNotification({ ...notification, open: false });
 };
 
 // Xử lý lỗi ảnh
@@ -710,24 +783,26 @@ const handleUploadContract = (e) => {
                 </button>
                 
                 <button
-                  onClick={() => alert('Gửi email xác nhận thành công!')}
+                  onClick={handleCompleteOrder}
+                  disabled={completing || order.orderInfo.status === 'completed'}
                   style={{
                     width: '100%',
                     padding: '12px',
-                    backgroundColor: '#2563EB',
+                    backgroundColor: (completing || order.orderInfo.status === 'completed') ? '#9CA3AF' : '#10B981',
                     color: 'white',
                     border: 'none',
                     borderRadius: '8px',
-                    cursor: 'pointer',
+                    cursor: (completing || order.orderInfo.status === 'completed') ? 'not-allowed' : 'pointer',
                     fontSize: '14px',
                     fontWeight: '500',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '8px'
+                    gap: '8px',
+                    opacity: (completing || order.orderInfo.status === 'completed') ? 0.6 : 1
                   }}
                 >
-                  Gửi email xác nhận
+                  {completing ? 'Đang xử lý...' : (order.orderInfo.status === 'completed' ? 'Đã hoàn tất' : 'Hoàn tất đơn hàng')}
                 </button>
               </div>
             </div>
@@ -917,6 +992,15 @@ const handleUploadContract = (e) => {
           </div>
         </div>
       )}
+      
+      {/* Notification Toast */}
+      <NotificationToast
+        open={notification.open}
+        message={notification.message}
+        severity={notification.severity}
+        onClose={handleCloseNotification}
+        autoHideDuration={6000}
+      />
     </div>
   );
 }
