@@ -26,6 +26,7 @@ import VehicleForm from "../pages/Vehicles/VehicleForm";
 import SalesList from "../pages/Sales/SalesList";
 import QuoteCreate from "../pages/Sales/QuoteCreate";
 import OrderDetail from "../pages/Sales/OrderDetail";
+// import SalesManagementPage from "../pages/Sales/SalesManagementPage"; // REMOVED: Import the new page
 import CustomerList from "../pages/Customers/CustomerList";
 import CustomerDetail from "../pages/Customers/CustomerDetail";
 import CustomerNew from "../pages/Customers/CustomerNew";
@@ -79,6 +80,7 @@ const AppRoutes = () => {
         <Route path="/sales" element={<SalesList />} />
         <Route path="/sales/quote/new" element={<QuoteCreate />} />
         <Route path="/sales/:id" element={<OrderDetail />} />
+        {/* <Route path="/sales/manage" element={<SalesManagementPage />} /> */} {/* REMOVED: New Sales Management Route */}
 
         {/* Customer Routes */}
         <Route path="/customers" element={<CustomerList />} />

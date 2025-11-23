@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { mockOrders } from '../../data/mockDataSales';
+import axios from 'axios'; // Import axios
+// import { mockOrders } from '../../data/mockDataSales'; // Remove mock data import
 
 // Simple SVG Icons
 const SearchIcon = () => (
@@ -38,16 +39,27 @@ export default function SalesDashboard() {
   const [customerSearch, setCustomerSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [paymentFilter, setPaymentFilter] = useState('all');
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState([]); // Change to orders
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  const fetchOrders = async () => { // Change function name
     setLoading(true);
-    setTimeout(() => {
-      setOrders(mockOrders);
+    setError(null);
+    try {
+      const response = await axios.get('http://localhost:5036/api/Sales/orders'); // Fetch orders through API Gateway
+      setOrders(response.data);
+    } catch (err) {
+      console.error('Error fetching orders:', err);
+      setError('Failed to load sales data.');
+    } finally {
       setLoading(false);
-    }, 500);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders(); // Call fetchOrders
   }, []);
 
   const formatCurrency = (amount) => {
@@ -57,18 +69,14 @@ export default function SalesDashboard() {
     }).format(amount);
   };
 
-  
+  // Adjust filtering logic for orders
   const filteredOrders = orders.filter(order => {
-    const matchesOrderId = order.id.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCustomer = order.customer.toLowerCase().includes(customerSearch.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-    const matchesPayment = paymentFilter === 'all' || order.paymentType === paymentFilter;
-    
-    return matchesOrderId && matchesCustomer && matchesStatus && matchesPayment;
+    // Temporarily disable all filters to ensure all fetched orders are displayed
+    return true; 
   });
 
-  const handleViewOrder = (orderId) => {
-    navigate(`/sales/${orderId}`);
+  const handleViewOrder = (orderId) => { // Change to handleViewOrder
+    navigate(`/sales/${orderId}`); // Navigate to order detail
   };
 
   const handleCreateQuote = () => {
@@ -85,6 +93,21 @@ export default function SalesDashboard() {
         backgroundColor: '#F8FAFC'
       }}>
         <div>Đang tải dữ liệu...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        backgroundColor: '#F8FAFC',
+        color: 'red'
+      }}>
+        <div>Lỗi: {error}</div>
       </div>
     );
   }
@@ -227,7 +250,7 @@ export default function SalesDashboard() {
                   color: '#374151', 
                   marginBottom: '8px' 
                 }}>
-                  Khách hàng
+                  ID Khách hàng
                 </label>
                 <div style={{ position: 'relative' }}>
                   <div style={{ 
@@ -242,7 +265,7 @@ export default function SalesDashboard() {
                   </div>
                   <input
                     type="text"
-                    placeholder="Nhập tên khách hàng..."
+                    placeholder="Nhập ID khách hàng..."
                     value={customerSearch}
                     onChange={(e) => setCustomerSearch(e.target.value)}
                     style={{
@@ -304,7 +327,9 @@ export default function SalesDashboard() {
                     <option value="all">Tất cả trạng thái</option>
                     <option value="pending">Chờ xử lý</option>
                     <option value="confirmed">Đã xác nhận</option>
-                    <option value="completed">Hoàn thành</option>
+                    <option value="shipped">Đã giao hàng</option>
+                    <option value="delivered">Đã nhận hàng</option>
+                    <option value="cancelled">Đã hủy</option>
                   </select>
                 </div>
               </div>
@@ -348,8 +373,10 @@ export default function SalesDashboard() {
                     }}
                   >
                     <option value="all">Tất cả hình thức</option>
-                    <option value="full">Thanh toán đầy đủ</option>
-                    <option value="installment">Trả góp</option>
+                    <option value="pending">Chờ thanh toán</option>
+                    <option value="paid">Đã thanh toán</option>
+                    <option value="partiallypaid">Thanh toán một phần</option>
+                    <option value="refunded">Đã hoàn tiền</option>
                   </select>
                 </div>
               </div>
@@ -397,7 +424,7 @@ export default function SalesDashboard() {
               }}>
                 <span style={{ fontSize: '14px', color: '#92400E' }}>Chờ xử lý</span>
                 <span style={{ fontSize: '18px', fontWeight: '700', color: '#92400E' }}>
-                  {orders.filter(o => o.status === 'pending').length}
+                  {orders.filter(o => o.status.toLowerCase() === 'pending').length}
                 </span>
               </div>
               
@@ -409,9 +436,9 @@ export default function SalesDashboard() {
                 backgroundColor: '#D1FAE5',
                 borderRadius: '8px'
               }}>
-                <span style={{ fontSize: '14px', color: '#065F46' }}>Hoàn thành</span>
+                <span style={{ fontSize: '14px', color: '#065F46' }}>Đã giao hàng</span>
                 <span style={{ fontSize: '18px', fontWeight: '700', color: '#065F46' }}>
-                  {orders.filter(o => o.status === 'completed').length}
+                  {orders.filter(o => o.status.toLowerCase() === 'delivered').length}
                 </span>
               </div>
             </div>
@@ -483,10 +510,10 @@ export default function SalesDashboard() {
             }}>
               <colgroup>
                 <col style={{ width: '15%' }} /> {/* Mã đơn hàng */}
-                <col style={{ width: '20%' }} /> {/* Khách hàng */}
-                <col style={{ width: '20%' }} /> {/* Xe điện */}
+                <col style={{ width: '20%' }} /> {/* Khách hàng ID */}
+                <col style={{ width: '20%' }} /> {/* Xe điện ID */}
                 <col style={{ width: '15%' }} /> {/* Tổng tiền */}
-                <col style={{ width: '15%' }} /> {/* Thanh toán */}
+                <col style={{ width: '15%' }} /> {/* Trạng thái */}
                 <col style={{ width: '15%' }} /> {/* Thao tác */}
               </colgroup>
               <thead style={{ 
@@ -520,61 +547,37 @@ export default function SalesDashboard() {
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap'
                   }}>
-                    Khách hàng
+                    ID Khách hàng
                   </th>
                   <th style={{ 
                     padding: '16px 12px', 
-                    textAlign: 'left', 
-                    fontSize: '12px', 
-                    fontWeight: '600', 
-                    color: '#475569', 
-                    textTransform: 'uppercase', 
-                    letterSpacing: '0.05em',
+                    whiteSpace: 'nowrap',
                     overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
+                    textOverflow: 'ellipsis'
                   }}>
-                    Xe điện
+                    ID Xe
                   </th>
                   <th style={{ 
                     padding: '16px 12px', 
-                    textAlign: 'left', 
-                    fontSize: '12px', 
-                    fontWeight: '600', 
-                    color: '#475569', 
-                    textTransform: 'uppercase', 
-                    letterSpacing: '0.05em',
+                    whiteSpace: 'nowrap',
                     overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
+                    textOverflow: 'ellipsis'
                   }}>
                     Tổng tiền
                   </th>
                   <th style={{ 
                     padding: '16px 12px', 
-                    textAlign: 'left', 
-                    fontSize: '12px', 
-                    fontWeight: '600', 
-                    color: '#475569', 
-                    textTransform: 'uppercase', 
-                    letterSpacing: '0.05em',
+                    whiteSpace: 'nowrap',
                     overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
+                    textOverflow: 'ellipsis'
                   }}>
-                    Thanh toán
+                    Trạng thái
                   </th>
                   <th style={{ 
                     padding: '16px 12px', 
-                    textAlign: 'center', 
-                    fontSize: '12px', 
-                    fontWeight: '600', 
-                    color: '#475569', 
-                    textTransform: 'uppercase', 
-                    letterSpacing: '0.05em',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap', 
+                    textAlign: 'center',
+                    overflow: 'hidden'
                   }}>
                     Thao tác
                   </th>
@@ -618,7 +621,7 @@ export default function SalesDashboard() {
                             textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap'
                           }}>
-                            {order.customer}
+                            {order.customerId}
                           </div>
                           <div style={{ 
                             fontSize: '12px', 
@@ -627,7 +630,7 @@ export default function SalesDashboard() {
                             textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap'
                           }}>
-                            {order.customerPhone}
+                            {/* order.customerPhone */}
                           </div>
                         </div>
                       </td>
@@ -642,7 +645,7 @@ export default function SalesDashboard() {
                           alignItems: 'center',
                           gap: '12px'
                         }}>
-                          <img 
+                          {/* <img 
                             src={order.vehicleImage} 
                             alt={order.vehicle} 
                             style={{ 
@@ -652,7 +655,7 @@ export default function SalesDashboard() {
                               borderRadius: '6px',
                               flexShrink: 0
                             }}
-                          />
+                          /> */}
                           <span style={{ 
                             color: '#0F172A',
                             fontSize: '14px',
@@ -660,15 +663,13 @@ export default function SalesDashboard() {
                             textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap'
                           }}>
-                            {order.vehicle}
+                            {order.vehicleId} (SL: {order.quantity})
                           </span>
                         </div>
                       </td>
                       <td style={{ 
                         padding: '16px 12px', 
                         whiteSpace: 'nowrap',
-                        fontSize: '14px',
-                        color: '#0F172A',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis'
                       }}>
@@ -680,9 +681,9 @@ export default function SalesDashboard() {
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap'
                         }}>
-                          {formatCurrency(order.totalAmount)}
+                          {formatCurrency(order.totalPrice)}
                         </div>
-                        {order.paymentType === 'installment' && (
+                        {/* order.paymentType === 'installment' && (
                           <div style={{ 
                             fontSize: '12px', 
                             color: '#64748B',
@@ -692,7 +693,7 @@ export default function SalesDashboard() {
                           }}>
                             Đặt cọc: {formatCurrency(order.downPayment)}
                           </div>
-                        )}
+                        ) */}
                       </td>
                       <td style={{ 
                         padding: '16px 12px', 
@@ -702,13 +703,13 @@ export default function SalesDashboard() {
                       }}>
                         <span style={{ 
                           fontSize: '14px', 
-                          color: order.paymentType === 'full' ? '#10B981' : '#F59E0B',
+                          color: order.status.toLowerCase() === 'pending' ? '#F59E0B' : (order.status.toLowerCase() === 'confirmed' ? '#10B981' : '#EF4444'),
                           fontWeight: '500',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap'
                         }}>
-                          {order.paymentType === 'full' ? 'Thanh toán đầy đủ' : 'Trả góp'}
+                          {order.status}
                         </span>
                       </td>
                       <td style={{ 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { mockOrder, mockPaymentSchedule, mockContracts } from '../../data/mockDataSales';
+import axios from 'axios'; // Import axios
+// import { mockOrder, mockPaymentSchedule, mockContracts } from '../../data/mockDataSales'; // Remove mock data import
 
 // Icons
 const BackIcon = () => (
@@ -66,6 +67,7 @@ export default function OrderDetail() {
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); // Add error state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showContractModal, setShowContractModal] = useState(false);
@@ -75,15 +77,34 @@ export default function OrderDetail() {
   const [contracts, setContracts] = useState([]);
   const [payments, setPayments] = useState([]);
 
-  useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setOrder(mockOrder);
-      setPayments(mockPaymentSchedule);
-      setContracts(mockContracts);
+  const fetchOrderDetail = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Fetch order details through API Gateway
+      const orderResponse = await axios.get(`http://localhost:5036/api/Sales/orders/${orderId}`);
+      setOrder(orderResponse.data);
+
+      // Fetch payments for this order through API Gateway
+      const paymentsResponse = await axios.get(`http://localhost:5036/api/Payments?orderId=${orderId}`);
+      setPayments(paymentsResponse.data);
+
+      // Fetch contracts for this order through API Gateway
+      const contractsResponse = await axios.get(`http://localhost:5036/api/Contracts?orderId=${orderId}`);
+      setContracts(contractsResponse.data);
+
+    } catch (err) {
+      console.error('Error fetching order details:', err);
+      setError('Failed to load order details.');
+      setOrder(null);
+    } finally {
       setLoading(false);
-    }, 500);
-  }, [orderId]);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrderDetail();
+  }, [orderId]); // Refetch when orderId changes
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -96,11 +117,11 @@ export default function OrderDetail() {
     const statusConfig = {
       pending: { label: 'Chờ xử lý', color: '#F59E0B', bgColor: '#FEF3C7' },
       confirmed: { label: 'Đã xác nhận', color: '#3B82F6', bgColor: '#DBEAFE' },
-      processing: { label: 'Đang xử lý', color: '#8B5CF6', bgColor: '#EDE9FE' },
-      completed: { label: 'Hoàn thành', color: '#10B981', bgColor: '#D1FAE5' },
+      shipped: { label: 'Đã giao hàng', color: '#8B5CF6', bgColor: '#EDE9FE' },
+      delivered: { label: 'Đã nhận hàng', color: '#10B981', bgColor: '#D1FAE5' },
       cancelled: { label: 'Đã hủy', color: '#EF4444', bgColor: '#FEE2E2' },
     };
-    const config = statusConfig[status] || statusConfig.pending;
+    const config = statusConfig[status.toLowerCase()] || statusConfig.pending;
     return (
       <span 
         style={{
@@ -118,66 +139,59 @@ export default function OrderDetail() {
     );
   };
 
-const handleRecordPayment = () => {
-  // Thêm validation
+const handleRecordPayment = async () => {
   if (!paymentAmount || parseFloat(paymentAmount) <= 0) {
     alert('Vui lòng nhập số tiền hợp lệ');
     return;
   }
 
-  // Tìm kỳ thanh toán pending đầu tiên
-  const pendingPayment = payments.find(p => p.status === 'pending');
-  if (!pendingPayment) {
-    alert('Không có kỳ thanh toán nào đang chờ');
-    return;
+  try {
+    const payload = {
+      orderId: parseInt(orderId),
+      amount: parseFloat(paymentAmount),
+      paymentMethod: "Cash", // Defaulting to Cash for now, can be selected via UI
+      notes: paymentNote,
+    };
+    await axios.post('http://localhost:5036/api/Payments', payload); // Call through API Gateway
+    alert('Ghi nhận thanh toán thành công!');
+    setShowPaymentModal(false);
+    setPaymentAmount('');
+    setPaymentNote('');
+    fetchOrderDetail(); // Refresh data
+  } catch (err) {
+    console.error('Error recording payment:', err.response ? err.response.data : err.message);
+    alert('Ghi nhận thanh toán thất bại.');
   }
-
-  // Cập nhật trạng thái thanh toán
-  const updatedPayments = payments.map(p => 
-    p.month === pendingPayment.month 
-      ? { ...p, status: 'paid', paidDate: new Date().toISOString().split('T')[0] }
-      : p
-  );
-  
-  setPayments(updatedPayments);
-  setShowPaymentModal(false);
-  setPaymentAmount('');
-  setPaymentNote('');
-  alert('Ghi nhận thanh toán thành công!');
 };
 
-const handleUpdateStatus = () => {
-  // Thêm validation
+const handleUpdateStatus = async () => {
   if (!newStatus) {
     alert('Vui lòng chọn trạng thái mới');
     return;
   }
   
-  setOrder({
-    ...order, 
-    orderInfo: {
-      ...order.orderInfo, 
-      status: newStatus
-    }
-  });
-  setShowStatusModal(false);
-  setNewStatus('');
-  alert('Cập nhật trạng thái thành công!');
+  try {
+    const payload = { status: newStatus };
+    await axios.put(`http://localhost:5036/api/Sales/orders/${orderId}/status`, payload); // Call through API Gateway
+    alert('Cập nhật trạng thái thành công!');
+    setShowStatusModal(false);
+    setNewStatus('');
+    fetchOrderDetail(); // Refresh data
+  } catch (err) {
+    console.error('Error updating order status:', err.response ? err.response.data : err.message);
+    alert('Cập nhật trạng thái thất bại.');
+  }
 };
 
-// Xử lý lỗi ảnh
+// Xử lý lỗi ảnh (giữ nguyên, nhưng có thể cần cập nhật đường dẫn ảnh mặc định)
 const handleImageError = (e) => {
-  e.target.src = 'h/src/assets/img/default-car.png';
+  e.target.src = '/src/assets/img/default-car.png'; // Update path if needed
   e.target.alt = 'Không thể tải ảnh';
 };
 
-// TÌM: hàm handleUploadContract
-// THAY THẾ bằng:
-
-const handleUploadContract = (e) => {
+const handleUploadContract = async (e) => {
   const file = e.target.files[0];
   if (file) {
-    // Kiểm tra loại file
     const allowedTypes = ['.pdf', '.doc', '.docx'];
     const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
     
@@ -186,34 +200,46 @@ const handleUploadContract = (e) => {
       return;
     }
 
-    // Kiểm tra kích thước file (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       alert('File không được vượt quá 10MB');
       return;
     }
 
-    const newContract = {
-      id: contracts.length + 1,
-      name: file.name,
-      uploadDate: new Date().toISOString().split('T')[0],
-      size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`
-    };
-    setContracts([...contracts, newContract]);
-    alert('Tải lên hợp đồng thành công!');
-    
-    // Reset input file
-    e.target.value = '';
+    try {
+      const payload = {
+        orderId: parseInt(orderId),
+        contractDetails: `Uploaded: ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)} MB)`, // Store some details
+        // In a real app, you'd upload the file to a storage service and store its URL here
+      };
+      await axios.post('http://localhost:5036/api/Contracts', payload); // Call through API Gateway
+      alert('Tải lên hợp đồng thành công!');
+      fetchOrderDetail(); // Refresh contracts
+    } catch (err) {
+      console.error('Error uploading contract:', err.response ? err.response.data : err.message);
+      alert('Tải lên hợp đồng thất bại.');
+    } finally {
+      e.target.value = ''; // Reset input file
+    }
   }
 };
 
   const handleDownloadContract = (contract) => {
-    alert(`Đang tải xuống: ${contract.name}`);
+    alert(`Đang tải xuống: ${contract.contractDetails}`); // Use contractDetails for now
+    // In a real app, you'd trigger a download from a stored URL
   };
 
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <div>Đang tải...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'red' }}>
+        <div>Lỗi: {error}</div>
       </div>
     );
   }
@@ -263,13 +289,13 @@ const handleUploadContract = (e) => {
                 Chi tiết đơn hàng: {order.id}
               </h1>
               <p style={{ color: '#6B7280', margin: '4px 0 0 0', fontSize: '14px' }}>
-                Ngày đặt: {order.orderInfo.orderDate}
+                Ngày đặt: {new Date(order.createdAt).toLocaleDateString()}
               </p>
             </div>
           </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {getStatusBadge(order.orderInfo.status)}
+            {getStatusBadge(order.status)} {/* Use order.status */}
             <button 
               onClick={() => setShowStatusModal(true)}
               style={{
@@ -297,7 +323,7 @@ const handleUploadContract = (e) => {
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
           {/* Main Content */}
           <div>
-            {/* Customer Information */}
+            {/* Customer Information (Placeholder as we don't have customer details from OrderDto) */}
             <div style={{
               backgroundColor: 'white',
               borderRadius: '12px',
@@ -311,39 +337,23 @@ const handleUploadContract = (e) => {
               
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
                 <div>
-                  <p style={{ fontSize: '14px', color: '#6B7280', margin: '0 0 4px 0' }}>Họ và tên</p>
+                  <p style={{ fontSize: '14px', color: '#6B7280', margin: '0 0 4px 0' }}>ID Khách hàng</p>
                   <p style={{ fontSize: '15px', fontWeight: '500', color: '#111827', margin: 0 }}>
-                    {order.customer.name}
+                    {order.customerId}
                   </p>
                 </div>
                 <div>
-                  <p style={{ fontSize: '14px', color: '#6B7280', margin: '0 0 4px 0' }}>Số điện thoại</p>
+                  <p style={{ fontSize: '14px', color: '#6B7280', margin: '0 0 4px 0' }}>Tên khách hàng</p>
                   <p style={{ fontSize: '15px', fontWeight: '500', color: '#111827', margin: 0 }}>
-                    {order.customer.phone}
+                    {/* Placeholder: Fetch from CustomerService */}
+                    N/A (ID: {order.customerId})
                   </p>
                 </div>
-                <div>
-                  <p style={{ fontSize: '14px', color: '#6B7280', margin: '0 0 4px 0' }}>Email</p>
-                  <p style={{ fontSize: '15px', fontWeight: '500', color: '#111827', margin: 0 }}>
-                    {order.customer.email}
-                  </p>
-                </div>
-                <div>
-                  <p style={{ fontSize: '14px', color: '#6B7280', margin: '0 0 4px 0' }}>Số CMND/CCCD</p>
-                  <p style={{ fontSize: '15px', fontWeight: '500', color: '#111827', margin: 0 }}>
-                    {order.customer.idNumber}
-                  </p>
-                </div>
-                <div style={{ gridColumn: 'span 2' }}>
-                  <p style={{ fontSize: '14px', color: '#6B7280', margin: '0 0 4px 0' }}>Địa chỉ</p>
-                  <p style={{ fontSize: '15px', fontWeight: '500', color: '#111827', margin: 0 }}>
-                    {order.customer.address}
-                  </p>
-                </div>
+                {/* Other customer details would go here after fetching from CustomerService */}
               </div>
             </div>
 
-            {/* Vehicle Information */}
+            {/* Vehicle Information (Placeholder as we don't have vehicle details from OrderDto) */}
             <div style={{
               backgroundColor: 'white',
               borderRadius: '12px',
@@ -356,135 +366,125 @@ const handleUploadContract = (e) => {
               </h2>
               
               <div style={{ display: 'flex', gap: '20px' }}>
-                <img 
+                {/* <img 
                   src={order.vehicle.image} 
                   alt={order.vehicle.name}
                   style={{ width: '200px', height: '150px', objectFit: 'cover', borderRadius: '8px' }}
-                />
+                /> */}
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
                     <div>
+                      <p style={{ fontSize: '14px', color: '#6B7280', margin: '0 0 4px 0' }}>ID Xe</p>
+                      <p style={{ fontSize: '15px', fontWeight: '500', color: '#111827', margin: 0 }}>
+                        {order.vehicleId}
+                      </p>
+                    </div>
+                    <div>
                       <p style={{ fontSize: '14px', color: '#6B7280', margin: '0 0 4px 0' }}>Tên xe</p>
                       <p style={{ fontSize: '15px', fontWeight: '500', color: '#111827', margin: 0 }}>
-                        {order.vehicle.name}
-                      </p>
-                    </div>
-                    <div>
-                      <p style={{ fontSize: '14px', color: '#6B7280', margin: '0 0 4px 0' }}>Màu sắc</p>
-                      <p style={{ fontSize: '15px', fontWeight: '500', color: '#111827', margin: 0 }}>
-                        {order.vehicle.color}
-                      </p>
-                    </div>
-                    <div>
-                      <p style={{ fontSize: '14px', color: '#6B7280', margin: '0 0 4px 0' }}>Số VIN</p>
-                      <p style={{ fontSize: '15px', fontWeight: '500', color: '#111827', margin: 0 }}>
-                        {order.vehicle.vin}
+                        {/* Placeholder: Fetch from VehicleService */}
+                        N/A (ID: {order.vehicleId})
                       </p>
                     </div>
                     <div>
                       <p style={{ fontSize: '14px', color: '#6B7280', margin: '0 0 4px 0' }}>Số lượng</p>
                       <p style={{ fontSize: '15px', fontWeight: '500', color: '#111827', margin: 0 }}>
-                        {order.orderInfo.quantity}
+                        {order.quantity}
                       </p>
                     </div>
+                    {/* Other vehicle details would go here after fetching from VehicleService */}
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Payment Schedule */}
-            {order.payment.type === 'installment' && (
-              <div style={{
-                backgroundColor: 'white',
-                borderRadius: '12px',
-                padding: '24px',
-                marginBottom: '24px',
-                border: '1px solid #E5E7EB'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
-                    Lịch thanh toán
-                  </h2>
-                  <button
-                    onClick={() => setShowPaymentModal(true)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '8px 16px',
-                      backgroundColor: '#2563EB',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '14px'
-                    }}
-                  >
-                    <DollarIcon />
-                    Ghi nhận thanh toán
-                  </button>
-                </div>
-                
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr style={{ backgroundColor: '#F9FAFB', borderBottom: '1px solid #E5E7EB' }}>
-                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Kỳ</th>
-                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Ngày đến hạn</th>
-                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Số tiền</th>
-                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Trạng thái</th>
-                        <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Ngày thanh toán</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {payments.map((payment, index) => (
-                        <tr key={index} style={{ borderBottom: '1px solid #F3F4F6' }}>
-                          <td style={{ padding: '12px', fontSize: '14px' }}>Tháng {payment.month}</td>
-                          <td style={{ padding: '12px', fontSize: '14px' }}>{payment.dueDate}</td>
-                          <td style={{ padding: '12px', fontSize: '14px', fontWeight: '500' }}>
-                            {formatCurrency(payment.amount)}
-                          </td>
-                          <td style={{ padding: '12px' }}>
-                            {payment.status === 'paid' ? (
-                              <span style={{
-                                padding: '2px 8px',
-                                borderRadius: '4px',
-                                fontSize: '12px',
-                                fontWeight: '500',
-                                color: '#059669',
-                                backgroundColor: '#D1FAE5'
-                              }}>
-                                Đã thanh toán
-                              </span>
-                            ) : (
-                              <span style={{
-                                padding: '2px 8px',
-                                borderRadius: '4px',
-                                fontSize: '12px',
-                                fontWeight: '500',
-                                color: '#D97706',
-                                backgroundColor: '#FEF3C7'
-                              }}>
-                                Chờ thanh toán
-                              </span>
-                            )}
-                          </td>
-                          <td style={{ padding: '12px', fontSize: '14px' }}>
-                            {payment.paidDate || '-'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+            {/* This section needs more complex logic to generate payment schedule based on order.paymentMethod */}
+            {/* For now, we'll just list payments directly fetched from API */}
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '24px',
+              marginBottom: '24px',
+              border: '1px solid #E5E7EB'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>
+                  Lịch sử thanh toán
+                </h2>
+                <button
+                  onClick={() => setShowPaymentModal(true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 16px',
+                    backgroundColor: '#2563EB',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}
+                >
+                  <DollarIcon />
+                  Ghi nhận thanh toán
+                </button>
               </div>
-            )}
+              
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#F9FAFB', borderBottom: '1px solid #E5E7EB' }}>
+                      <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#374151' }}>ID</th>
+                      <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Số tiền</th>
+                      <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Phương thức</th>
+                      <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Trạng thái</th>
+                      <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Ngày thanh toán</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {payments.length > 0 ? payments.map((payment) => (
+                      <tr key={payment.id} style={{ borderBottom: '1px solid #F3F4F6' }}>
+                        <td style={{ padding: '12px', fontSize: '14px' }}>{payment.id}</td>
+                        <td style={{ padding: '12px', fontSize: '14px', fontWeight: '500' }}>
+                          {formatCurrency(payment.amount)}
+                        </td>
+                        <td style={{ padding: '12px', fontSize: '14px' }}>{payment.paymentMethod}</td>
+                        <td style={{ padding: '12px' }}>
+                          <span style={{
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            color: payment.status.toLowerCase() === 'completed' ? '#059669' : '#D97706',
+                            backgroundColor: payment.status.toLowerCase() === 'completed' ? '#D1FAE5' : '#FEF3C7'
+                          }}>
+                            {payment.status}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px', fontSize: '14px' }}>
+                          {new Date(payment.paymentDate).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    )) : (
+                      <tr>
+                        <td colSpan="5" style={{ padding: '12px', textAlign: 'center', color: '#6B7280' }}>
+                          Chưa có thanh toán nào.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
             {/* Contracts */}
             <div style={{
               backgroundColor: 'white',
               borderRadius: '12px',
               padding: '24px',
+              marginBottom: '24px',
               border: '1px solid #E5E7EB'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -517,7 +517,7 @@ const handleUploadContract = (e) => {
               </div>
               
               <div style={{ display: 'grid', gap: '12px' }}>
-                {contracts.map((contract) => (
+                {contracts.length > 0 ? contracts.map((contract) => (
                   <div key={contract.id} style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -531,10 +531,10 @@ const handleUploadContract = (e) => {
                       <FileIcon style={{ color: '#6B7280' }} />
                       <div>
                         <p style={{ fontSize: '14px', fontWeight: '500', color: '#111827', margin: 0 }}>
-                          {contract.name}
+                          {contract.contractNumber}
                         </p>
                         <p style={{ fontSize: '12px', color: '#6B7280', margin: '4px 0 0 0' }}>
-                          {contract.uploadDate} • {contract.size}
+                          {new Date(contract.createdAt).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -557,7 +557,11 @@ const handleUploadContract = (e) => {
                       Tải xuống
                     </button>
                   </div>
-                ))}
+                )) : (
+                  <div style={{ padding: '12px', textAlign: 'center', color: '#6B7280' }}>
+                    Chưa có hợp đồng nào.
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -583,19 +587,24 @@ const handleUploadContract = (e) => {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ fontSize: '14px', color: '#6B7280' }}>Ngày đặt</span>
-                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>{order.orderInfo.orderDate}</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>{new Date(order.createdAt).toLocaleDateString()}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '14px', color: '#6B7280' }}>Ngày giao dự kiến</span>
-                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>{order.orderInfo.expectedDeliveryDate}</span>
+                  <span style={{ fontSize: '14px', color: '#6B7280' }}>Ngày cập nhật</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>{new Date(order.updatedAt).toLocaleDateString()}</span>
                 </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '14px', color: '#6B7280' }}>Mã báo giá</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>{order.quoteId}</span>
+                </div>
+                {/* Placeholder for Sales Person and Branch */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ fontSize: '14px', color: '#6B7280' }}>Nhân viên</span>
-                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>{order.orderInfo.salesPerson}</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>N/A</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: '14px', color: '#6B7280' }}>Chi nhánh</span>
-                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>{order.orderInfo.branch}</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>N/A</span>
                 </div>
               </div>
             </div>
@@ -616,49 +625,22 @@ const handleUploadContract = (e) => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ fontSize: '14px', color: '#6B7280' }}>Hình thức</span>
                   <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>
-                    {order.payment.type === 'full' ? 'Trả toàn bộ' : 'Trả góp'}
+                    {order.paymentMethod}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '14px', color: '#6B7280' }}>Đơn giá</span>
+                  <span style={{ fontSize: '14px', color: '#6B7280' }}>Trạng thái thanh toán</span>
                   <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>
-                    {formatCurrency(order.orderInfo.unitPrice)}
+                    {order.paymentStatus}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '14px', color: '#6B7280' }}>Giảm giá</span>
+                  <span style={{ fontSize: '14px', color: '#6B7280' }}>Tổng số lượng</span>
                   <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>
-                    -{formatCurrency(order.orderInfo.discount)}
+                    {order.quantity}
                   </span>
                 </div>
-                {order.payment.type === 'installment' && (
-                  <>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '14px', color: '#6B7280' }}>Trả trước</span>
-                      <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>
-                        {formatCurrency(order.payment.downPayment)}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '14px', color: '#6B7280' }}>Kỳ hạn</span>
-                      <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>
-                        {order.payment.loanTerm} tháng
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '14px', color: '#6B7280' }}>Lãi suất</span>
-                      <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>
-                        {order.payment.interestRate}%/năm
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '14px', color: '#6B7280' }}>Góp hàng tháng</span>
-                      <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>
-                        {formatCurrency(order.payment.monthlyPayment)}
-                      </span>
-                    </div>
-                  </>
-                )}
+                {/* Placeholder for other payment details like downPayment, loanTerm, etc. */}
               </div>
               
               <div style={{ 
@@ -670,7 +652,7 @@ const handleUploadContract = (e) => {
               }}>
                 <span style={{ fontSize: '16px', fontWeight: '600', color: '#111827' }}>Tổng cộng</span>
                 <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#2563EB' }}>
-                  {formatCurrency(order.orderInfo.totalPrice)}
+                  {formatCurrency(order.totalPrice)}
                 </span>
               </div>
             </div>
@@ -680,6 +662,7 @@ const handleUploadContract = (e) => {
               backgroundColor: 'white',
               borderRadius: '12px',
               padding: '24px',
+              marginBottom: '24px',
               border: '1px solid #E5E7EB'
             }}>
               <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '16px' }}>
@@ -877,8 +860,8 @@ const handleUploadContract = (e) => {
                 <option value="">-- Chọn trạng thái --</option>
                 <option value="pending">Chờ xử lý</option>
                 <option value="confirmed">Đã xác nhận</option>
-                <option value="processing">Đang xử lý</option>
-                <option value="completed">Hoàn thành</option>
+                <option value="shipped">Đã giao hàng</option>
+                <option value="delivered">Đã nhận hàng</option>
                 <option value="cancelled">Đã hủy</option>
               </select>
             </div>

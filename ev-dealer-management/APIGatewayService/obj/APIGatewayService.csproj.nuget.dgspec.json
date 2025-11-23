@@ -1,25 +1,27 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\APIGatewayService\\APIGatewayService.csproj": {}
+    "C:\\Code\\XD\\project_XD\\ev-dealer-management\\ev-dealer-management\\APIGatewayService\\APIGatewayService.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\APIGatewayService\\APIGatewayService.csproj": {
+    "C:\\Code\\XD\\project_XD\\ev-dealer-management\\ev-dealer-management\\APIGatewayService\\APIGatewayService.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\APIGatewayService\\APIGatewayService.csproj",
+        "projectUniqueName": "C:\\Code\\XD\\project_XD\\ev-dealer-management\\ev-dealer-management\\APIGatewayService\\APIGatewayService.csproj",
         "projectName": "APIGatewayService",
-        "projectPath": "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\APIGatewayService\\APIGatewayService.csproj",
-        "packagesPath": "C:\\Users\\Lenovo\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Lenovo\\Downloads\\ev-dealer-management\\ev-dealer-management\\APIGatewayService\\obj\\",
+        "projectPath": "C:\\Code\\XD\\project_XD\\ev-dealer-management\\ev-dealer-management\\APIGatewayService\\APIGatewayService.csproj",
+        "packagesPath": "C:\\Users\\ASUS\\.nuget\\packages\\",
+        "outputPath": "C:\\Code\\XD\\project_XD\\ev-dealer-management\\ev-dealer-management\\APIGatewayService\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\ASUS\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {

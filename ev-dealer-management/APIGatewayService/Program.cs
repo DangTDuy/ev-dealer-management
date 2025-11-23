@@ -38,7 +38,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Enable CORS
+// Enable CORS - This must be before UseOcelot()
 app.UseCors("AllowFrontend");
 
 // Use Ocelot middleware

@@ -1,6 +1,6 @@
 ﻿<Project>
   <ItemGroup>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\2a2ba449-6fd3-48ee-9535-07198627cc15_1757045201878-qla5igg2ej.webp'))">
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\2a2ba449-6fd3-48ee-9535-07198627cc15_1757045201878-qla5igg2ej.webp))">
       <SourceType>Package</SourceType>
       <SourceId>VehicleService</SourceId>
       <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
@@ -12,13 +12,11 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>3gsu7wxe8p</Fingerprint>
-      <Integrity>g2LCo9HVxPkIWJEZqEf/jPGYQk3wvpqPs3lhPBShrFI=</Integrity>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\2a2ba449-6fd3-48ee-9535-07198627cc15_1757045201878-qla5igg2ej.webp'))</OriginalItemSpec>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\2a2ba449-6fd3-48ee-9535-07198627cc15_1757045201878-qla5igg2ej.webp))</OriginalItemSpec>
     </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\3632bb08-1a03-4485-bb4b-168d23ade800_vinfastvf6-4.png'))">
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\3632bb08-1a03-4485-bb4b-168d23ade800_vinfastvf6-4.png))">
       <SourceType>Package</SourceType>
       <SourceId>VehicleService</SourceId>
       <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
@@ -30,13 +28,11 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>d41ambz6tp</Fingerprint>
-      <Integrity>00mqa5WLNGnCo7dASbEnP6jHzruMkMLCmu0sKEsh2zI=</Integrity>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\3632bb08-1a03-4485-bb4b-168d23ade800_vinfastvf6-4.png'))</OriginalItemSpec>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\3632bb08-1a03-4485-bb4b-168d23ade800_vinfastvf6-4.png))</OriginalItemSpec>
     </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\88f8c184-34d9-4837-912a-bc30e258245a_tesla-cybertruck-1.webp'))">
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\88f8c184-34d9-4837-912a-bc30e258245a_tesla-cybertruck-1.webp))">
       <SourceType>Package</SourceType>
       <SourceId>VehicleService</SourceId>
       <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
@@ -48,13 +44,11 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>vt3oib8hgg</Fingerprint>
-      <Integrity>nbjx+hLfQAyuOCuI6nj9kYsGRILZaxb7RyoyrVt+Kjs=</Integrity>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\88f8c184-34d9-4837-912a-bc30e258245a_tesla-cybertruck-1.webp'))</OriginalItemSpec>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\88f8c184-34d9-4837-912a-bc30e258245a_tesla-cybertruck-1.webp))</OriginalItemSpec>
     </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\92fe5c25-2363-44e9-a7c2-ee64c66e07fc_Do.jpg'))">
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\92fe5c25-2363-44e9-a7c2-ee64c66e07fc_Do.jpg))">
       <SourceType>Package</SourceType>
       <SourceId>VehicleService</SourceId>
       <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
@@ -66,13 +60,11 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>reveassuma</Fingerprint>
-      <Integrity>fe/70GnusiSdwCjGG3U5CS9ynzzlugh0/c5lBEfMdqI=</Integrity>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\92fe5c25-2363-44e9-a7c2-ee64c66e07fc_Do.jpg'))</OriginalItemSpec>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\92fe5c25-2363-44e9-a7c2-ee64c66e07fc_Do.jpg))</OriginalItemSpec>
     </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\b2bb537e-a33c-4d60-98c4-76ef510aafa1_tesla-cybertruck-1.webp'))">
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\b2bb537e-a33c-4d60-98c4-76ef510aafa1_tesla-cybertruck-1.webp))">
       <SourceType>Package</SourceType>
       <SourceId>VehicleService</SourceId>
       <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
@@ -84,13 +76,11 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>vt3oib8hgg</Fingerprint>
-      <Integrity>nbjx+hLfQAyuOCuI6nj9kYsGRILZaxb7RyoyrVt+Kjs=</Integrity>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\b2bb537e-a33c-4d60-98c4-76ef510aafa1_tesla-cybertruck-1.webp'))</OriginalItemSpec>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\b2bb537e-a33c-4d60-98c4-76ef510aafa1_tesla-cybertruck-1.webp))</OriginalItemSpec>
     </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\cdcbf044-96c7-43a5-8898-85c6d7152533_images.jpg'))">
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\cdcbf044-96c7-43a5-8898-85c6d7152533_images.jpg))">
       <SourceType>Package</SourceType>
       <SourceId>VehicleService</SourceId>
       <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
@@ -102,13 +92,11 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>1rnega6g4n</Fingerprint>
-      <Integrity>Q7iybFr3gEWlU/662jD4SADq2GFFwZlo7tJTs3AR56Q=</Integrity>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\cdcbf044-96c7-43a5-8898-85c6d7152533_images.jpg'))</OriginalItemSpec>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\cdcbf044-96c7-43a5-8898-85c6d7152533_images.jpg))</OriginalItemSpec>
     </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\ce23ab5a-8356-498c-9cfe-059edfdafcfb_tesla-model-3-thumb.png'))">
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\ce23ab5a-8356-498c-9cfe-059edfdafcfb_tesla-model-3-thumb.png))">
       <SourceType>Package</SourceType>
       <SourceId>VehicleService</SourceId>
       <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
@@ -120,11 +108,9 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>i0tle7fhq5</Fingerprint>
-      <Integrity>IgBjSAmsOIUE5eIbRRz7fHt4EifhDvohbNJT3BRMsMk=</Integrity>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\images\ce23ab5a-8356-498c-9cfe-059edfdafcfb_tesla-model-3-thumb.png'))</OriginalItemSpec>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\ce23ab5a-8356-498c-9cfe-059edfdafcfb_tesla-model-3-thumb.png))</OriginalItemSpec>
     </StaticWebAsset>
   </ItemGroup>
 </Project>

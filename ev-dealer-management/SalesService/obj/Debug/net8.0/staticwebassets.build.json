@@ -1,12 +1,11 @@
 {
   "Version": 1,
-  "Hash": "jiETPye/SKVf5d2rxXAanPUtLI+kl0P09wikWPEwZSA=",
+  "Hash": "xVVeR5Sphwn61V0TQ931pRu9xlmijge7QszH8djN11s=",
   "Source": "SalesService",
   "BasePath": "_content/SalesService",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
   "DiscoveryPatterns": [],
-  "Assets": [],
-  "Endpoints": []
+  "Assets": []
 }

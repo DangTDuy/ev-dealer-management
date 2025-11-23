@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios'; // Import axios
 
 // Icons
 const BackIcon = () => (
@@ -17,7 +18,7 @@ const PlusIcon = () => (
 const TrashIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <polyline points="3 6 5 6 21 6"/>
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 0 0 1 2 2v2"/>
   </svg>
 );
 
@@ -32,14 +33,23 @@ const DownloadIcon = () => (
 export default function QuoteCreate() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [vehicles, setVehicles] = useState([]); // State for real vehicle data
+  const [fetchingVehicles, setFetchingVehicles] = useState(true);
+  const [vehiclesError, setVehiclesError] = useState(null);
+
+  const [customers, setCustomers] = useState([]); // State for real customer data
+  const [fetchingCustomers, setFetchingCustomers] = useState(true);
+  const [customersError, setCustomersError] = useState(null);
+  const [selectedCustomerId, setSelectedCustomerId] = useState(''); // State for selected customer ID from dropdown
   
   // Customer info
   const [customerInfo, setCustomerInfo] = useState({
+    id: '', // Store selected customer ID
     name: '',
     phone: '',
     email: '',
     address: '',
-    idNumber: ''
+    idNumber: '' // This field is not in CustomerDto, so keep it empty or remove
   });
   
   // Quote items
@@ -63,57 +73,130 @@ export default function QuoteCreate() {
     validUntil: ''
   });
 
+  // Fetch vehicles from VehicleService
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      try {
+        setFetchingVehicles(true);
+        // Call VehicleService through API Gateway
+        const response = await axios.get('http://localhost:5036/api/vehicles'); 
+        setVehicles(response.data.items); 
+      } catch (err) {
+        console.error('Error fetching vehicles:', err);
+        setVehiclesError('Failed to load vehicle data.');
+      } finally {
+        setFetchingVehicles(false);
+      }
+    };
+    fetchVehicles();
+  }, []);
+
+  // Fetch customers from CustomerService
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        setFetchingCustomers(true);
+        const response = await axios.get('http://localhost:5036/api/customers'); 
+        setCustomers(response.data); // Assuming CustomerService returns a direct array of customers
+      } catch (err) {
+        console.error('Error fetching customers:', err);
+        setCustomersError('Failed to load customer data.');
+      } finally {
+        setFetchingCustomers(false);
+      }
+    };
+    fetchCustomers();
+  }, []);
+
+  // Handle customer selection from dropdown
+  const handleCustomerSelectChange = (e) => {
+    setSelectedCustomerId(e.target.value);
+    // Clear displayed customer info when selection changes
+    setCustomerInfo({
+      id: '',
+      name: '',
+      phone: '',
+      email: '',
+      address: '',
+      idNumber: ''
+    });
+  };
+
+  // Handle "Check Customer" button click
+  const handleCheckCustomer = () => {
+    const customer = customers.find(c => c.id === parseInt(selectedCustomerId));
+    if (customer) {
+      setCustomerInfo({
+        id: customer.id,
+        name: customer.name,
+        phone: customer.phone,
+        email: customer.email,
+        address: customer.address,
+        idNumber: '' // Assuming CustomerDto doesn't have idNumber
+      });
+    } else {
+      alert('Không tìm thấy khách hàng với ID đã chọn.');
+      setCustomerInfo({
+        id: '',
+        name: '',
+        phone: '',
+        email: '',
+        address: '',
+        idNumber: ''
+      });
+    }
+  };
+
   // Validation form
 const validateForm = () => {
+  if (!customerInfo.id) {
+    alert('Vui lòng chọn và kiểm tra thông tin khách hàng.');
+    return false;
+  }
+  
   if (!customerInfo.name.trim()) {
-    alert('Vui lòng nhập họ tên khách hàng');
+    alert('Thông tin khách hàng chưa được tải hoặc không hợp lệ.');
     return false;
   }
   
   if (!customerInfo.phone.trim()) {
-    alert('Vui lòng nhập số điện thoại');
-    return false;
-  }
-
-  // Kiểm tra định dạng số điện thoại
-  const phoneRegex = /(0[3|5|7|8|9])+([0-9]{8})\b/;
-  if (!phoneRegex.test(customerInfo.phone)) {
-    alert('Số điện thoại không hợp lệ');
-    return false;
-  }
-
-  // Kiểm tra email nếu có
-  if (customerInfo.email && !/\S+@\S+\.\S+/.test(customerInfo.email)) {
-    alert('Email không hợp lệ');
+    alert('Thông tin khách hàng chưa được tải hoặc không hợp lệ.');
     return false;
   }
 
   // Kiểm tra ít nhất một xe được chọn
   const hasValidItems = quoteItems.some(item => item.vehicleId && item.quantity > 0);
   if (!hasValidItems) {
-    alert('Vui lòng chọn ít nhất một xe');
+    alert('Vui lòng chọn ít nhất một xe.');
     return false;
   }
 
   // Kiểm tra từng xe đã chọn
   for (let item of quoteItems) {
     if (item.vehicleId && item.quantity < 1) {
-      alert('Số lượng phải lớn hơn 0');
+      alert('Số lượng phải lớn hơn 0.');
+      return false;
+    }
+  }
+
+  // Validate installment details if type is installment
+  if (paymentInfo.type === 'installment') {
+    if (!paymentInfo.downPaymentPercent || paymentInfo.downPaymentPercent <= 0 || paymentInfo.downPaymentPercent > 100) {
+      alert('Phần trăm trả trước không hợp lệ (0-100).');
+      return false;
+    }
+    if (!paymentInfo.loanTerm || paymentInfo.loanTerm <= 0) {
+      alert('Kỳ hạn vay không hợp lệ.');
+      return false;
+    }
+    if (paymentInfo.interestRate === null || paymentInfo.interestRate < 0) {
+      alert('Lãi suất không hợp lệ.');
       return false;
     }
   }
 
   return true;
 };
-
-  // Mock vehicle data
-  const vehicles = [
-    { id: 'vf8', name: 'VinFast VF8', price: 1200000000, image: 'https://via.placeholder.com/80x60?text=VF8' },
-    { id: 'vf9', name: 'VinFast VF9', price: 1500000000, image: 'https://via.placeholder.com/80x60?text=VF9' },
-    { id: 'vf5', name: 'VinFast VF5', price: 500000000, image: 'https://via.placeholder.com/80x60?text=VF5' },
-    { id: 'vf6', name: 'VinFast VF6', price: 750000000, image: 'https://via.placeholder.com/80x60?text=VF6' },
-    { id: 'vfe34', name: 'VinFast VF e34', price: 650000000, image: 'https://via.placeholder.com/80x60?text=VFe34' }
-  ];
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -180,9 +263,9 @@ const validateForm = () => {
     
     // Auto-fill vehicle info when vehicle is selected
     if (field === 'vehicleId') {
-      const vehicle = vehicles.find(v => v.id === value);
+      const vehicle = vehicles.find(v => v.id === parseInt(value)); // Parse value to int
       if (vehicle) {
-        newItems[index].vehicleName = vehicle.name;
+        newItems[index].vehicleName = vehicle.model; // Use vehicle.model for name
         newItems[index].unitPrice = vehicle.price;
       }
     }
@@ -191,36 +274,85 @@ const validateForm = () => {
   };
 
 const handleGenerateQuote = async () => {
-  // Thêm validation
   if (!validateForm()) {
     return;
   }
 
   setLoading(true);
   
-  // Simulate API call
-  setTimeout(() => {
-    const quoteData = {
-      customer: customerInfo,
-      items: quoteItems.filter(item => item.vehicleId), // Chỉ lấy items hợp lệ
-      payment: paymentInfo,
-      additional: additionalInfo,
-      total: calculateTotal(),
-      createdAt: new Date().toISOString()
+  try {
+    const firstQuoteItem = quoteItems.find(item => item.vehicleId);
+    if (!firstQuoteItem) {
+      alert('No valid vehicle selected for the quote.');
+      setLoading(false);
+      return;
+    }
+
+    // 1. Create Quote
+    const createQuotePayload = {
+      customerId: customerInfo.id, // Use selected customer ID
+      vehicleId: parseInt(firstQuoteItem.vehicleId),
+      quantity: firstQuoteItem.quantity,
+      notes: additionalInfo.notes || `Quote for ${customerInfo.name} - ${firstQuoteItem.vehicleName}`,
+      
+      // Include payment details
+      paymentType: paymentInfo.type === 'full' ? 'Full' : 'Installment',
+      downPaymentPercent: paymentInfo.type === 'installment' ? paymentInfo.downPaymentPercent : null,
+      loanTerm: paymentInfo.type === 'installment' ? paymentInfo.loanTerm : null,
+      interestRate: paymentInfo.type === 'installment' ? paymentInfo.interestRate : null,
     };
+
+    const quoteResponse = await axios.post('http://localhost:5036/api/Sales/quotes', createQuotePayload); // Call through API Gateway
+    const quoteId = quoteResponse.data.id;
+    console.log('Quote created successfully with ID:', quoteId);
+
+    // 2. Update Quote Status to Accepted
+    await axios.put(`http://localhost:5036/api/Sales/quotes/${quoteId}/status`, "Accepted", { // Call through API Gateway
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log('Quote status updated to Accepted for ID:', quoteId);
+
+    // 3. Create Order from Accepted Quote
+    const createOrderPayload = {
+      quoteId: quoteId,
+      paymentMethod: paymentInfo.type === 'full' ? 'Cash' : 'Installment', // Map frontend payment type to backend
+      notes: additionalInfo.notes || `Order from quote ${quoteId} for ${customerInfo.name}`,
+    };
+    await axios.post('http://localhost:5036/api/Sales/orders', createOrderPayload); // Call through API Gateway
+    console.log('Order created successfully from Quote ID:', quoteId);
     
-    console.log('Generated quote:', quoteData);
+    alert('Đơn hàng đã được tạo thành công!');
+    navigate('/sales'); // Navigate to sales list
+  } catch (error) {
+    console.error('Error creating order process:', error.response ? error.response.data : error.message);
+    alert('Tạo đơn hàng thất bại. Vui lòng kiểm tra console để biết chi tiết.');
+  } finally {
     setLoading(false);
-    
-    alert('Báo giá đã được tạo thành công!');
-    navigate('/sales');
-  }, 1500);
+  }
 };
 
   const handleDownloadQuote = () => {
     // Simulate PDF download
     alert('Đang tải xuống báo giá PDF...');
   };
+
+  if (fetchingVehicles || fetchingCustomers) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div>Đang tải dữ liệu...</div>
+      </div>
+    );
+  }
+
+  if (vehiclesError || customersError) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'red' }}>
+        <div>Lỗi tải dữ liệu: {vehiclesError || customersError}</div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ 
@@ -333,45 +465,88 @@ const handleGenerateQuote = async () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
                 <div style={{ minWidth: 0 }}>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
-                    Họ và tên *
+                    Chọn khách hàng *
+                  </label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <select
+                      value={selectedCustomerId}
+                      onChange={handleCustomerSelectChange}
+                      style={{
+                        flexGrow: 1,
+                        padding: '10px 12px',
+                        border: '1px solid #CBD5E1',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        backgroundColor: '#F8FAFC',
+                        height: '40px',
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      <option value="">-- Chọn khách hàng --</option>
+                      {customers.map(customer => (
+                        <option key={customer.id} value={customer.id}>
+                          {customer.name} ({customer.phone})
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleCheckCustomer}
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#3B82F6',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        height: '40px'
+                      }}
+                    >
+                      Kiểm tra
+                    </button>
+                  </div>
+                </div>
+                
+                <div style={{ minWidth: 0 }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
+                    Họ và tên
                   </label>
                   <input
                     type="text"
                     value={customerInfo.name}
-                    onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
+                    readOnly
                     style={{
                       width: '100%',
                       padding: '10px 12px',
                       border: '1px solid #CBD5E1',
                       borderRadius: '8px',
                       fontSize: '14px',
-                      backgroundColor: '#F8FAFC',
+                      backgroundColor: '#F1F5F9',
                       height: '40px',
                       boxSizing: 'border-box'
                     }}
-                    placeholder="Nhập họ và tên"
                   />
                 </div>
                 
                 <div style={{ minWidth: 0 }}>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
-                    Số điện thoại *
+                    Số điện thoại
                   </label>
                   <input
                     type="tel"
                     value={customerInfo.phone}
-                    onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
+                    readOnly
                     style={{
                       width: '100%',
                       padding: '10px 12px',
                       border: '1px solid #CBD5E1',
                       borderRadius: '8px',
                       fontSize: '14px',
-                      backgroundColor: '#F8FAFC',
+                      backgroundColor: '#F1F5F9',
                       height: '40px',
                       boxSizing: 'border-box'
                     }}
-                    placeholder="Nhập số điện thoại"
                   />
                 </div>
                 
@@ -382,40 +557,17 @@ const handleGenerateQuote = async () => {
                   <input
                     type="email"
                     value={customerInfo.email}
-                    onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
+                    readOnly
                     style={{
                       width: '100%',
                       padding: '10px 12px',
                       border: '1px solid #CBD5E1',
                       borderRadius: '8px',
                       fontSize: '14px',
-                      backgroundColor: '#F8FAFC',
+                      backgroundColor: '#F1F5F9',
                       height: '40px',
                       boxSizing: 'border-box'
                     }}
-                    placeholder="Nhập email"
-                  />
-                </div>
-                
-                <div style={{ minWidth: 0 }}>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
-                    Số CMND/CCCD
-                  </label>
-                  <input
-                    type="text"
-                    value={customerInfo.idNumber}
-                    onChange={(e) => setCustomerInfo({...customerInfo, idNumber: e.target.value})}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      border: '1px solid #CBD5E1',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      backgroundColor: '#F8FAFC',
-                      height: '40px',
-                      boxSizing: 'border-box'
-                    }}
-                    placeholder="Nhập số CMND/CCCD"
                   />
                 </div>
                 
@@ -426,18 +578,17 @@ const handleGenerateQuote = async () => {
                   <input
                     type="text"
                     value={customerInfo.address}
-                    onChange={(e) => setCustomerInfo({...customerInfo, address: e.target.value})}
+                    readOnly
                     style={{
                       width: '100%',
                       padding: '10px 12px',
                       border: '1px solid #CBD5E1',
                       borderRadius: '8px',
                       fontSize: '14px',
-                      backgroundColor: '#F8FAFC',
+                      backgroundColor: '#F1F5F9',
                       height: '40px',
                       boxSizing: 'border-box'
                     }}
-                    placeholder="Nhập địa chỉ"
                   />
                 </div>
               </div>
@@ -504,25 +655,15 @@ const handleGenerateQuote = async () => {
                           border: '1px solid #CBD5E1',
                           borderRadius: '8px',
                           fontSize: '14px',
-                          backgroundColor: 'white',
+                          backgroundColor: '#F8FAFC',
                           height: '40px',
-                          boxSizing: 'border-box',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          appearance: 'none',
-                          backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
-                          backgroundRepeat: 'no-repeat',
-                          backgroundPosition: 'right 12px center',
-                          backgroundSize: '16px',
-                          paddingRight: '36px',
-                          color: '#374151'
+                          boxSizing: 'border-box'
                         }}
                       >
                         <option value="">-- Chọn xe --</option>
                         {vehicles.map(vehicle => (
                           <option key={vehicle.id} value={vehicle.id}>
-                            {vehicle.name} - {formatCurrency(vehicle.price)}
+                            {vehicle.model} - {formatCurrency(vehicle.price)}
                           </option>
                         ))}
                       </select>
@@ -543,7 +684,7 @@ const handleGenerateQuote = async () => {
                           border: '1px solid #CBD5E1',
                           borderRadius: '8px',
                           fontSize: '14px',
-                          backgroundColor: 'white',
+                          backgroundColor: '#F8FAFC',
                           height: '40px',
                           boxSizing: 'border-box'
                         }}
@@ -566,10 +707,7 @@ const handleGenerateQuote = async () => {
                           fontSize: '14px',
                           backgroundColor: '#F1F5F9',
                           height: '40px',
-                          boxSizing: 'border-box',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
+                          boxSizing: 'border-box'
                         }}
                       />
                     </div>
@@ -590,7 +728,7 @@ const handleGenerateQuote = async () => {
                           border: '1px solid #CBD5E1',
                           borderRadius: '8px',
                           fontSize: '14px',
-                          backgroundColor: 'white',
+                          backgroundColor: '#F8FAFC',
                           height: '40px',
                           boxSizing: 'border-box'
                         }}
@@ -637,6 +775,7 @@ const handleGenerateQuote = async () => {
               backgroundColor: 'white',
               borderRadius: '12px',
               padding: '24px',
+              marginBottom: '24px',
               border: '1px solid #E2E8F0',
               boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)'
             }}>
@@ -680,17 +819,17 @@ const handleGenerateQuote = async () => {
                     </label>
                     <input
                       type="number"
-                      min="10"
-                      max="90"
+                      min="0"
+                      max="100"
                       value={paymentInfo.downPaymentPercent}
-                      onChange={(e) => setPaymentInfo({...paymentInfo, downPaymentPercent: parseInt(e.target.value) || 30})}
+                      onChange={(e) => setPaymentInfo({...paymentInfo, downPaymentPercent: parseInt(e.target.value) || 0})}
                       style={{
                         width: '100%',
                         padding: '10px 12px',
                         border: '1px solid #CBD5E1',
                         borderRadius: '8px',
                         fontSize: '14px',
-                        backgroundColor: 'white',
+                        backgroundColor: '#F8FAFC',
                         height: '40px',
                         boxSizing: 'border-box'
                       }}
@@ -710,18 +849,9 @@ const handleGenerateQuote = async () => {
                         border: '1px solid #CBD5E1',
                         borderRadius: '8px',
                         fontSize: '14px',
-                        backgroundColor: 'white',
+                        backgroundColor: '#F8FAFC',
                         height: '40px',
-                        boxSizing: 'border-box',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        appearance: 'none',
-                        backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
-                        backgroundRepeat: 'no-repeat',
-                        backgroundPosition: 'right 12px center',
-                        backgroundSize: '16px',
-                        paddingRight: '36px'
+                        boxSizing: 'border-box'
                       }}
                     >
                       <option value={6}>6 tháng</option>
@@ -748,7 +878,7 @@ const handleGenerateQuote = async () => {
                         border: '1px solid #CBD5E1',
                         borderRadius: '8px',
                         fontSize: '14px',
-                        backgroundColor: 'white',
+                        backgroundColor: '#F8FAFC',
                         height: '40px',
                         boxSizing: 'border-box'
                       }}

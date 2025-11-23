@@ -97,6 +97,58 @@
       "UpstreamPathTemplate": "/images/{everything}",
       "UpstreamHttpMethod": ["GET"],
       "DownstreamHttpVersion": "1.1"
+    },
+    {
+      "DownstreamPathTemplate": "/api/Sales/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5077
+        }
+      ],
+      "UpstreamPathTemplate": "/api/Sales/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "DownstreamHttpVersion": "1.1"
+    },
+    {
+      "DownstreamPathTemplate": "/api/Payments/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5077
+        }
+      ],
+      "UpstreamPathTemplate": "/api/Payments/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "DownstreamHttpVersion": "1.1"
+    },
+    {
+      "DownstreamPathTemplate": "/api/Contracts/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5077
+        }
+      ],
+      "UpstreamPathTemplate": "/api/Contracts/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "DownstreamHttpVersion": "1.1"
+    },
+    {
+      "DownstreamPathTemplate": "/api/Promotions/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5077
+        }
+      ],
+      "UpstreamPathTemplate": "/api/Promotions/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "DownstreamHttpVersion": "1.1"
     }
   ],
   "GlobalConfiguration": {
