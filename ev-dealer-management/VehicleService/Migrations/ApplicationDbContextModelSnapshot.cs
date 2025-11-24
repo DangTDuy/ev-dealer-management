@@ -207,105 +207,45 @@ namespace VehicleService.Migrations
                             Id = 1,
                             Address = "123 Nguyen Hue, District 1, HCMC",
                             Contact = "0901234567",
-                            CreatedAt = new DateTime(2025, 11, 21, 7, 42, 40, 297, DateTimeKind.Utc).AddTicks(2392),
+                            CreatedAt = new DateTime(2025, 11, 24, 9, 47, 46, 921, DateTimeKind.Utc).AddTicks(6483),
                             Email = "hcmc@tesla.com",
                             Name = "Tesla Center HCMC",
                             Region = "Ho Chi Minh City",
-                            UpdatedAt = new DateTime(2025, 11, 21, 7, 42, 40, 297, DateTimeKind.Utc).AddTicks(2395)
+                            UpdatedAt = new DateTime(2025, 11, 24, 9, 47, 46, 921, DateTimeKind.Utc).AddTicks(6484)
                         },
                         new
                         {
                             Id = 2,
                             Address = "456 Le Loi, District 1, HCMC",
                             Contact = "0902345678",
-                            CreatedAt = new DateTime(2025, 11, 21, 7, 42, 40, 297, DateTimeKind.Utc).AddTicks(2406),
+                            CreatedAt = new DateTime(2025, 11, 24, 9, 47, 46, 921, DateTimeKind.Utc).AddTicks(6487),
                             Email = "district1@bmw.com",
                             Name = "BMW Center District 1",
                             Region = "Ho Chi Minh City",
-                            UpdatedAt = new DateTime(2025, 11, 21, 7, 42, 40, 297, DateTimeKind.Utc).AddTicks(2407)
+                            UpdatedAt = new DateTime(2025, 11, 24, 9, 47, 46, 921, DateTimeKind.Utc).AddTicks(6489)
                         },
                         new
                         {
                             Id = 3,
                             Address = "789 Dong Khoi, District 2, HCMC",
                             Contact = "0903456789",
-                            CreatedAt = new DateTime(2025, 11, 21, 7, 42, 40, 297, DateTimeKind.Utc).AddTicks(2411),
+                            CreatedAt = new DateTime(2025, 11, 24, 9, 47, 46, 921, DateTimeKind.Utc).AddTicks(6491),
                             Email = "district2@audi.com",
                             Name = "Audi Center District 2",
                             Region = "Ho Chi Minh City",
-                            UpdatedAt = new DateTime(2025, 11, 21, 7, 42, 40, 297, DateTimeKind.Utc).AddTicks(2412)
+                            UpdatedAt = new DateTime(2025, 11, 24, 9, 47, 46, 921, DateTimeKind.Utc).AddTicks(6492)
                         },
                         new
                         {
                             Id = 4,
                             Address = "321 Nguyen Van Cu, District 3, HCMC",
                             Contact = "0904567890",
-                            CreatedAt = new DateTime(2025, 11, 21, 7, 42, 40, 297, DateTimeKind.Utc).AddTicks(2417),
+                            CreatedAt = new DateTime(2025, 11, 24, 9, 47, 46, 921, DateTimeKind.Utc).AddTicks(6494),
                             Email = "district3@mercedes.com",
                             Name = "Mercedes-Benz Center District 3",
                             Region = "Ho Chi Minh City",
-                            UpdatedAt = new DateTime(2025, 11, 21, 7, 42, 40, 297, DateTimeKind.Utc).AddTicks(2418)
+                            UpdatedAt = new DateTime(2025, 11, 24, 9, 47, 46, 921, DateTimeKind.Utc).AddTicks(6495)
                         });
-                });
-
-            modelBuilder.Entity("VehicleService.Models.Reservation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("ColorVariantId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CustomerEmail")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CustomerName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CustomerPhone")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("TotalPrice")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("VehicleId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ColorVariantId");
-
-                    b.HasIndex("VehicleId");
-
-                    b.ToTable("Reservations");
                 });
 
             modelBuilder.Entity("VehicleService.Models.Vehicle", b =>
@@ -365,7 +305,7 @@ namespace VehicleService.Migrations
                         {
                             Id = 1,
                             BatteryCapacity = 75.0,
-                            CreatedAt = new DateTime(2025, 11, 21, 7, 42, 40, 297, DateTimeKind.Utc).AddTicks(2513),
+                            CreatedAt = new DateTime(2025, 11, 24, 9, 47, 46, 921, DateTimeKind.Utc).AddTicks(6534),
                             DealerId = 1,
                             Description = "Premium electric sedan with autopilot capabilities",
                             Model = "Tesla Model 3",
@@ -373,13 +313,13 @@ namespace VehicleService.Migrations
                             Range = 350,
                             StockQuantity = 12,
                             Type = "sedan",
-                            UpdatedAt = new DateTime(2025, 11, 21, 7, 42, 40, 297, DateTimeKind.Utc).AddTicks(2515)
+                            UpdatedAt = new DateTime(2025, 11, 24, 9, 47, 46, 921, DateTimeKind.Utc).AddTicks(6534)
                         },
                         new
                         {
                             Id = 2,
                             BatteryCapacity = 75.0,
-                            CreatedAt = new DateTime(2025, 11, 21, 7, 42, 40, 297, DateTimeKind.Utc).AddTicks(2521),
+                            CreatedAt = new DateTime(2025, 11, 24, 9, 47, 46, 921, DateTimeKind.Utc).AddTicks(6539),
                             DealerId = 1,
                             Description = "Versatile electric SUV perfect for families",
                             Model = "Tesla Model Y",
@@ -387,13 +327,13 @@ namespace VehicleService.Migrations
                             Range = 330,
                             StockQuantity = 8,
                             Type = "suv",
-                            UpdatedAt = new DateTime(2025, 11, 21, 7, 42, 40, 297, DateTimeKind.Utc).AddTicks(2522)
+                            UpdatedAt = new DateTime(2025, 11, 24, 9, 47, 46, 921, DateTimeKind.Utc).AddTicks(6540)
                         },
                         new
                         {
                             Id = 3,
                             BatteryCapacity = 83.900000000000006,
-                            CreatedAt = new DateTime(2025, 11, 21, 7, 42, 40, 297, DateTimeKind.Utc).AddTicks(2527),
+                            CreatedAt = new DateTime(2025, 11, 24, 9, 47, 46, 921, DateTimeKind.Utc).AddTicks(6543),
                             DealerId = 2,
                             Description = "Luxury electric sedan with BMW's signature driving dynamics",
                             Model = "BMW i4",
@@ -401,13 +341,13 @@ namespace VehicleService.Migrations
                             Range = 300,
                             StockQuantity = 6,
                             Type = "sedan",
-                            UpdatedAt = new DateTime(2025, 11, 21, 7, 42, 40, 297, DateTimeKind.Utc).AddTicks(2528)
+                            UpdatedAt = new DateTime(2025, 11, 24, 9, 47, 46, 921, DateTimeKind.Utc).AddTicks(6544)
                         },
                         new
                         {
                             Id = 4,
                             BatteryCapacity = 95.0,
-                            CreatedAt = new DateTime(2025, 11, 21, 7, 42, 40, 297, DateTimeKind.Utc).AddTicks(2537),
+                            CreatedAt = new DateTime(2025, 11, 24, 9, 47, 46, 921, DateTimeKind.Utc).AddTicks(6601),
                             DealerId = 3,
                             Description = "Premium electric SUV with quattro all-wheel drive",
                             Model = "Audi e-tron",
@@ -415,13 +355,13 @@ namespace VehicleService.Migrations
                             Range = 222,
                             StockQuantity = 4,
                             Type = "suv",
-                            UpdatedAt = new DateTime(2025, 11, 21, 7, 42, 40, 297, DateTimeKind.Utc).AddTicks(2537)
+                            UpdatedAt = new DateTime(2025, 11, 24, 9, 47, 46, 921, DateTimeKind.Utc).AddTicks(6602)
                         },
                         new
                         {
                             Id = 5,
                             BatteryCapacity = 107.8,
-                            CreatedAt = new DateTime(2025, 11, 21, 7, 42, 40, 297, DateTimeKind.Utc).AddTicks(2542),
+                            CreatedAt = new DateTime(2025, 11, 24, 9, 47, 46, 921, DateTimeKind.Utc).AddTicks(6605),
                             DealerId = 4,
                             Description = "Ultra-luxury electric sedan with cutting-edge technology",
                             Model = "Mercedes EQS",
@@ -429,7 +369,7 @@ namespace VehicleService.Migrations
                             Range = 350,
                             StockQuantity = 2,
                             Type = "sedan",
-                            UpdatedAt = new DateTime(2025, 11, 21, 7, 42, 40, 297, DateTimeKind.Utc).AddTicks(2542)
+                            UpdatedAt = new DateTime(2025, 11, 24, 9, 47, 46, 921, DateTimeKind.Utc).AddTicks(6605)
                         });
                 });
 
@@ -714,24 +654,6 @@ namespace VehicleService.Migrations
                         .HasForeignKey("VehicleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Vehicle");
-                });
-
-            modelBuilder.Entity("VehicleService.Models.Reservation", b =>
-                {
-                    b.HasOne("VehicleService.Models.ColorVariant", "ColorVariant")
-                        .WithMany()
-                        .HasForeignKey("ColorVariantId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("VehicleService.Models.Vehicle", "Vehicle")
-                        .WithMany()
-                        .HasForeignKey("VehicleId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ColorVariant");
 
                     b.Navigation("Vehicle");
                 });

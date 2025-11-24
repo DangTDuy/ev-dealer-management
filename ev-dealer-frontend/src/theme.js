@@ -5,15 +5,15 @@ const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#2563eb', // Modern blue
-      light: '#3b82f6',
-      dark: '#1d4ed8',
+      main: '#06b6d4', // Cyan - Xanh nhạt chủ đạo
+      light: '#22d3ee',
+      dark: '#0891b2',
       contrastText: '#ffffff',
     },
     secondary: {
-      main: '#7c3aed', // Modern purple
-      light: '#8b5cf6',
-      dark: '#6d28d9',
+      main: '#14b8a6', // Teal - Xanh lá nhạt
+      light: '#2dd4bf',
+      dark: '#0d9488',
       contrastText: '#ffffff',
     },
     success: {
@@ -32,7 +32,7 @@ const theme = createTheme({
       dark: '#dc2626',
     },
     background: {
-      default: '#f8fafc', // Very light grey
+      default: '#ecfeff', // Very light cyan - Nền xanh nhạt
       paper: '#ffffff',   // Pure white
     },
     grey: {

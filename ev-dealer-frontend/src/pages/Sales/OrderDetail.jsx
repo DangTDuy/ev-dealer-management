@@ -1,12 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-<<<<<<< HEAD
 import axios from 'axios'; // Import axios
-// import { mockOrder, mockPaymentSchedule, mockContracts } from '../../data/mockDataSales'; // Remove mock data import
-=======
-import { mockOrder, mockPaymentSchedule, mockContracts } from '../../data/mockDataSales';
 import NotificationToast from '../../components/Notification/NotificationToast';
->>>>>>> cbe64c56a5e561b432393d9ee6c4eac729f9aaf1
 
 // Icons
 const BackIcon = () => (
@@ -190,9 +185,6 @@ const handleUpdateStatus = async () => {
   }
 };
 
-<<<<<<< HEAD
-// Xử lý lỗi ảnh (giữ nguyên, nhưng có thể cần cập nhật đường dẫn ảnh mặc định)
-=======
 const handleCompleteOrder = async () => {
   if (completing) return;
   
@@ -264,7 +256,6 @@ const handleCloseNotification = () => {
 };
 
 // Xử lý lỗi ảnh
->>>>>>> cbe64c56a5e561b432393d9ee6c4eac729f9aaf1
 const handleImageError = (e) => {
   e.target.src = '/src/assets/img/default-car.png'; // Update path if needed
   e.target.alt = 'Không thể tải ảnh';

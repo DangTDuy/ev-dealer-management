@@ -56,7 +56,6 @@ import {
   Build as BuildIcon,
   Security as SecurityIcon,
   Palette as PaletteIcon,
-  ShoppingCart as CartIcon,
   NavigateNext as NextIcon,
   NavigateBefore as PrevIcon,
   ZoomIn as ZoomIcon,
@@ -85,19 +84,7 @@ const VehicleDetail = () => {
   const [failedImages, setFailedImages] = useState(new Set())
   const [zoomOpen, setZoomOpen] = useState(false)
 
-  // Reservation state
-  const [reservationDialogOpen, setReservationDialogOpen] = useState(false)
-  const [reservationLoading, setReservationLoading] = useState(false)
-  const [reservationData, setReservationData] = useState({
-    customerName: '',
-    customerEmail: '',
-    customerPhone: '',
-    colorVariantId: null,
-    notes: '',
-    quantity: 1
-  })
-  const [reservationSuccess, setReservationSuccess] = useState(false)
-  const [reservationResult, setReservationResult] = useState(null)
+
 
   // Notification state
   const [notification, setNotification] = useState({
@@ -134,6 +121,70 @@ const VehicleDetail = () => {
   const getImageSrc = (index) => {
     if (vehicle?.images && vehicle.images[index] && !failedImages.has(index)) return resolveImagePath(vehicle.images[index])
     return generatePlaceholderDataUrl(vehicle?.model || 'Electric Vehicle')
+  }
+
+  // Helper function để generate mock/default specs nếu không có data
+  const getSpecValue = (value, defaultValue = 'Đang cập nhật') => {
+    if (!value || value === 'N/A' || value === '') return defaultValue
+    return value
+  }
+
+  // Mock data cho vehicle type với random dựa trên ID
+  const getMockSpecsByType = (type, vehicleId = 1) => {
+    // Dùng vehicleId để tạo "random" nhất quán cho mỗi xe
+    const seed = vehicleId || 1
+    
+    // Random helpers với seed
+    const randomInRange = (min, max, offset = 0) => {
+      const val = min + ((seed + offset) % (max - min + 1))
+      return val
+    }
+    
+    const ranges = {
+      sedan: {
+        acceleration: { min: 4.5, max: 6.5 },
+        topSpeed: { min: 190, max: 230 },
+        charging: { min: 25, max: 35 },
+        seats: [5],
+        cargo: { min: 420, max: 520 },
+        warranty: ['3 năm / 60,000 km', '4 năm / 80,000 km', '5 năm / 100,000 km']
+      },
+      suv: {
+        acceleration: { min: 5.5, max: 7.5 },
+        topSpeed: { min: 170, max: 200 },
+        charging: { min: 30, max: 45 },
+        seats: [5, 7],
+        cargo: { min: 580, max: 720 },
+        warranty: ['4 năm / 100,000 km', '5 năm / 120,000 km', '6 năm / 150,000 km']
+      },
+      hatchback: {
+        acceleration: { min: 6.5, max: 8.5 },
+        topSpeed: { min: 150, max: 180 },
+        charging: { min: 20, max: 30 },
+        seats: [5],
+        cargo: { min: 320, max: 420 },
+        warranty: ['3 năm / 50,000 km', '3 năm / 60,000 km', '4 năm / 80,000 km']
+      }
+    }
+    
+    const range = ranges[type?.toLowerCase()] || ranges.sedan
+    
+    // Tạo specs với biến thể
+    const accel = (randomInRange(range.acceleration.min * 10, range.acceleration.max * 10, 1) / 10).toFixed(1)
+    const topSpeed = randomInRange(range.topSpeed.min, range.topSpeed.max, 2)
+    const charging = randomInRange(range.charging.min, range.charging.max, 3)
+    const seats = range.seats[seed % range.seats.length]
+    const cargo = randomInRange(range.cargo.min, range.cargo.max, 4)
+    const warranty = range.warranty[seed % range.warranty.length]
+    
+    return {
+      acceleration: `${accel} giây`,
+      topSpeed: `${topSpeed} km/h`,
+      charging: `${charging} phút (80%)`,
+      seats: `${seats} chỗ`,
+      cargo: `${cargo} lít`,
+      warranty: warranty
+    }
   }
   
   const [activeTab, setActiveTab] = useState(0)
@@ -211,48 +262,7 @@ const VehicleDetail = () => {
     }
   }
 
-  const handleReserveClick = () => {
-    setReservationData(prev => ({
-      ...prev,
-      colorVariantId: vehicle?.colorVariants[selectedColor]?.id || null
-    }))
-    setReservationDialogOpen(true)
-  }
 
-  const handleReservationInputChange = (field, value) => {
-    setReservationData(prev => ({
-      ...prev,
-      [field]: value
-    }))
-  }
-
-  const handleReservationSubmit = async () => {
-    try {
-      setReservationLoading(true)
-      const result = await vehicleService.reserveVehicle(vehicle.id, reservationData)
-      setReservationResult(result)
-      setReservationSuccess(true)
-      setReservationDialogOpen(false)
-      
-      // 🎉 Hiện thông báo thành công
-      showNotification(
-        `✅ Đặt xe thành công! Mã đặt chỗ: ${result.id}. SMS xác nhận đã được gửi đến ${reservationData.customerPhone}`,
-        'success'
-      )
-      
-      // Reload vehicle data to update stock
-      await loadVehicle()
-    } catch (err) {
-      // ❌ Hiện thông báo lỗi
-      showNotification(
-        `❌ Đặt xe thất bại: ${err.message || 'Vui lòng thử lại sau'}`,
-        'error'
-      )
-      console.error('Error creating reservation:', err)
-    } finally {
-      setReservationLoading(false)
-    }
-  }
 
   if (loading) {
     return (
@@ -312,7 +322,7 @@ const VehicleDetail = () => {
     <Box sx={{ 
       bgcolor: 'background.default', 
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%)'
+      background: 'linear-gradient(135deg, #ecfeff 0%, #cffafe 100%)'
     }}>
       <Container maxWidth="xl" sx={{ py: 3 }}>
         {/* Header Section */}
@@ -323,7 +333,7 @@ const VehicleDetail = () => {
               p: 4,
               mb: 4,
               borderRadius: 4,
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%)',
               color: 'white',
               position: 'relative',
               overflow: 'hidden'
@@ -382,27 +392,25 @@ const VehicleDetail = () => {
                   {vehicle.description}
                 </Typography>
               </Box>
-              <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', md: 'flex' } }}>
+
+              <Stack direction="row" spacing={2}>
                 <Button
                   variant="contained"
-                  startIcon={<CartIcon />}
-                  onClick={handleReserveClick}
-                  sx={{ 
-                    textTransform: 'none', 
-                    fontWeight: 700,
-                    borderRadius: 3,
-                    px: 4,
-                    py: 1.5,
+                  onClick={() => navigate(`/vehicles/compare?ids=${id}`)}
+                  sx={{
                     bgcolor: 'white',
                     color: 'primary.main',
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    borderRadius: 3,
+                    px: 3,
                     '&:hover': {
                       bgcolor: 'rgba(255,255,255,0.9)',
                       transform: 'translateY(-2px)'
-                    },
-                    transition: 'all 0.3s ease'
+                    }
                   }}
                 >
-                  Đặt xe ngay
+                  🔄 So sánh xe
                 </Button>
               </Stack>
             </Stack>
@@ -411,7 +419,7 @@ const VehicleDetail = () => {
 
         <Grid container spacing={4}>
           {/* Left Column - Image Gallery */}
-          <Grid item xs={12} lg={8}>
+          <Grid size={{ xs: 12, lg: 8 }}>
             <Slide in={true} direction="up" timeout={600}>
               <Paper 
                 elevation={0}
@@ -425,7 +433,7 @@ const VehicleDetail = () => {
                 }}
               >
                 {/* Main Image */}
-                <Box sx={{ position: 'relative', height: { xs: 400, md: 600 }, overflow: 'hidden', bgcolor: '#000' }}>
+                <Box sx={{ position: 'relative', height: { xs: 400, md: 600 }, overflow: 'hidden', bgcolor: '#f0f9ff' }}>
                   {imageLoading && (
                     <Box sx={{ 
                       position: 'absolute', 
@@ -449,7 +457,7 @@ const VehicleDetail = () => {
                     style={{
                       width: '100%',
                       height: '100%',
-                      objectFit: 'cover',
+                      objectFit: 'contain',
                       display: imageLoading ? 'none' : 'block',
                       transition: 'transform 0.5s ease',
                       cursor: 'zoom-in'
@@ -821,17 +829,17 @@ const VehicleDetail = () => {
                 <Box sx={{ p: 4 }}>
                   {activeTab === 0 && (
                     <Grid container spacing={4}>
-                      <Grid item xs={12} md={6}>
+                      <Grid size={{ xs: 12, md: 6 }}>
                         <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
                           <BuildIcon color="primary" />
                           Thông số động cơ & hiệu suất
                         </Typography>
                         <Stack spacing={3}>
                           {[
-                            { label: 'Tăng tốc 0-60 mph:', value: vehicle.specifications?.acceleration || 'N/A' },
-                            { label: 'Tốc độ tối đa:', value: vehicle.specifications?.topSpeed || 'N/A' },
-                            { label: 'Sạc nhanh:', value: vehicle.specifications?.charging || 'N/A' },
-                            { label: 'Công suất tối đa:', value: vehicle.motorPower || 'N/A' }
+                            { label: 'Tăng tốc 0-100 km/h:', value: getSpecValue(vehicle.specifications?.acceleration, getMockSpecsByType(vehicle.type, vehicle.id).acceleration) },
+                            { label: 'Tốc độ tối đa:', value: getSpecValue(vehicle.specifications?.topSpeed, getMockSpecsByType(vehicle.type, vehicle.id).topSpeed) },
+                            { label: 'Sạc nhanh:', value: getSpecValue(vehicle.specifications?.charging, getMockSpecsByType(vehicle.type, vehicle.id).charging) },
+                            { label: 'Công suất động cơ:', value: getSpecValue(vehicle.motorPower, 'Đang cập nhật') }
                           ].map((spec, index) => (
                             <Box key={index} sx={{ 
                               display: 'flex', 
@@ -857,17 +865,17 @@ const VehicleDetail = () => {
                         </Stack>
                       </Grid>
 
-                      <Grid item xs={12} md={6}>
+                      <Grid size={{ xs: 12, md: 6 }}>
                         <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
                           <CarIcon color="primary" />
                           Kích thước & tiện nghi
                         </Typography>
                         <Stack spacing={3}>
                           {[
-                            { label: 'Số chỗ ngồi:', value: vehicle.specifications?.seats || 'N/A' },
-                            { label: 'Dung tích cốp:', value: vehicle.specifications?.cargo || 'N/A' },
-                            { label: 'Trọng lượng:', value: 'N/A' },
-                            { label: 'Kích thước:', value: 'N/A' }
+                            { label: 'Số chỗ ngồi:', value: getSpecValue(vehicle.specifications?.seats, getMockSpecsByType(vehicle.type, vehicle.id).seats) },
+                            { label: 'Dung tích cốp:', value: getSpecValue(vehicle.specifications?.cargo, getMockSpecsByType(vehicle.type, vehicle.id).cargo) },
+                            { label: 'Bảo hành:', value: getSpecValue(vehicle.specifications?.warranty, getMockSpecsByType(vehicle.type, vehicle.id).warranty) },
+                            { label: 'Loại xe:', value: vehicle.type === 'sedan' ? 'Sedan' : vehicle.type === 'suv' ? 'SUV' : vehicle.type === 'hatchback' ? 'Hatchback' : vehicle.type.toUpperCase() }
                           ].map((spec, index) => (
                             <Box key={index} sx={{ 
                               display: 'flex', 
@@ -916,7 +924,7 @@ const VehicleDetail = () => {
                           'Kết nối 5G tích hợp',
                           'Cập nhật phần mềm từ xa'
                         ].map((feature, index) => (
-                          <Grid item xs={12} sm={6} md={4} key={index}>
+                          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
                             <Paper
                               sx={{
                                 p: 3,
@@ -953,14 +961,14 @@ const VehicleDetail = () => {
                         Bảo hành & Hỗ trợ
                       </Typography>
                       <Grid container spacing={4}>
-                        <Grid item xs={12} md={6}>
+                        <Grid size={{ xs: 12, md: 6 }}>
                           <Stack spacing={4}>
                             <Paper sx={{ p: 3, borderRadius: 3, bgcolor: 'success.50', border: '1px solid', borderColor: 'success.100' }}>
                               <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: 'success.dark' }}>
                                 🛡️ Bảo hành xe
                               </Typography>
                               <Typography variant="body1" color="text.secondary">
-                                {vehicle.specifications?.warranty || '4 năm hoặc 50,000 dặm, tùy điều kiện nào đến trước'}
+                                {getSpecValue(vehicle.specifications?.warranty, getMockSpecsByType(vehicle.type, vehicle.id).warranty)}
                               </Typography>
                             </Paper>
 
@@ -975,7 +983,7 @@ const VehicleDetail = () => {
                           </Stack>
                         </Grid>
 
-                        <Grid item xs={12} md={6}>
+                        <Grid size={{ xs: 12, md: 6 }}>
                           <Stack spacing={4}>
                             <Paper sx={{ p: 3, borderRadius: 3, bgcolor: 'warning.50', border: '1px solid', borderColor: 'warning.100' }}>
                               <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: 'warning.dark' }}>
@@ -1005,7 +1013,7 @@ const VehicleDetail = () => {
           </Grid>
 
           {/* Right Column - Sidebar */}
-          <Grid item xs={12} lg={4}>
+          <Grid size={{ xs: 12, lg: 4 }}>
             <Stack spacing={4}>
               {/* Reserve CTA Card */}
               <Zoom in={true} timeout={800}>
@@ -1013,8 +1021,8 @@ const VehicleDetail = () => {
                   elevation={0}
                   sx={{ 
                     borderRadius: 4,
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    boxShadow: '0 20px 60px rgba(102, 126, 234, 0.4)',
+                    background: 'linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%)',
+                    boxShadow: '0 20px 60px rgba(6, 182, 212, 0.4)',
                     overflow: 'hidden',
                     position: 'relative'
                   }}
@@ -1074,38 +1082,6 @@ const VehicleDetail = () => {
                         )}
                       </Stack>
 
-                      <Button
-                        fullWidth
-                        variant="contained"
-                        size="large"
-                        startIcon={<CartIcon />}
-                        onClick={handleReserveClick}
-                        disabled={vehicle.stockQuantity === 0}
-                        sx={{
-                          bgcolor: 'white',
-                          color: 'primary.main',
-                          borderRadius: 3,
-                          py: 2.5,
-                          textTransform: 'none',
-                          fontWeight: 700,
-                          fontSize: '1.1rem',
-                          boxShadow: '0 8px 30px rgba(0,0,0,0.2)',
-                          '&:hover': {
-                            bgcolor: 'rgba(255,255,255,0.95)',
-                            boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
-                            transform: 'translateY(-3px)'
-                          },
-                          '&:disabled': {
-                            bgcolor: 'rgba(255,255,255,0.3)',
-                            color: 'rgba(255,255,255,0.6)',
-                            boxShadow: 'none'
-                          },
-                          transition: 'all 0.3s ease'
-                        }}
-                      >
-                        {vehicle.stockQuantity === 0 ? '🚫 Tạm hết hàng' : '🚗 Đặt mua ngay'}
-                      </Button>
-                      
                       <Stack direction="row" spacing={2} justifyContent="center">
                         {[
                           { icon: '🚚', text: 'Miễn phí vận chuyển' },
@@ -1137,7 +1113,7 @@ const VehicleDetail = () => {
                   <CardContent sx={{ p: 0 }}>
                     {/* Gradient Header */}
                     <Box sx={{
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      background: 'linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%)',
                       p: 4,
                       color: 'white'
                     }}>
@@ -1298,264 +1274,6 @@ const VehicleDetail = () => {
             />
           </Box>
         </DialogContent>
-      </Dialog>
-
-      {/* Reservation Dialog */}
-      <Dialog
-        open={reservationDialogOpen}
-        onClose={() => !reservationLoading && setReservationDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: { 
-            borderRadius: 4,
-            boxShadow: '0 20px 60px rgba(0,0,0,0.2)'
-          }
-        }}
-      >
-        <DialogTitle sx={{ 
-          fontWeight: 800, 
-          borderBottom: 1, 
-          borderColor: 'divider', 
-          pb: 3,
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: 'white',
-          textAlign: 'center'
-        }}>
-          🚗 Đặt mua {vehicle?.model}
-        </DialogTitle>
-        <DialogContent sx={{ pt: 4, pb: 2 }}>
-          <Stack spacing={3}>
-            {/* Selected Color Display */}
-            {vehicle?.colorVariants[selectedColor] && (
-              <Paper sx={{ p: 3, bgcolor: 'primary.50', borderRadius: 3, border: '1px solid', borderColor: 'primary.100' }}>
-                <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>Màu đã chọn:</Typography>
-                <Stack direction="row" alignItems="center" spacing={3}>
-                  <Box
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: '50%',
-                      bgcolor: vehicle.colorVariants[selectedColor].hex,
-                      border: '3px solid white',
-                      boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
-                    }}
-                  />
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="body1" sx={{ fontWeight: 700 }}>
-                      {vehicle.colorVariants[selectedColor].name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {vehicle.colorVariants[selectedColor].stock} xe có sẵn
-                    </Typography>
-                  </Box>
-                  <Chip 
-                    label="Đã chọn" 
-                    color="primary" 
-                    size="small"
-                    sx={{ fontWeight: 600 }}
-                  />
-                </Stack>
-              </Paper>
-            )}
-
-            {/* Customer Information */}
-            <TextField
-              label="Họ và tên"
-              fullWidth
-              required
-              value={reservationData.customerName}
-              onChange={(e) => handleReservationInputChange('customerName', e.target.value)}
-              disabled={reservationLoading}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2
-                }
-              }}
-            />
-
-            <TextField
-              label="Email"
-              type="email"
-              fullWidth
-              required
-              value={reservationData.customerEmail}
-              onChange={(e) => handleReservationInputChange('customerEmail', e.target.value)}
-              disabled={reservationLoading}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2
-                }
-              }}
-            />
-
-            <TextField
-              label="Số điện thoại"
-              fullWidth
-              required
-              value={reservationData.customerPhone}
-              onChange={(e) => handleReservationInputChange('customerPhone', e.target.value)}
-              disabled={reservationLoading}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2
-                }
-              }}
-            />
-
-            <FormControl fullWidth>
-              <InputLabel>Số lượng</InputLabel>
-              <Select
-                value={reservationData.quantity}
-                onChange={(e) => handleReservationInputChange('quantity', e.target.value)}
-                label="Số lượng"
-                disabled={reservationLoading}
-                sx={{ borderRadius: 2 }}
-              >
-                {[1, 2, 3, 4, 5].map((num) => (
-                  <MenuItem key={num} value={num} disabled={num > vehicle?.stockQuantity}>
-                    {num} xe {num > vehicle?.stockQuantity && '(không đủ hàng)'}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <TextField
-              label="Ghi chú (tùy chọn)"
-              multiline
-              rows={3}
-              fullWidth
-              value={reservationData.notes}
-              onChange={(e) => handleReservationInputChange('notes', e.target.value)}
-              disabled={reservationLoading}
-              placeholder="Ví dụ: Muốn xem xe trực tiếp, thời gian rảnh, yêu cầu đặc biệt..."
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2
-                }
-              }}
-            />
-
-            {/* Price Summary */}
-            <Paper sx={{ p: 3, bgcolor: 'success.50', borderRadius: 3, border: '1px solid', borderColor: 'success.100' }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: 'success.dark' }}>
-                💰 Tổng tiền dự kiến:
-              </Typography>
-              <Typography variant="h4" color="success.main" sx={{ fontWeight: 800, mb: 1 }}>
-                ${((vehicle?.price || 0) * reservationData.quantity).toLocaleString()} VND
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Giá có thể thay đổi tùy theo phụ kiện và chương trình khuyến mãi hiện tại
-              </Typography>
-            </Paper>
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ p: 3, gap: 2 }}>
-          <Button
-            onClick={() => setReservationDialogOpen(false)}
-            variant="outlined"
-            disabled={reservationLoading}
-            sx={{ 
-              borderRadius: 2, 
-              textTransform: 'none', 
-              fontWeight: 600, 
-              px: 4,
-              py: 1
-            }}
-          >
-            Hủy
-          </Button>
-          <Button
-            onClick={handleReservationSubmit}
-            variant="contained"
-            disabled={reservationLoading || !reservationData.customerName || !reservationData.customerEmail || !reservationData.customerPhone}
-            startIcon={reservationLoading ? <CircularProgress size={20} /> : <CartIcon />}
-            sx={{ 
-              borderRadius: 2, 
-              textTransform: 'none', 
-              fontWeight: 600, 
-              px: 4,
-              py: 1,
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)'
-              },
-              transition: 'all 0.3s ease'
-            }}
-          >
-            {reservationLoading ? 'Đang đặt...' : 'Xác nhận đặt mua'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Reservation Success Dialog */}
-      <Dialog
-        open={reservationSuccess}
-        onClose={() => setReservationSuccess(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: { 
-            borderRadius: 4,
-            textAlign: 'center'
-          }
-        }}
-      >
-        <DialogTitle sx={{ 
-          fontWeight: 800, 
-          pt: 4,
-          pb: 2,
-          background: 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)',
-          color: 'white'
-        }}>
-          ✅ Đặt mua thành công!
-        </DialogTitle>
-        <DialogContent sx={{ py: 4 }}>
-          <Box sx={{ mb: 3 }}>
-            <CheckIcon sx={{ fontSize: 80, color: 'success.main', mb: 2 }} />
-          </Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, color: 'success.dark' }}>
-            Cảm ơn bạn đã đặt mua {vehicle?.model}
-          </Typography>
-          {reservationResult && (
-            <Paper sx={{ p: 3, bgcolor: 'success.50', borderRadius: 3, mb: 3, textAlign: 'left' }}>
-              <Typography variant="body1" sx={{ mb: 1, fontWeight: 600 }}>
-                <strong>Mã đặt hàng:</strong> #{reservationResult.id}
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 1 }}>
-                <strong>Tên khách hàng:</strong> {reservationResult.customerName}
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 1 }}>
-                <strong>Email:</strong> {reservationResult.customerEmail}
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 1 }}>
-                <strong>Số lượng:</strong> {reservationResult.quantity} xe
-              </Typography>
-              <Typography variant="body1">
-                <strong>Tổng tiền:</strong> ${reservationResult.totalPrice?.toLocaleString()} VND
-              </Typography>
-            </Paper>
-          )}
-          <Typography variant="body1" color="text.secondary">
-            Chúng tôi sẽ liên hệ với bạn trong vòng 24 giờ để xác nhận đơn hàng và hướng dẫn các bước tiếp theo.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: 'center', pb: 4 }}>
-          <Button
-            onClick={() => setReservationSuccess(false)}
-            variant="contained"
-            sx={{ 
-              borderRadius: 2, 
-              textTransform: 'none', 
-              fontWeight: 600, 
-              px: 4,
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-            }}
-          >
-            Đóng
-          </Button>
-        </DialogActions>
       </Dialog>
 
       {/* Delete Confirmation Dialog */}

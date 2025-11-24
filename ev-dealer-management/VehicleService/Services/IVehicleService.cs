@@ -16,7 +16,4 @@ public interface IVehicleService
     Task<DealerDto?> UpdateDealerAsync(int id, UpdateDealerDto updateDto);
     Task<bool> DeleteDealerAsync(int id);
     Task<List<VehicleType>> GetVehicleTypesAsync();
-    Task<ReservationDto> ReserveVehicleAsync(int vehicleId, CreateReservationDto createDto);
-    Task<ReservationDto?> GetReservationByIdAsync(int id);
-    Task<PaginatedResult<ReservationDto>> GetReservationsAsync(ReservationQueryDto query);
 }

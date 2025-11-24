@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using SalesService.DTOs;
-using SalesService.Services;
+// Removed: using SalesService.Services; // No longer needed as IMessageProducer is removed
+using SalesService.DTOs; // Assuming CreateOrderRequest and SaleCompletedEvent are defined here or in a shared DTOs file
+using Microsoft.Extensions.Logging; // Keep this for logging
 
 namespace SalesService.Controllers
 {
@@ -8,12 +9,12 @@ namespace SalesService.Controllers
     [Route("api/[controller]")]
     public class OrdersController : ControllerBase
     {
-        private readonly IMessageProducer _messageProducer;
+        // Removed: private readonly IMessageProducer _messageProducer;
         private readonly ILogger<OrdersController> _logger;
 
-        public OrdersController(IMessageProducer messageProducer, ILogger<OrdersController> logger)
+        public OrdersController(/* Removed: IMessageProducer messageProducer, */ ILogger<OrdersController> logger)
         {
-            _messageProducer = messageProducer;
+            // Removed: _messageProducer = messageProducer;
             _logger = logger;
         }
 
@@ -44,28 +45,26 @@ namespace SalesService.Controllers
                 // Generate order ID
                 var orderId = $"ORD-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
 
-                // Create event
-                var saleCompletedEvent = new SaleCompletedEvent
-                {
-                    OrderId = orderId,
-                    CustomerName = request.CustomerName,
-                    CustomerEmail = request.CustomerEmail,
-                    VehicleModel = request.VehicleModel,
-                    TotalAmount = request.TotalAmount,
-                    OrderDate = DateTime.UtcNow,
-                    PaymentMethod = request.PaymentMethod,
-                    Quantity = request.Quantity
-                };
+                // Removed: Create event and publish to RabbitMQ
+                // var saleCompletedEvent = new SaleCompletedEvent
+                // {
+                //     OrderId = orderId,
+                //     CustomerName = request.CustomerName,
+                //     CustomerEmail = request.CustomerEmail,
+                //     VehicleModel = request.VehicleModel,
+                //     TotalAmount = request.TotalAmount,
+                //     OrderDate = DateTime.UtcNow,
+                //     PaymentMethod = request.PaymentMethod,
+                //     Quantity = request.Quantity
+                // };
+                // _messageProducer.PublishMessage(saleCompletedEvent, "sales.completed");
 
-                // Publish to RabbitMQ queue "sales.completed"
-                _messageProducer.PublishMessage(saleCompletedEvent, "sales.completed");
-
-                _logger.LogInformation("Order {OrderId} completed for customer {CustomerEmail}", orderId, request.CustomerEmail);
+                _logger.LogInformation("Order {OrderId} completed for customer {CustomerEmail}. Message queueing is disabled.", orderId, request.CustomerEmail);
 
                 return Ok(new
                 {
                     success = true,
-                    message = "Order completed successfully. Confirmation email will be sent shortly.",
+                    message = "Order completed successfully. Message queueing is disabled.",
                     orderId = orderId,
                     customerEmail = request.CustomerEmail
                 });

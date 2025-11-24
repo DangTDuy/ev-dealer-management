@@ -25,28 +25,4 @@ namespace VehicleService.DTOs
         public int VehicleId { get; set; }
         public DateTime DeletedAt { get; set; }
     }
-
-    public class VehicleReservedEvent
-    {
-        public int ReservationId { get; set; }
-        public int VehicleId { get; set; }
-        public string VehicleModel { get; set; } = string.Empty;
-        public string CustomerName { get; set; } = string.Empty;
-        public string CustomerEmail { get; set; } = string.Empty;
-        public string CustomerPhone { get; set; } = string.Empty;
-        public int Quantity { get; set; }
-        public decimal TotalPrice { get; set; }
-        public int? ColorVariantId { get; set; }
-        public string? ColorVariantName { get; set; }
-        public int DealerId { get; set; }
-        public DateTime CreatedAt { get; set; }
-        
-        // Alias properties for NotificationService compatibility (camelCase JSON)
-        public string reservationId => ReservationId.ToString();
-        public string customerPhone => CustomerPhone;
-        public string customerName => CustomerName;
-        public string vehicleModel => VehicleModel;
-        public string colorName => ColorVariantName ?? "Standard";
-        public DateTime reservedAt => CreatedAt;
-    }
 }
