@@ -23,6 +23,7 @@ import Dashboard from "../pages/Dashboard/Dashboard";
 import VehicleList from "../pages/Vehicles/VehicleList";
 import VehicleDetail from "../pages/Vehicles/VehicleDetail";
 import VehicleForm from "../pages/Vehicles/VehicleForm";
+import VehicleCompare from "../pages/Vehicles/VehicleCompare";
 import SalesList from "../pages/Sales/SalesList";
 import QuoteCreate from "../pages/Sales/QuoteCreate";
 import OrderDetail from "../pages/Sales/OrderDetail";
@@ -76,6 +77,7 @@ const AppRoutes = () => {
 
         {/* Vehicle Routes */}
         <Route path="/vehicles" element={<VehicleList />} />
+        <Route path="/vehicles/compare" element={<VehicleCompare />} />
         <Route path="/vehicles/new" element={<VehicleForm />} />
         <Route path="/vehicles/:id" element={<VehicleDetail />} />
         <Route path="/vehicles/:id/edit" element={<VehicleForm />} />

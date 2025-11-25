@@ -1,27 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Code\\XD\\project_XD\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj": {}
+    "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj": {}
   },
   "projects": {
-    "C:\\Code\\XD\\project_XD\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj": {
+    "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Code\\XD\\project_XD\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj",
+        "projectUniqueName": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj",
         "projectName": "VehicleService",
-        "projectPath": "C:\\Code\\XD\\project_XD\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj",
-        "packagesPath": "C:\\Users\\ASUS\\.nuget\\packages\\",
-        "outputPath": "C:\\Code\\XD\\project_XD\\ev-dealer-management\\ev-dealer-management\\VehicleService\\obj\\",
+        "projectPath": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\VehicleService.csproj",
+        "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+        "outputPath": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\VehicleService\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\ASUS\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {

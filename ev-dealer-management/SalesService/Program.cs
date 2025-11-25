@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using QuestPDF.Infrastructure; // Required for LicenseType
-// Removed: using SalesService.Services; // Removed QuoteService import
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,9 +40,6 @@ builder.Services.AddDbContext<SalesDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
            .LogTo(Console.WriteLine, LogLevel.Information)
            .EnableSensitiveDataLogging());
-
-// Register services
-// Removed: builder.Services.AddScoped<QuoteService>(); // Removed QuoteService registration
 
 // Removed: Register IMessageProducer for RabbitMQ
 // Removed: builder.Services.AddSingleton<SalesService.Services.IMessageProducer, RabbitMQProducerService>();

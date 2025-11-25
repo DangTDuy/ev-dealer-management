@@ -6,8 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using QuestPDF.Fluent; // Add this using directive
 using SalesService.PdfDocuments; // Add this using directive
-using System.Net.Http;
-using System.Text.Json;
 
 namespace SalesService.Controllers
 {
@@ -17,32 +15,6 @@ namespace SalesService.Controllers
     {
         private readonly SalesDbContext _context;
         private readonly ILogger<SalesController> _logger;
-
-        // Helper to get current time in Vietnam timezone
-        private DateTime GetVietnamNow()
-        {
-            var utcNow = DateTime.UtcNow;
-            // Try Windows ID first, then IANA
-            TimeZoneInfo? tz = null; // Changed to nullable
-            try
-            {
-                tz = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
-            }
-            catch
-            {
-                try
-                {
-                    tz = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
-                }
-                catch
-                {
-                    // fallback to UTC
-                    tz = TimeZoneInfo.Utc;
-                }
-            }
-
-            return TimeZoneInfo.ConvertTimeFromUtc(utcNow, tz);
-        }
 
         public SalesController(SalesDbContext context, ILogger<SalesController> logger)
         {
@@ -54,47 +26,7 @@ namespace SalesService.Controllers
         [HttpPost("quotes")]
         public async Task<IActionResult> CreateQuote([FromBody] CreateQuoteDto createQuoteDto)
         {
-            // Try to fetch actual unit price from VehicleService API (via API Gateway)
-            decimal unitPrice = 0m;
-            try
-            {
-                using var httpClient = new HttpClient();
-                // Adjust URL if API gateway or vehicle service runs on different address
-                var vehicleApiUrl = $"http://localhost:5036/api/vehicles/{createQuoteDto.VehicleId}";
-                var resp = await httpClient.GetAsync(vehicleApiUrl);
-                if (resp.IsSuccessStatusCode)
-                {
-                    var json = await resp.Content.ReadAsStringAsync();
-                    using var doc = JsonDocument.Parse(json);
-                    var root = doc.RootElement;
-                    // Try common property names for price
-                    if (root.TryGetProperty("price", out var priceProp) && priceProp.ValueKind == JsonValueKind.Number)
-                    {
-                        unitPrice = priceProp.GetDecimal();
-                    }
-                    else if (root.TryGetProperty("Price", out var priceProp2) && priceProp2.ValueKind == JsonValueKind.Number)
-                    {
-                        unitPrice = priceProp2.GetDecimal();
-                    }
-                    else if (root.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Object && data.TryGetProperty("price", out var nestedPrice) && nestedPrice.ValueKind == JsonValueKind.Number)
-                    {
-                        unitPrice = nestedPrice.GetDecimal();
-                    }
-                    else
-                    {
-                        _logger.LogWarning("Vehicle API returned JSON but no price field found for VehicleId {VehicleId}", createQuoteDto.VehicleId);
-                    }
-                }
-                else
-                {
-                    _logger.LogWarning("Failed to fetch vehicle {VehicleId} from VehicleService. Status: {Status}", createQuoteDto.VehicleId, resp.StatusCode);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error fetching vehicle price for VehicleId {VehicleId}", createQuoteDto.VehicleId);
-            }
-
+            decimal unitPrice = 25000.00m; // Dummy price
             decimal totalPrice = unitPrice * createQuoteDto.Quantity;
 
             var quote = new Quote
@@ -106,9 +38,9 @@ namespace SalesService.Controllers
                 UnitPrice = unitPrice,
                 TotalPrice = totalPrice,
                 Notes = createQuoteDto.Notes,
-                Status = createQuoteDto.Status ?? "Finalized", // Use status from DTO, default to Finalized if not provided
-                SalesRepId = createQuoteDto.SalesRepId,
-                CreatedAt = GetVietnamNow(),
+                Status = "Pending",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
                 // New payment fields
                 PaymentType = createQuoteDto.PaymentType,
                 DownPaymentPercent = createQuoteDto.DownPaymentPercent,
@@ -139,8 +71,8 @@ namespace SalesService.Controllers
                 TotalPrice = quote.TotalPrice,
                 Status = quote.Status,
                 Notes = quote.Notes,
-                SalesRepId = quote.SalesRepId,
                 CreatedAt = quote.CreatedAt,
+                UpdatedAt = quote.UpdatedAt,
                 // New payment fields
                 PaymentType = quote.PaymentType,
                 DownPaymentPercent = quote.DownPaymentPercent,
@@ -154,9 +86,7 @@ namespace SalesService.Controllers
         [HttpGet("quotes")]
         public async Task<ActionResult<IEnumerable<QuoteDto>>> GetAllQuotes()
         {
-            // Return quotes for common statuses including PendingApproval so manager/staff can see awaiting quotes
             var quotes = await _context.Quotes
-                .Where(q => q.Status == "Finalized" || q.Status == "PendingApproval" || q.Status == "ConvertedToOrder" || q.Status == "Cancelled") // Include PendingApproval and Cancelled quotes
                 .Select(q => new QuoteDto
                 {
                     Id = q.Id,
@@ -168,8 +98,8 @@ namespace SalesService.Controllers
                     TotalPrice = q.TotalPrice,
                     Status = q.Status,
                     Notes = q.Notes,
-                    SalesRepId = q.SalesRepId,
                     CreatedAt = q.CreatedAt,
+                    UpdatedAt = q.UpdatedAt,
                     // New payment fields
                     PaymentType = q.PaymentType,
                     DownPaymentPercent = q.DownPaymentPercent,
@@ -202,8 +132,8 @@ namespace SalesService.Controllers
                 TotalPrice = quote.TotalPrice,
                 Status = quote.Status,
                 Notes = quote.Notes,
-                SalesRepId = quote.SalesRepId,
                 CreatedAt = quote.CreatedAt,
+                UpdatedAt = quote.UpdatedAt,
                 // New payment fields
                 PaymentType = quote.PaymentType,
                 DownPaymentPercent = quote.DownPaymentPercent,
@@ -215,7 +145,7 @@ namespace SalesService.Controllers
         }
 
         [HttpPut("quotes/{id}/status")]
-        public async Task<IActionResult> UpdateQuoteStatus(int id, [FromBody] UpdateQuoteStatusDto updateDto) // Changed parameter type
+        public async Task<IActionResult> UpdateQuoteStatus(int id, [FromBody] string status)
         {
             var quote = await _context.Quotes.FindAsync(id);
             if (quote == null)
@@ -223,12 +153,11 @@ namespace SalesService.Controllers
                 return NotFound();
             }
 
-            quote.Status = updateDto.Status; // Use status from DTO
-            // Removed quote.UpdatedAt = GetVietnamNow(); as per user request
+            quote.Status = status;
+            quote.UpdatedAt = DateTime.UtcNow;
             try
             {
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Quote status for ID: {QuoteId} updated to {Status}", id, updateDto.Status);
             }
             catch (Exception ex)
             {
@@ -243,156 +172,74 @@ namespace SalesService.Controllers
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto createOrderDto)
         {
             var quote = await _context.Quotes.FindAsync(createOrderDto.QuoteId);
-            if (quote == null || quote.Status != "Finalized") // Only allow creating order from Finalized quotes
+            if (quote == null || quote.Status != "Accepted")
             {
-                return BadRequest("Quote not found or not finalized.");
-            }
-
-            // Calculate total price from order items
-            decimal calculatedTotalPrice = 0;
-            foreach (var itemDto in createOrderDto.OrderItems)
-            {
-                calculatedTotalPrice += itemDto.UnitPrice * itemDto.Quantity * (1 - (itemDto.Discount ?? 0) / 100);
+                return BadRequest("Quote not found or not accepted.");
             }
 
             var order = new Order
             {
                 QuoteId = quote.Id,
                 CustomerId = quote.CustomerId,
-                SalespersonId = createOrderDto.SalespersonId,
-                DealerId = createOrderDto.DealerId, // New field
-                TotalPrice = calculatedTotalPrice, // Calculated from order items
-                PaymentMethod = createOrderDto.PaymentMethod, // New field
-                PaymentType = createOrderDto.PaymentType,
-                DeliveryDate = createOrderDto.DeliveryDate, // New field
+                VehicleId = quote.VehicleId,
+                Quantity = quote.Quantity,
+                TotalPrice = quote.TotalPrice,
+                PaymentMethod = createOrderDto.PaymentMethod,
                 Notes = createOrderDto.Notes,
-                // OrderNumber will be set below to ensure uniqueness
-                OrderNumber = null,
                 Status = "Pending",
                 PaymentStatus = "Pending",
-                CreatedAt = GetVietnamNow(),
-                UpdatedAt = GetVietnamNow()
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             _context.Orders.Add(order);
-
-            // Add OrderItems
-            foreach (var itemDto in createOrderDto.OrderItems)
-            {
-                order.OrderItems.Add(new OrderItem
-                {
-                    VehicleId = itemDto.VehicleId,
-                    VehicleModelId = itemDto.VehicleModelId,
-                    VehicleVariantId = itemDto.VehicleVariantId,
-                    ColorId = itemDto.ColorId,
-                    ColorVariantId = itemDto.ColorVariantId,
-                    Quantity = itemDto.Quantity,
-                    UnitPrice = itemDto.UnitPrice,
-                    Discount = itemDto.Discount,
-                    PromotionApplied = itemDto.PromotionApplied,
-                    CreatedAt = GetVietnamNow(),
-                    UpdatedAt = GetVietnamNow()
-                });
-            }
-
             try
             {
-                // Update quote status to "ConvertedToOrder" after successful order creation
-                quote.Status = "ConvertedToOrder";
-
-                // Generate unique OrderNumber (human-friendly). Try few times if collision.
-                string GenerateCandidate()
-                {
-                    var now = GetVietnamNow();
-                    var rnd = new Random();
-                    return $"ORD-{now:yyyyMMddHHmmss}-{rnd.Next(1000, 9999)}";
-                }
-
-                string candidate = GenerateCandidate();
-                int attempts = 0;
-                while (await _context.Orders.AnyAsync(o => o.OrderNumber == candidate))
-                {
-                    candidate = GenerateCandidate();
-                    attempts++;
-                    if (attempts > 10) break;
-                }
-                order.OrderNumber = candidate;
-
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error saving order or updating quote status for QuoteId: {QuoteId}", quote.Id);
+                _logger.LogError(ex, "Error saving order to database for QuoteId: {QuoteId}", quote.Id);
                 return StatusCode(500, "Internal server error when saving order.");
             }
 
             var orderDto = new OrderDto
             {
-                OrderID = order.OrderID,
+                Id = order.Id,
                 QuoteId = order.QuoteId,
                 CustomerId = order.CustomerId,
-                DealerId = order.DealerId, // New field
+                VehicleId = order.VehicleId,
+                Quantity = order.Quantity,
                 TotalPrice = order.TotalPrice,
                 Status = order.Status,
                 PaymentStatus = order.PaymentStatus,
-                PaymentMethod = order.PaymentMethod, // New field
-                DeliveryDate = order.DeliveryDate, // New field
+                PaymentMethod = order.PaymentMethod,
                 Notes = order.Notes,
                 CreatedAt = order.CreatedAt,
-                UpdatedAt = order.UpdatedAt,
-                OrderItems = order.OrderItems.Select(oi => new OrderItemDto
-                {
-                    OrderItemID = oi.OrderItemID,
-                    OrderId = oi.OrderId,
-                    VehicleId = oi.VehicleId,
-                    VehicleModelId = oi.VehicleModelId,
-                    VehicleVariantId = oi.VehicleVariantId,
-                    ColorId = oi.ColorId,
-                    ColorVariantId = oi.ColorVariantId,
-                    Quantity = oi.Quantity,
-                    UnitPrice = oi.UnitPrice,
-                    Discount = oi.Discount,
-                    PromotionApplied = oi.PromotionApplied,
-                    CreatedAt = oi.CreatedAt,
-                    UpdatedAt = oi.UpdatedAt
-                }).ToList()
+                UpdatedAt = order.UpdatedAt
             };
 
-            return CreatedAtAction(nameof(GetOrderById), new { id = order.OrderID }, orderDto);
+            return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, orderDto);
         }
 
         [HttpGet("orders")] // New endpoint to get all orders
         public async Task<ActionResult<IEnumerable<OrderDto>>> GetAllOrders()
         {
             var orders = await _context.Orders
-                .Include(o => o.OrderItems) // Include OrderItems
                 .Select(o => new OrderDto
                 {
-                    OrderID = o.OrderID,
+                    Id = o.Id,
                     QuoteId = o.QuoteId,
                     CustomerId = o.CustomerId,
-                    DealerId = o.DealerId, // New field
+                    VehicleId = o.VehicleId,
+                    Quantity = o.Quantity,
                     TotalPrice = o.TotalPrice,
                     Status = o.Status,
                     PaymentStatus = o.PaymentStatus,
-                    PaymentMethod = o.PaymentMethod, // New field
-                    DeliveryDate = o.DeliveryDate, // New field
+                    PaymentMethod = o.PaymentMethod,
                     Notes = o.Notes,
                     CreatedAt = o.CreatedAt,
-                    UpdatedAt = o.UpdatedAt,
-                    OrderItems = o.OrderItems.Select(oi => new OrderItemDto
-                    {
-                        OrderItemID = oi.OrderItemID,
-                        OrderId = oi.OrderId,
-                        VehicleId = oi.VehicleId,
-                        ColorVariantId = oi.ColorVariantId,
-                        Quantity = oi.Quantity,
-                        UnitPrice = oi.UnitPrice,
-                        Discount = oi.Discount,
-                        PromotionApplied = oi.PromotionApplied,
-                        CreatedAt = oi.CreatedAt,
-                        UpdatedAt = oi.UpdatedAt
-                    }).ToList()
+                    UpdatedAt = o.UpdatedAt
                 })
                 .ToListAsync();
 
@@ -402,9 +249,7 @@ namespace SalesService.Controllers
         [HttpGet("orders/{id}")]
         public async Task<IActionResult> GetOrderById(int id)
         {
-            var order = await _context.Orders
-                .Include(o => o.OrderItems) // Include OrderItems
-                .FirstOrDefaultAsync(o => o.OrderID == id);
+            var order = await _context.Orders.FindAsync(id);
 
             if (order == null)
             {
@@ -413,31 +258,18 @@ namespace SalesService.Controllers
 
             var orderDto = new OrderDto
             {
-                OrderID = order.OrderID,
+                Id = order.Id,
                 QuoteId = order.QuoteId,
                 CustomerId = order.CustomerId,
-                DealerId = order.DealerId, // New field
+                VehicleId = order.VehicleId,
+                Quantity = order.Quantity,
                 TotalPrice = order.TotalPrice,
                 Status = order.Status,
                 PaymentStatus = order.PaymentStatus,
-                PaymentMethod = order.PaymentMethod, // New field
-                DeliveryDate = order.DeliveryDate, // New field
+                PaymentMethod = order.PaymentMethod,
                 Notes = order.Notes,
                 CreatedAt = order.CreatedAt,
-                UpdatedAt = order.UpdatedAt,
-                OrderItems = order.OrderItems.Select(oi => new OrderItemDto
-                {
-                    OrderItemID = oi.OrderItemID,
-                    OrderId = oi.OrderId,
-                    VehicleId = oi.VehicleId,
-                    ColorVariantId = oi.ColorVariantId,
-                    Quantity = oi.Quantity,
-                    UnitPrice = oi.UnitPrice,
-                    Discount = oi.Discount,
-                    PromotionApplied = oi.PromotionApplied,
-                    CreatedAt = oi.CreatedAt,
-                    UpdatedAt = oi.UpdatedAt
-                }).ToList()
+                UpdatedAt = order.UpdatedAt
             };
 
             return Ok(orderDto);
@@ -453,7 +285,7 @@ namespace SalesService.Controllers
             }
 
             order.Status = status;
-            order.UpdatedAt = GetVietnamNow(); // Use GetVietnamNow()
+            order.UpdatedAt = DateTime.UtcNow;
             try
             {
                 await _context.SaveChangesAsync();
@@ -476,7 +308,7 @@ namespace SalesService.Controllers
             }
 
             order.PaymentStatus = paymentStatus;
-            order.UpdatedAt = GetVietnamNow(); // Use GetVietnamNow()
+            order.UpdatedAt = DateTime.UtcNow;
             try
             {
                 await _context.SaveChangesAsync();
@@ -504,9 +336,8 @@ namespace SalesService.Controllers
                 OrderId = createContractDto.OrderId,
                 ContractNumber = Guid.NewGuid().ToString(),
                 ContractDetails = createContractDto.ContractDetails,
-                SignDate = GetVietnamNow(), // Use GetVietnamNow()
-                CreatedAt = GetVietnamNow(),
-                UpdatedAt = GetVietnamNow() // Added UpdatedAt for Contract
+                SignDate = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow
             };
 
             _context.Contracts.Add(contract);
@@ -527,8 +358,7 @@ namespace SalesService.Controllers
                 ContractNumber = contract.ContractNumber,
                 ContractDetails = contract.ContractDetails,
                 SignDate = contract.SignDate,
-                CreatedAt = contract.CreatedAt,
-                UpdatedAt = contract.UpdatedAt
+                CreatedAt = contract.CreatedAt
             };
 
             return CreatedAtAction(nameof(GetContractById), new { id = contract.Id }, contractDto);
@@ -551,165 +381,10 @@ namespace SalesService.Controllers
                 ContractNumber = contract.ContractNumber,
                 ContractDetails = contract.ContractDetails,
                 SignDate = contract.SignDate,
-                CreatedAt = contract.CreatedAt,
-                UpdatedAt = contract.UpdatedAt
+                CreatedAt = contract.CreatedAt
             };
 
             return Ok(contractDto);
-        }
-
-        // --- Delivery Endpoints ---
-        // Assuming Delivery model has CreatedAt and UpdatedAt
-        [HttpPost("deliveries")]
-        public async Task<IActionResult> CreateDelivery([FromBody] CreateDeliveryDto createDeliveryDto)
-        {
-            var order = await _context.Orders.FindAsync(createDeliveryDto.OrderId);
-            if (order == null)
-            {
-                return NotFound("Order not found.");
-            }
-
-            var delivery = new Delivery
-            {
-                OrderId = createDeliveryDto.OrderId,
-                TrackingNumber = createDeliveryDto.TrackingNumber,
-                EstimatedDeliveryDate = createDeliveryDto.EstimatedDeliveryDate,
-                ActualDeliveryDate = createDeliveryDto.ActualDeliveryDate,
-                Status = createDeliveryDto.Status,
-                Notes = createDeliveryDto.Notes,
-                CreatedAt = GetVietnamNow(),
-                UpdatedAt = GetVietnamNow()
-            };
-
-            _context.Deliveries.Add(delivery);
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error saving delivery to database for OrderId: {OrderId}", createDeliveryDto.OrderId);
-                return StatusCode(500, "Internal server error when saving delivery.");
-            }
-
-            var deliveryDto = new DeliveryDto
-            {
-                Id = delivery.Id,
-                OrderId = delivery.OrderId,
-                TrackingNumber = delivery.TrackingNumber,
-                EstimatedDeliveryDate = delivery.EstimatedDeliveryDate,
-                ActualDeliveryDate = delivery.ActualDeliveryDate,
-                Status = delivery.Status,
-                Notes = delivery.Notes,
-                CreatedAt = delivery.CreatedAt,
-                UpdatedAt = delivery.UpdatedAt
-            };
-
-            return CreatedAtAction(nameof(GetDeliveryById), new { id = delivery.Id }, deliveryDto);
-        }
-
-        [HttpGet("deliveries/{id}")]
-        public async Task<IActionResult> GetDeliveryById(int id)
-        {
-            var delivery = await _context.Deliveries.FindAsync(id);
-
-            if (delivery == null)
-            {
-                return NotFound();
-            }
-
-            var deliveryDto = new DeliveryDto
-            {
-                Id = delivery.Id,
-                OrderId = delivery.OrderId,
-                TrackingNumber = delivery.TrackingNumber,
-                EstimatedDeliveryDate = delivery.EstimatedDeliveryDate,
-                ActualDeliveryDate = delivery.ActualDeliveryDate,
-                Status = delivery.Status,
-                Notes = delivery.Notes,
-                CreatedAt = delivery.CreatedAt,
-                UpdatedAt = delivery.UpdatedAt
-            };
-
-            return Ok(deliveryDto);
-        }
-
-        // --- Payment Endpoints ---
-        [HttpPost("payments")]
-        public async Task<IActionResult> CreatePayment([FromBody] CreatePaymentDto createPaymentDto)
-        {
-            var order = await _context.Orders.FindAsync(createPaymentDto.OrderId);
-            if (order == null)
-            {
-                return NotFound("Order not found.");
-            }
-
-            var payment = new Payment
-            {
-                OrderId = createPaymentDto.OrderId,
-                Amount = createPaymentDto.Amount,
-                PaymentDate = createPaymentDto.PaymentDate,
-                PaymentMethod = createPaymentDto.PaymentMethod,
-                Status = createPaymentDto.Status,
-                TransactionId = createPaymentDto.TransactionId,
-                Notes = createPaymentDto.Notes,
-                CreatedAt = GetVietnamNow(),
-                UpdatedAt = GetVietnamNow()
-            };
-
-            _context.Payments.Add(payment);
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error saving payment to database for OrderId: {OrderId}", createPaymentDto.OrderId);
-                return StatusCode(500, "Internal server error when saving payment.");
-            }
-
-            var paymentDto = new PaymentDto
-            {
-                Id = payment.Id,
-                OrderId = payment.OrderId,
-                Amount = payment.Amount,
-                PaymentDate = payment.PaymentDate,
-                PaymentMethod = payment.PaymentMethod,
-                Status = payment.Status,
-                TransactionId = payment.TransactionId,
-                Notes = payment.Notes,
-                CreatedAt = payment.CreatedAt,
-                UpdatedAt = payment.UpdatedAt
-            };
-
-            return CreatedAtAction(nameof(GetPaymentById), new { id = payment.Id }, paymentDto);
-        }
-
-        [HttpGet("payments/{id}")]
-        public async Task<IActionResult> GetPaymentById(int id)
-        {
-            var payment = await _context.Payments.FindAsync(id);
-
-            if (payment == null)
-            {
-                return NotFound();
-            }
-
-            var paymentDto = new PaymentDto
-            {
-                Id = payment.Id,
-                OrderId = payment.OrderId,
-                Amount = payment.Amount,
-                PaymentDate = payment.PaymentDate,
-                PaymentMethod = payment.PaymentMethod,
-                Status = payment.Status,
-                TransactionId = payment.TransactionId,
-                Notes = payment.Notes,
-                CreatedAt = payment.CreatedAt,
-                UpdatedAt = payment.UpdatedAt
-            };
-
-            return Ok(paymentDto);
         }
 
         // --- Manufacturer Order Endpoint ---
@@ -723,7 +398,7 @@ namespace SalesService.Controllers
                 createManufacturerOrderDto.VehicleId,
                 createManufacturerOrderDto.Quantity,
                 createManufacturerOrderDto.Notes,
-                Timestamp = GetVietnamNow()
+                Timestamp = DateTime.UtcNow
             };
 
             // const string routingKey = "manufacturer.order.created";
@@ -758,8 +433,8 @@ namespace SalesService.Controllers
             {
                 var document = new QuotePdfDocument(request);
                 byte[] pdfBytes = document.GeneratePdf();
-                var vnNow = GetVietnamNow();
-                return File(pdfBytes, "application/pdf", $"BaoGiaXeDien_{vnNow:yyyyMMddHHmmss}.pdf");
+
+                return File(pdfBytes, "application/pdf", $"BaoGiaXeDien_{DateTime.Now:yyyyMMddHHmmss}.pdf");
             }
             catch (Exception ex)
             {

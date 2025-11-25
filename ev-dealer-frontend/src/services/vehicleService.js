@@ -2,6 +2,27 @@ import api from './api'
 import { mockVehicles, mockDealers } from '../data/mockVehicles'
 
 const vehicleService = {
+  // Get all vehicles without pagination (for dropdowns/compare)
+  getAllVehicles: async () => {
+    try {
+      const response = await api.get('/vehicles', { params: { PageSize: 1000 } })
+      const vehicles = (response.items || response.Items || []).map(vehicle => {
+        const transformedVehicle = { ...vehicle }
+        if (vehicle.Images && Array.isArray(vehicle.Images)) {
+          transformedVehicle.images = vehicle.Images.map(img => img.url || img.Url || img)
+        } else if (vehicle.images && Array.isArray(vehicle.images)) {
+          transformedVehicle.images = vehicle.images.map(img => typeof img === 'string' ? img : (img.url || img.Url || img))
+        }
+        return transformedVehicle
+      })
+      return vehicles
+    } catch (error) {
+      console.warn('API call failed, using mock data:', error.message)
+      await new Promise(resolve => setTimeout(resolve, 500))
+      return [...mockVehicles]
+    }
+  },
+
   // Get all vehicles with optional filters and pagination
   getVehicles: async (params = {}) => {
     try {

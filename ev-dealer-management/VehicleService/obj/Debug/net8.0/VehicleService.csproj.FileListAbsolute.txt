@@ -553,3 +553,7 @@ C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\VehicleService\o
 C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\VehicleService\obj\Debug\net8.0\VehicleService.pdb
 C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\VehicleService\obj\Debug\net8.0\VehicleService.genruntimeconfig.cache
 C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\VehicleService\obj\Debug\net8.0\ref\VehicleService.dll
+D:\Nam_3\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\net8.0\wwwroot\images\64506d86-8a29-40bf-9b39-f590df2955d0_1400-Model-Images (2).png
+D:\Nam_3\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\net8.0\wwwroot\images\b1d2f588-7b40-4470-b01a-1af0e7092441_car2.png
+D:\Nam_3\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\net8.0\wwwroot\images\b2b6d6f5-b1d5-416b-831d-d837d7fc156e_1400-Model-Images (1).png
+D:\Nam_3\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\net8.0\wwwroot\images\e6007cfa-b27a-4e05-a09c-73d0e308b88f_car2.png

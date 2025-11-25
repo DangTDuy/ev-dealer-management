@@ -176,5 +176,21 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\ce23ab5a-8356-498c-9cfe-059edfdafcfb_tesla-model-3-thumb.png))</OriginalItemSpec>
     </StaticWebAsset>
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\e6007cfa-b27a-4e05-a09c-73d0e308b88f_car2.png))">
+      <SourceType>Package</SourceType>
+      <SourceId>VehicleService</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
+      <BasePath>_content/VehicleService</BasePath>
+      <RelativePath>images/e6007cfa-b27a-4e05-a09c-73d0e308b88f_car2.png</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <RelatedAsset></RelatedAsset>
+      <AssetTraitName></AssetTraitName>
+      <AssetTraitValue></AssetTraitValue>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\images\e6007cfa-b27a-4e05-a09c-73d0e308b88f_car2.png))</OriginalItemSpec>
+    </StaticWebAsset>
   </ItemGroup>
 </Project>

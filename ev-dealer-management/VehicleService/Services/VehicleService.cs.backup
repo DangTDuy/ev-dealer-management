@@ -557,3 +557,191 @@ public class VehicleService : IVehicleService
         return await _context.VehicleTypes.ToListAsync();
     }
 }
+
+        // If color variant is specified, check its stock
+        ColorVariant? colorVariant = null;
+        if (createDto.ColorVariantId.HasValue)
+        {
+            colorVariant = vehicle.ColorVariants.FirstOrDefault(cv => cv.Id == createDto.ColorVariantId.Value);
+            if (colorVariant == null)
+            {
+                throw new ArgumentException("Color variant not found");
+            }
+            if (colorVariant.Stock < createDto.Quantity)
+            {
+                throw new InvalidOperationException("Insufficient color variant stock available");
+            }
+        }
+
+        // Calculate total price
+        var totalPrice = vehicle.Price * createDto.Quantity;
+
+        // Create reservation
+        var reservation = new Reservation
+        {
+            VehicleId = vehicleId,
+            ColorVariantId = createDto.ColorVariantId,
+            CustomerName = createDto.CustomerName,
+            CustomerEmail = createDto.CustomerEmail,
+            CustomerPhone = createDto.CustomerPhone,
+            Notes = createDto.Notes,
+            Quantity = createDto.Quantity,
+            TotalPrice = totalPrice,
+            Status = ReservationStatus.Pending,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            ExpiresAt = DateTime.UtcNow.AddHours(48)
+        };
+
+        _context.Reservations.Add(reservation);
+
+        // Reserve stock temporarily (decrease available stock)
+        vehicle.StockQuantity -= createDto.Quantity;
+        if (colorVariant != null)
+        {
+            colorVariant.Stock -= createDto.Quantity;
+        }
+
+        await _context.SaveChangesAsync();
+
+        // Publish vehicle reserved event
+        var vehicleReservedEvent = new VehicleReservedEvent
+        {
+            ReservationId = reservation.Id,
+            VehicleId = vehicle.Id,
+            VehicleModel = vehicle.Model,
+            CustomerName = reservation.CustomerName,
+            CustomerEmail = reservation.CustomerEmail,
+            CustomerPhone = reservation.CustomerPhone,
+            Quantity = reservation.Quantity,
+            TotalPrice = reservation.TotalPrice,
+            ColorVariantId = reservation.ColorVariantId,
+            ColorVariantName = colorVariant?.Name,
+            DealerId = vehicle.DealerId,  // Thêm DealerId
+            CreatedAt = reservation.CreatedAt
+        };
+        _messageProducer.PublishMessage(vehicleReservedEvent);
+
+        // Return reservation DTO
+        return new ReservationDto
+        {
+            Id = reservation.Id,
+            VehicleId = vehicle.Id,
+            VehicleName = vehicle.Model,
+            ColorVariantId = reservation.ColorVariantId,
+            ColorVariantName = colorVariant?.Name,
+            CustomerName = reservation.CustomerName,
+            CustomerEmail = reservation.CustomerEmail,
+            CustomerPhone = reservation.CustomerPhone,
+            Notes = reservation.Notes,
+            Quantity = reservation.Quantity,
+            TotalPrice = reservation.TotalPrice,
+            Status = reservation.Status.ToString(),
+            CreatedAt = reservation.CreatedAt,
+            UpdatedAt = reservation.UpdatedAt,
+            ExpiresAt = reservation.ExpiresAt
+        };
+    }
+
+    public async Task<ReservationDto?> GetReservationByIdAsync(int id)
+    {
+        var reservation = await _context.Reservations
+            .Include(r => r.Vehicle)
+            .Include(r => r.ColorVariant)
+            .FirstOrDefaultAsync(r => r.Id == id);
+
+        if (reservation == null) return null;
+
+        return new ReservationDto
+        {
+            Id = reservation.Id,
+            VehicleId = reservation.VehicleId,
+            VehicleName = reservation.Vehicle!.Model,
+            ColorVariantId = reservation.ColorVariantId,
+            ColorVariantName = reservation.ColorVariant?.Name,
+            CustomerName = reservation.CustomerName,
+            CustomerEmail = reservation.CustomerEmail,
+            CustomerPhone = reservation.CustomerPhone,
+            Notes = reservation.Notes,
+            Quantity = reservation.Quantity,
+            TotalPrice = reservation.TotalPrice,
+            Status = reservation.Status.ToString(),
+            CreatedAt = reservation.CreatedAt,
+            UpdatedAt = reservation.UpdatedAt,
+            ExpiresAt = reservation.ExpiresAt
+        };
+    }
+
+    public async Task<PaginatedResult<ReservationDto>> GetReservationsAsync(ReservationQueryDto query)
+    {
+        var queryable = _context.Reservations
+            .Include(r => r.Vehicle)
+            .Include(r => r.ColorVariant)
+            .AsQueryable();
+
+        // Apply filters
+        if (!string.IsNullOrWhiteSpace(query.CustomerEmail))
+        {
+            queryable = queryable.Where(r => r.CustomerEmail.Contains(query.CustomerEmail));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.CustomerPhone))
+        {
+            queryable = queryable.Where(r => r.CustomerPhone.Contains(query.CustomerPhone));
+        }
+
+        if (query.Status.HasValue)
+        {
+            queryable = queryable.Where(r => r.Status == query.Status.Value);
+        }
+
+        if (query.VehicleId.HasValue)
+        {
+            queryable = queryable.Where(r => r.VehicleId == query.VehicleId.Value);
+        }
+
+        if (query.FromDate.HasValue)
+        {
+            queryable = queryable.Where(r => r.CreatedAt >= query.FromDate.Value);
+        }
+
+        if (query.ToDate.HasValue)
+        {
+            queryable = queryable.Where(r => r.CreatedAt <= query.ToDate.Value);
+        }
+
+        var totalCount = await queryable.CountAsync();
+
+        var reservations = await queryable
+            .Skip((query.Page - 1) * query.PageSize)
+            .Take(query.PageSize)
+            .OrderByDescending(r => r.CreatedAt)
+            .Select(r => new ReservationDto
+            {
+                Id = r.Id,
+                VehicleId = r.VehicleId,
+                VehicleName = r.Vehicle!.Model,
+                ColorVariantId = r.ColorVariantId,
+                ColorVariantName = r.ColorVariant!.Name,
+                CustomerName = r.CustomerName,
+                CustomerEmail = r.CustomerEmail,
+                CustomerPhone = r.CustomerPhone,
+                Notes = r.Notes,
+                Quantity = r.Quantity,
+                TotalPrice = r.TotalPrice,
+                Status = r.Status.ToString(),
+                CreatedAt = r.CreatedAt,
+                UpdatedAt = r.UpdatedAt,
+                ExpiresAt = r.ExpiresAt
+            })
+            .ToListAsync();
+
+        return new PaginatedResult<ReservationDto>
+        {
+            Items = reservations,
+            TotalCount = totalCount,
+            Page = query.Page,
+            PageSize = query.PageSize
+        };
+    }
+}
