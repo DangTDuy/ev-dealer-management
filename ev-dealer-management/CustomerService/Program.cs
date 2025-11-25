@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper; // Add this using statement
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +57,11 @@ builder.Services.AddDbContext<CustomerService.Data.CustomerDbContext>(options =>
 
 // Register Custom Services
 builder.Services.AddScoped<CustomerService.Services.ICustomerService, CustomerService.Services.CustomerService>();
+builder.Services.AddScoped<CustomerService.Services.ITestDriveService, CustomerService.Services.TestDriveService>(); // Register TestDriveService
+
+// Register AutoMapper
+builder.Services.AddAutoMapper(typeof(CustomerService.Profiles.MappingProfile).Assembly);
+
 
 // Register RabbitMQ Producer Service
 builder.Services.AddSingleton<CustomerService.Services.IMessageProducer, CustomerService.Services.RabbitMQProducerService>();

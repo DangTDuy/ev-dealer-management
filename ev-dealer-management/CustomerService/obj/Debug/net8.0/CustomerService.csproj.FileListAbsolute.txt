@@ -415,6 +415,7 @@ D:\Nam_3\ev-dealer-management\ev-dealer-management\CustomerService\obj\Debug\net
 D:\Nam_3\ev-dealer-management\ev-dealer-management\CustomerService\obj\Debug\net8.0\CustomerService.pdb
 D:\Nam_3\ev-dealer-management\ev-dealer-management\CustomerService\obj\Debug\net8.0\CustomerService.genruntimeconfig.cache
 D:\Nam_3\ev-dealer-management\ev-dealer-management\CustomerService\obj\Debug\net8.0\ref\CustomerService.dll
+<<<<<<< HEAD
 C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\CustomerService\bin\Debug\net8.0\appsettings.Development.json
 C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\CustomerService\bin\Debug\net8.0\appsettings.json
 C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\CustomerService\bin\Debug\net8.0\CustomerService.exe
@@ -553,3 +554,7 @@ C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\CustomerService\
 C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\CustomerService\obj\Debug\net8.0\CustomerService.pdb
 C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\CustomerService\obj\Debug\net8.0\CustomerService.genruntimeconfig.cache
 C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\CustomerService\obj\Debug\net8.0\ref\CustomerService.dll
+=======
+C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\CustomerService\bin\Debug\net8.0\AutoMapper.dll
+C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\CustomerService\bin\Debug\net8.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
+>>>>>>> f17bc6a ( add: Drivertest)

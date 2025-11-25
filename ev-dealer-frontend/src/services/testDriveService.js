@@ -1,6 +1,6 @@
 import api from "./api";
 
-const BASE_URL = "/customer-service/api/TestDrives"; // Assuming API Gateway routes to customer-service
+const BASE_URL = "TestDrives"; // Corrected: Should be just "TestDrives" to match API Gateway route
 
 const testDriveService = {
   getAllTestDrives: async () => {

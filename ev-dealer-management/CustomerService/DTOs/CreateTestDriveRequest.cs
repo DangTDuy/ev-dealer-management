@@ -17,5 +17,7 @@ namespace CustomerService.DTOs
         public DateTime AppointmentDate { get; set; }
 
         public string? Notes { get; set; }
+
+        public string? Status { get; set; } // Added Status field
     }
 }

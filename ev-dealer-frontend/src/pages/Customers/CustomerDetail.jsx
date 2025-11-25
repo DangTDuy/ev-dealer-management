@@ -28,7 +28,7 @@ import {
   Edit as EditIcon,
   Phone as PhoneIcon,
   Email as EmailIcon,
-  LocationOn as LocationIcon,
+  LocationOn as LocationIcon, // Corrected import alias
   CalendarToday as CalendarIcon,
   DirectionsCar as CarIcon,
   ShoppingCart as ShoppingIcon,
@@ -37,12 +37,14 @@ import {
 } from "@mui/icons-material";
 import { PageHeader, DataTable } from "../../components/common";
 import { customerService } from "../../services/customerService";
+import testDriveService from "../../services/testDriveService";
 import { format } from "date-fns";
 
 const CustomerDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [customer, setCustomer] = useState(null);
+  const [customerTestDrives, setCustomerTestDrives] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [tabValue, setTabValue] = useState(0);
@@ -50,25 +52,28 @@ const CustomerDetail = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    const fetchCustomer = async () => {
+    const fetchCustomerData = async () => {
       try {
         setLoading(true);
-        const response = await customerService.getCustomerById(id);
-        setCustomer(response); // ✅ FIX: không dùng response.data nữa
+        const customerResponse = await customerService.getCustomerById(id);
+        setCustomer(customerResponse);
+
+        const testDrivesResponse = await testDriveService.getTestDrivesByCustomerId(id);
+        setCustomerTestDrives(testDrivesResponse);
+
         setError(null);
       } catch (err) {
-        setError("Failed to fetch customer details.");
+        setError("Failed to fetch customer details or test drives.");
         console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCustomer();
+    fetchCustomerData();
   }, [id]);
 
   const purchaseHistory = [];
-  const testDrives = [];
   const serviceHistory = [];
 
   const columns = [
@@ -79,9 +84,15 @@ const CustomerDetail = () => {
   ];
 
   const testDriveColumns = [
-    { field: "date", headerName: "Ngày", width: 150 },
-    { field: "vehicle", headerName: "Xe", width: 200 },
+    {
+      field: "appointmentDate",
+      headerName: "Ngày hẹn",
+      width: 180,
+      renderCell: (params) => format(new Date(params.value), "dd/MM/yyyy HH:mm"),
+    },
+    { field: "vehicleId", headerName: "ID Xe", width: 100 },
     { field: "status", headerName: "Trạng thái", width: 120 },
+    { field: "notes", headerName: "Ghi chú", width: 200 },
   ];
 
   const serviceColumns = [
@@ -114,7 +125,7 @@ const CustomerDetail = () => {
       icon: <CarIcon />,
       variant: "contained",
       color: "primary",
-      onClick: () => navigate("/customers/test-drive/new"),
+      onClick: () => navigate("/customers/test-drive/new", { state: { customer } }),
     },
   ];
 
@@ -158,7 +169,7 @@ const CustomerDetail = () => {
     },
     {
       icon: <CarIcon />,
-      value: customer.testDrives?.length || 0,
+      value: customerTestDrives?.length || 0,
       label: "Lần test drive",
       color: "info.main",
     },
@@ -227,7 +238,7 @@ const CustomerDetail = () => {
                 </ListItem>
                 <ListItem sx={{ px: 0, py: 1 }}>
                   <ListItemIcon>
-                    <LocationIcon color="primary" />
+                    <LocationIcon color="primary" /> {/* Changed from LocationOnIcon to LocationIcon */}
                   </ListItemIcon>
                   <ListItemText
                     primary="Địa chỉ"
@@ -291,7 +302,7 @@ const CustomerDetail = () => {
                 {tabValue === 1 && (
                   <DataTable
                     columns={testDriveColumns}
-                    data={testDrives}
+                    data={customerTestDrives}
                     pagination={true}
                   />
                 )}
@@ -308,7 +319,6 @@ const CustomerDetail = () => {
         </Grid>
       </Container>
 
-      {/* Dialog sửa (chưa dùng) */}
       <Dialog
         open={editDialogOpen}
         onClose={() => setEditDialogOpen(false)}

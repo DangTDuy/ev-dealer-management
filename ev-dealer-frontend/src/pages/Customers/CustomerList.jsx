@@ -22,6 +22,7 @@ import {
   People as PeopleIcon,
   TrendingUp as TrendingUpIcon,
   ShoppingCart as ShoppingCartIcon,
+  DirectionsCar as CarIcon, // Import CarIcon
 } from "@mui/icons-material";
 import { format } from "date-fns";
 import { customerService } from "../../services/customerService";
@@ -133,6 +134,13 @@ const CustomerList = () => {
   ];
 
   const pageActions = [
+    {
+      label: "Lịch Test Drive",
+      icon: <CarIcon />,
+      variant: "outlined",
+      color: "secondary",
+      onClick: () => navigate("/test-drives"),
+    },
     {
       label: "Thêm khách hàng",
       icon: <AddIcon />,

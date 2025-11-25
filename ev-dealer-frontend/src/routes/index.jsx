@@ -23,20 +23,15 @@ import Dashboard from "../pages/Dashboard/Dashboard";
 import VehicleList from "../pages/Vehicles/VehicleList";
 import VehicleDetail from "../pages/Vehicles/VehicleDetail";
 import VehicleForm from "../pages/Vehicles/VehicleForm";
-import VehicleCompare from "../pages/Vehicles/VehicleCompare";
 import SalesList from "../pages/Sales/SalesList";
 import QuoteCreate from "../pages/Sales/QuoteCreate";
 import OrderDetail from "../pages/Sales/OrderDetail";
-import QuoteList from "../pages/Sales/QuoteList"; // Import QuoteList
-import QuoteView from "../pages/Sales/QuoteView";
-import OrderCreateFromQuote from "../pages/Sales/OrderCreateFromQuote"; // New: Import OrderCreateFromQuote
-// import ContractCreate from "../pages/Sales/ContractCreate"; // REMOVED: ContractCreate is no longer directly accessible from SalesList
-// import SalesManagementPage from "../pages/Sales/SalesManagementPage"; // REMOVED: Import the new page
 import CustomerList from "../pages/Customers/CustomerList";
 import CustomerDetail from "../pages/Customers/CustomerDetail";
 import CustomerNew from "../pages/Customers/CustomerNew";
 import CustomerEdit from "../pages/Customers/CustomerEdit";
 import TestDriveForm from "../pages/Customers/TestDriveForm";
+import TestDriveList from "../pages/Customers/TestDriveList"; // Import the new page
 import DealerList from "../pages/Dealers/DealerList";
 import DealerDetail from "../pages/Dealers/DealerDetail";
 import Reports from "../pages/Reports/Reports";
@@ -77,7 +72,6 @@ const AppRoutes = () => {
 
         {/* Vehicle Routes */}
         <Route path="/vehicles" element={<VehicleList />} />
-        <Route path="/vehicles/compare" element={<VehicleCompare />} />
         <Route path="/vehicles/new" element={<VehicleForm />} />
         <Route path="/vehicles/:id" element={<VehicleDetail />} />
         <Route path="/vehicles/:id/edit" element={<VehicleForm />} />
@@ -85,12 +79,7 @@ const AppRoutes = () => {
         {/* Sales Routes */}
         <Route path="/sales" element={<SalesList />} />
         <Route path="/sales/quote/new" element={<QuoteCreate />} />
-        <Route path="/sales/quotes" element={<QuoteList />} /> {/* New QuoteList Route */}
-        <Route path="/sales/quotes/:id/view" element={<QuoteView />} />
-        <Route path="/sales/orders/create-from-quote/:quoteId" element={<OrderCreateFromQuote />} /> {/* New: Route for creating order from quote */}
-        {/* <Route path="/sales/contract/new" element={<ContractCreate />} /> */} {/* REMOVED: ContractCreate route */}
         <Route path="/sales/:id" element={<OrderDetail />} />
-        {/* <Route path="/sales/manage" element={<SalesManagementPage />} /> */} {/* REMOVED: New Sales Management Route */}
 
         {/* Customer Routes */}
         <Route path="/customers" element={<CustomerList />} />
@@ -98,6 +87,7 @@ const AppRoutes = () => {
         <Route path="/customers/:id" element={<CustomerDetail />} />
         <Route path="/customers/:id/edit" element={<CustomerEdit />} />
         <Route path="/customers/test-drive/new" element={<TestDriveForm />} />
+        <Route path="/test-drives" element={<TestDriveList />} /> {/* Add new route */}
 
         {/* Dealer Routes */}
         <Route path="/dealers" element={<DealerList />} />
