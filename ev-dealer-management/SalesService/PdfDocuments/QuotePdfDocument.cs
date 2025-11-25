@@ -40,7 +40,9 @@ namespace SalesService.PdfDocuments
                 row.RelativeItem().Column(column =>
                 {
                     column.Item().Text("BÁO GIÁ XE ĐIỆN").FontSize(24).Bold().FontColor(Colors.Blue.Medium);
-                    column.Item().Text($"Ngày báo giá: {DateTime.Now:dd/MM/yyyy}").FontSize(10).FontColor(Colors.Grey.Medium);
+                    // Use Vietnam local date for the PDF header
+                    var vnNow = GetVietnamNow();
+                    column.Item().Text($"Ngày báo giá: {vnNow:dd/MM/yyyy}").FontSize(10).FontColor(Colors.Grey.Medium);
                 });
 
                 // row.ConstantItem(100).Image("logo.png"); // Commented out: Placeholder for a logo
@@ -86,33 +88,34 @@ namespace SalesService.PdfDocuments
                 {
                     table.ColumnsDefinition(columns =>
                     {
-                        columns.RelativeColumn(3);
-                        columns.RelativeColumn(1);
+                        // Use even relative columns for a balanced layout
                         columns.RelativeColumn(2);
                         columns.RelativeColumn(1);
-                        columns.RelativeColumn(2);
+                        columns.RelativeColumn(1);
+                        columns.RelativeColumn(1);
+                        columns.RelativeColumn(1);
                     });
 
                     table.Header(header =>
                     {
-                        header.Cell().Element(CellStyle).Text("Tên xe");
-                        header.Cell().Element(CellStyle).Text("Số lượng");
-                        header.Cell().Element(CellStyle).AlignRight().Text("Đơn giá");
-                        header.Cell().Element(CellStyle).AlignRight().Text("Giảm giá (%)");
-                        header.Cell().Element(CellStyle).AlignRight().Text("Thành tiền");
+                        header.Cell().Element(HeaderCellStyle).AlignCenter().Text("Tên xe");
+                        header.Cell().Element(HeaderCellStyle).AlignCenter().Text("Số lượng");
+                        header.Cell().Element(HeaderCellStyle).AlignCenter().Text("Đơn giá");
+                        header.Cell().Element(HeaderCellStyle).AlignCenter().Text("Giảm giá (%)");
+                        header.Cell().Element(HeaderCellStyle).AlignCenter().Text("Thành tiền");
 
-                        static IContainer CellStyle(IContainer container) => container.DefaultTextStyle(x => x.Bold()).PaddingVertical(5).BorderBottom(1).BorderColor(Colors.Black);
+                        static IContainer HeaderCellStyle(IContainer container) => container.DefaultTextStyle(x => x.Bold()).PaddingVertical(6).BorderBottom(1).BorderColor(Colors.Black).AlignCenter();
                     });
 
                     foreach (var item in Model.QuoteItems)
                     {
-                        table.Cell().Element(CellStyle).Text(item.VehicleName);
-                        table.Cell().Element(CellStyle).Text(item.Quantity.ToString());
-                        table.Cell().Element(CellStyle).AlignRight().Text(FormatCurrency(item.UnitPrice));
-                        table.Cell().Element(CellStyle).AlignRight().Text($"{item.Discount}%");
-                        table.Cell().Element(CellStyle).AlignRight().Text(FormatCurrency(item.ItemTotal));
+                        table.Cell().Element(BodyCellStyle).AlignCenter().Text(item.VehicleName);
+                        table.Cell().Element(BodyCellStyle).AlignCenter().Text(item.Quantity.ToString());
+                        table.Cell().Element(BodyCellStyle).AlignCenter().Text(FormatCurrency(item.UnitPrice));
+                        table.Cell().Element(BodyCellStyle).AlignCenter().Text($"{item.Discount}%");
+                        table.Cell().Element(BodyCellStyle).AlignCenter().Text(FormatCurrency(item.ItemTotal));
 
-                        static IContainer CellStyle(IContainer container) => container.PaddingVertical(5).BorderBottom(1).BorderColor(Colors.Grey.Lighten3);
+                        static IContainer BodyCellStyle(IContainer container) => container.PaddingVertical(6).BorderBottom(1).BorderColor(Colors.Grey.Lighten3).AlignCenter();
                     }
                 });
             });
@@ -179,6 +182,30 @@ namespace SalesService.PdfDocuments
                 text.Span(" / ").FontSize(10);
                 text.TotalPages().FontSize(10);
             });
+        }
+
+        // Helper to obtain Vietnam local time (mirrors controller helper)
+        private DateTime GetVietnamNow()
+        {
+            var utcNow = DateTime.UtcNow;
+            TimeZoneInfo tz = null;
+            try
+            {
+                tz = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            }
+            catch
+            {
+                try
+                {
+                    tz = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+                }
+                catch
+                {
+                    tz = TimeZoneInfo.Utc;
+                }
+            }
+
+            return TimeZoneInfo.ConvertTimeFromUtc(utcNow, tz);
         }
 
         private string FormatCurrency(decimal amount)

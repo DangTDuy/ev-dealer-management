@@ -11,8 +11,9 @@ namespace SalesService.Data
             // Remove logging from constructor
         }
 
-        public DbSet<Quote> Quotes { get; set; }
+        public DbSet<Quote> Quotes { get; set; } // Added DbSet for Quote
         public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; } // New: DbSet for OrderItem
         public DbSet<Contract> Contracts { get; set; }
         public DbSet<Promotion> Promotions { get; set; }
         public DbSet<Delivery> Deliveries { get; set; }
@@ -65,6 +66,13 @@ namespace SalesService.Data
                 entity.Property(e => e.Quantity).IsRequired();
                 entity.Property(e => e.ReservationDate).IsRequired();
             });
+
+            // Configure relationship for Order and OrderItem
+            modelBuilder.Entity<Order>()
+                .HasMany(o => o.OrderItems)
+                .WithOne(oi => oi.Order)
+                .HasForeignKey(oi => oi.OrderId)
+                .OnDelete(DeleteBehavior.Cascade); // If an Order is deleted, its OrderItems are also deleted
         }
     }
 }

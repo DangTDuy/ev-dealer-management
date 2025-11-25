@@ -21,6 +21,7 @@ namespace SalesService.Models
         public DateTime SignDate { get; set; } = DateTime.UtcNow;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow; // Added UpdatedAt
 
         // Navigation property
         [ForeignKey("OrderId")]

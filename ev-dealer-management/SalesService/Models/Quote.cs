@@ -9,12 +9,12 @@ namespace SalesService.Models
         public int Id { get; set; }
 
         [Required]
-        public int CustomerId { get; set; } // Reference to CustomerService
+        public int CustomerId { get; set; }
 
         [Required]
-        public int VehicleId { get; set; } // Reference to VehicleService
+        public int VehicleId { get; set; }
 
-        public int? ColorVariantId { get; set; } // Reference to VehicleService
+        public int? ColorVariantId { get; set; }
 
         [Required]
         [Range(1, int.MaxValue)]
@@ -30,25 +30,27 @@ namespace SalesService.Models
 
         [Required]
         [StringLength(50)]
-        public string Status { get; set; } = "Pending"; // e.g., Pending, Accepted, Rejected
+        public string Status { get; set; } = "Finalized"; // Changed default status to Finalized
+
+        [Required]
+        public int SalesRepId { get; set; }
 
         [StringLength(1000)]
         public string? Notes { get; set; }
 
-        // New payment-related fields for Quote
-        [Required]
-        [StringLength(50)]
-        public string PaymentType { get; set; } = "Full"; // e.g., Full, Installment
-
-        [Column(TypeName = "decimal(5, 2)")] // Max 999.99, 2 decimal places
-        public decimal? DownPaymentPercent { get; set; } // Only for Installment
-
-        public int? LoanTerm { get; set; } // In months, only for Installment
-
-        [Column(TypeName = "decimal(5, 2)")] // Max 999.99, 2 decimal places
-        public decimal? InterestRate { get; set; } // Only for Installment
-
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        // Removed UpdatedAt as per user request
+
+        // New payment fields as expected by SalesController
+        [StringLength(50)]
+        public string? PaymentType { get; set; }
+        
+        [Column(TypeName = "decimal(5, 2)")]
+        public decimal? DownPaymentPercent { get; set; }
+
+        public int? LoanTerm { get; set; }
+        
+        [Column(TypeName = "decimal(5, 2)")]
+        public decimal? InterestRate { get; set; }
     }
 }

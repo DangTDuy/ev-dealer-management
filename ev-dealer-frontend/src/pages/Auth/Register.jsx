@@ -311,9 +311,9 @@ const Register = () => {
             </InputAdornment>
           )}
         >
-          <MenuItem value={"Dealer Staff"}>Dealer Staff</MenuItem>
-          <MenuItem value={"Dealer Manager"}>Dealer Manager</MenuItem>
-          <MenuItem value={"EVM Staff"}>EVM Staff</MenuItem>
+          <MenuItem value={"DealerStaff"}>Dealer Staff</MenuItem>
+          <MenuItem value={"DealerManager"}>Dealer Manager</MenuItem>
+          <MenuItem value={"EVMStaff"}>EVM Staff</MenuItem>
         </Select>
         {errors.role && <Typography variant="caption" color="error" sx={{ ml: 2 }}>{errors.role}</Typography>}
       </FormControl>

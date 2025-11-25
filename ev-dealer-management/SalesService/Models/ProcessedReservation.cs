@@ -32,4 +32,5 @@ public class ProcessedReservation
     public int? DealerId { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow; // Added UpdatedAt
 }
