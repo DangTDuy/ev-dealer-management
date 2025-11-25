@@ -63,11 +63,11 @@ const CalendarIcon = () => (
 );
 
 export default function OrderDetail() {
-  const { orderId } = useParams();
+  const { id } = useParams(); // Get id from URL param (route: /sales/:id)
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); // Add error state
+  const [error, setError] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showContractModal, setShowContractModal] = useState(false);
@@ -79,25 +79,67 @@ export default function OrderDetail() {
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
   const [completing, setCompleting] = useState(false);
 
+  // Helper to read fields with multiple casing/variants from API responses
+  const pick = (obj, ...keys) => {
+    for (const k of keys) {
+      if (!obj) continue;
+      if (Object.prototype.hasOwnProperty.call(obj, k) && obj[k] !== undefined) return obj[k];
+    }
+    return undefined;
+  };
+
   const fetchOrderDetail = async () => {
+    // Validate ID parameter
+    if (!id || id === 'undefined') {
+      console.error('Invalid Order ID:', id);
+      setError('ID đơn hàng không hợp lệ. Vui lòng quay lại danh sách và thử lại.');
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
+      console.log('Fetching order details for ID:', id);
       // Fetch order details through API Gateway
-      const orderResponse = await axios.get(`http://localhost:5036/api/Sales/orders/${orderId}`);
-      setOrder(orderResponse.data);
+      const orderResponse = await axios.get(`http://localhost:5036/api/Sales/orders/${id}`);
+      console.log('Order response:', orderResponse.data);
+      
+      // Handle both OData format and direct object
+      const data = Array.isArray(orderResponse.data) 
+        ? orderResponse.data[0] 
+        : (orderResponse.data?.value?.[0] || orderResponse.data?.data?.[0] || orderResponse.data);
+      
+      console.log('Normalized order data:', data);
+      setOrder(data);
 
-      // Fetch payments for this order through API Gateway
-      const paymentsResponse = await axios.get(`http://localhost:5036/api/Payments?orderId=${orderId}`);
-      setPayments(paymentsResponse.data);
+      // Temporarily disable payment fetching until the service is ready
+      // // Fetch payments for this order through API Gateway
+      // const paymentsResponse = await axios.get(`http://localhost:5036/api/Payments?orderId=${id}`);
+      // setPayments(paymentsResponse.data);
 
       // Fetch contracts for this order through API Gateway
-      const contractsResponse = await axios.get(`http://localhost:5036/api/Contracts?orderId=${orderId}`);
-      setContracts(contractsResponse.data);
+      try {
+        console.log('Fetching contracts for Order ID:', id);
+        const contractsResponse = await axios.get(`http://localhost:5036/api/Contracts?orderId=${id}`);
+        console.log('Contracts response:', contractsResponse.data);
+        
+        // Handle OData format
+        const contractsData = Array.isArray(contractsResponse.data) 
+          ? contractsResponse.data 
+          : (contractsResponse.data?.value || contractsResponse.data?.data || []);
+        
+        setContracts(contractsData);
+      } catch (contractErr) {
+        console.warn('Could not fetch contracts:', contractErr.message);
+        // Don't fail the whole page if contracts endpoint has issues
+        setContracts([]);
+      }
 
     } catch (err) {
       console.error('Error fetching order details:', err);
-      setError('Failed to load order details.');
+      console.error('Error response:', err.response?.data);
+      setError('Không thể tải chi tiết đơn hàng. Vui lòng quay lại danh sách và thử lại.');
       setOrder(null);
     } finally {
       setLoading(false);
@@ -106,7 +148,7 @@ export default function OrderDetail() {
 
   useEffect(() => {
     fetchOrderDetail();
-  }, [orderId]); // Refetch when orderId changes
+  }, [id]); // Refetch when id changes
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -123,7 +165,7 @@ export default function OrderDetail() {
       delivered: { label: 'Đã nhận hàng', color: '#10B981', bgColor: '#D1FAE5' },
       cancelled: { label: 'Đã hủy', color: '#EF4444', bgColor: '#FEE2E2' },
     };
-    const config = statusConfig[status.toLowerCase()] || statusConfig.pending;
+    const config = statusConfig[status?.toLowerCase()] || statusConfig.pending;
     return (
       <span 
         style={{
@@ -149,7 +191,7 @@ const handleRecordPayment = async () => {
 
   try {
     const payload = {
-      orderId: parseInt(orderId),
+      orderId: parseInt(id),
       amount: parseFloat(paymentAmount),
       paymentMethod: "Cash", // Defaulting to Cash for now, can be selected via UI
       notes: paymentNote,
@@ -174,7 +216,7 @@ const handleUpdateStatus = async () => {
   
   try {
     const payload = { status: newStatus };
-    await axios.put(`http://localhost:5036/api/Sales/orders/${orderId}/status`, payload); // Call through API Gateway
+    await axios.put(`http://localhost:5036/api/Sales/orders/${id}/status`, payload); // Call through API Gateway
     alert('Cập nhật trạng thái thành công!');
     setShowStatusModal(false);
     setNewStatus('');
@@ -205,8 +247,8 @@ const handleCompleteOrder = async () => {
       customerName: order.customer.name,
       customerEmail: order.customer.email,
       vehicleModel: order.vehicle.model || order.vehicle.name,
-      totalAmount: order.orderInfo.totalPrice,
-      paymentMethod: order.payment.type === 'full' ? 'Full Payment' : 'Installment',
+      totalAmount: order.totalPrice,
+      paymentMethod: order.paymentType === 'full' ? 'Full Payment' : 'Installment',
       quantity: 1
     };
     
@@ -228,15 +270,12 @@ const handleCompleteOrder = async () => {
     // Update order status to completed
     setOrder({
       ...order,
-      orderInfo: {
-        ...order.orderInfo,
-        status: 'completed'
-      }
+      status: 'completed'
     });
     
     setNotification({
       open: true,
-      message: `Đơn hàng hoàn tất thành công! Email xác nhận đã được gửi đến ${order.customer.email}. Mã đơn: ${result.orderId}`,
+      message: `Đơn hàng hoàn tất thành công! Email xác nhận đã được gửi đến ${order.customer?.email ?? ''}. Mã đơn: ${pick(order, 'orderNumber', 'id')}`,
       severity: 'success'
     });
   } catch (error) {
@@ -279,7 +318,7 @@ const handleUploadContract = async (e) => {
 
     try {
       const payload = {
-        orderId: parseInt(orderId),
+        orderId: parseInt(id),
         contractDetails: `Uploaded: ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)} MB)`, // Store some details
         // In a real app, you'd upload the file to a storage service and store its URL here
       };
@@ -358,16 +397,16 @@ const handleUploadContract = async (e) => {
             </button>
             <div>
               <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#111827', margin: 0 }}>
-                Chi tiết đơn hàng: {order.id}
+                Chi tiết đơn hàng: {pick(order,'orderNumber','id')}
               </h1>
               <p style={{ color: '#6B7280', margin: '4px 0 0 0', fontSize: '14px' }}>
-                Ngày đặt: {new Date(order.createdAt).toLocaleDateString()}
+                Ngày đặt: {new Date(pick(order, 'createdAt')).toLocaleDateString()}
               </p>
             </div>
           </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {getStatusBadge(order.status)} {/* Use order.status */}
+            {getStatusBadge(pick(order, 'status'))}
             <button 
               onClick={() => setShowStatusModal(true)}
               style={{
@@ -411,14 +450,14 @@ const handleUploadContract = async (e) => {
                 <div>
                   <p style={{ fontSize: '14px', color: '#6B7280', margin: '0 0 4px 0' }}>ID Khách hàng</p>
                   <p style={{ fontSize: '15px', fontWeight: '500', color: '#111827', margin: 0 }}>
-                    {order.customerId}
+                    {pick(order,'customerId')}
                   </p>
                 </div>
                 <div>
                   <p style={{ fontSize: '14px', color: '#6B7280', margin: '0 0 4px 0' }}>Tên khách hàng</p>
                   <p style={{ fontSize: '15px', fontWeight: '500', color: '#111827', margin: 0 }}>
                     {/* Placeholder: Fetch from CustomerService */}
-                    N/A (ID: {order.customerId})
+                    N/A (ID: {pick(order,'customerId')})
                   </p>
                 </div>
                 {/* Other customer details would go here after fetching from CustomerService */}
@@ -448,20 +487,20 @@ const handleUploadContract = async (e) => {
                     <div>
                       <p style={{ fontSize: '14px', color: '#6B7280', margin: '0 0 4px 0' }}>ID Xe</p>
                       <p style={{ fontSize: '15px', fontWeight: '500', color: '#111827', margin: 0 }}>
-                        {order.vehicleId}
+                        {pick(order,'vehicleId')}
                       </p>
                     </div>
                     <div>
                       <p style={{ fontSize: '14px', color: '#6B7280', margin: '0 0 4px 0' }}>Tên xe</p>
                       <p style={{ fontSize: '15px', fontWeight: '500', color: '#111827', margin: 0 }}>
                         {/* Placeholder: Fetch from VehicleService */}
-                        N/A (ID: {order.vehicleId})
+                        N/A (ID: {pick(order,'vehicleId')})
                       </p>
                     </div>
                     <div>
                       <p style={{ fontSize: '14px', color: '#6B7280', margin: '0 0 4px 0' }}>Số lượng</p>
                       <p style={{ fontSize: '15px', fontWeight: '500', color: '#111827', margin: 0 }}>
-                        {order.quantity}
+                        {pick(order,'quantity')}
                       </p>
                     </div>
                     {/* Other vehicle details would go here after fetching from VehicleService */}
@@ -516,36 +555,12 @@ const handleUploadContract = async (e) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {payments.length > 0 ? payments.map((payment) => (
-                      <tr key={payment.id} style={{ borderBottom: '1px solid #F3F4F6' }}>
-                        <td style={{ padding: '12px', fontSize: '14px' }}>{payment.id}</td>
-                        <td style={{ padding: '12px', fontSize: '14px', fontWeight: '500' }}>
-                          {formatCurrency(payment.amount)}
-                        </td>
-                        <td style={{ padding: '12px', fontSize: '14px' }}>{payment.paymentMethod}</td>
-                        <td style={{ padding: '12px' }}>
-                          <span style={{
-                            padding: '2px 8px',
-                            borderRadius: '4px',
-                            fontSize: '12px',
-                            fontWeight: '500',
-                            color: payment.status.toLowerCase() === 'completed' ? '#059669' : '#D97706',
-                            backgroundColor: payment.status.toLowerCase() === 'completed' ? '#D1FAE5' : '#FEF3C7'
-                          }}>
-                            {payment.status}
-                          </span>
-                        </td>
-                        <td style={{ padding: '12px', fontSize: '14px' }}>
-                          {new Date(payment.paymentDate).toLocaleDateString()}
-                        </td>
-                      </tr>
-                    )) : (
-                      <tr>
-                        <td colSpan="5" style={{ padding: '12px', textAlign: 'center', color: '#6B7280' }}>
-                          Chưa có thanh toán nào.
-                        </td>
-                      </tr>
-                    )}
+                    {/* Temporarily disabled until Payments service is ready */}
+                    <tr>
+                      <td colSpan="5" style={{ padding: '12px', textAlign: 'center', color: '#6B7280' }}>
+                        Chức năng thanh toán đang được phát triển.
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -655,19 +670,19 @@ const handleUploadContract = async (e) => {
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ fontSize: '14px', color: '#6B7280' }}>Mã đơn hàng</span>
-                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>{order.id}</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>{pick(order, 'orderNumber', 'id')}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ fontSize: '14px', color: '#6B7280' }}>Ngày đặt</span>
-                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>{new Date(order.createdAt).toLocaleDateString()}</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>{new Date(pick(order, 'createdAt')).toLocaleDateString()}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ fontSize: '14px', color: '#6B7280' }}>Ngày cập nhật</span>
-                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>{new Date(order.updatedAt).toLocaleDateString()}</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>{new Date(pick(order, 'updatedAt')).toLocaleDateString()}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ fontSize: '14px', color: '#6B7280' }}>Mã báo giá</span>
-                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>{order.quoteId}</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>{pick(order, 'quoteId')}</span>
                 </div>
                 {/* Placeholder for Sales Person and Branch */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -697,19 +712,19 @@ const handleUploadContract = async (e) => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ fontSize: '14px', color: '#6B7280' }}>Hình thức</span>
                   <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>
-                    {order.paymentMethod}
+                    {pick(order, 'paymentMethod')}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ fontSize: '14px', color: '#6B7280' }}>Trạng thái thanh toán</span>
                   <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>
-                    {order.paymentStatus}
+                    {pick(order, 'paymentStatus')}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ fontSize: '14px', color: '#6B7280' }}>Tổng số lượng</span>
                   <span style={{ fontSize: '14px', fontWeight: '500', color: '#111827' }}>
-                    {order.quantity}
+                    {pick(order, 'quantity')}
                   </span>
                 </div>
                 {/* Placeholder for other payment details like downPayment, loanTerm, etc. */}
@@ -724,7 +739,7 @@ const handleUploadContract = async (e) => {
               }}>
                 <span style={{ fontSize: '16px', fontWeight: '600', color: '#111827' }}>Tổng cộng</span>
                 <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#2563EB' }}>
-                  {formatCurrency(order.totalPrice)}
+                  {formatCurrency(pick(order, 'totalPrice'))}
                 </span>
               </div>
             </div>
@@ -766,25 +781,25 @@ const handleUploadContract = async (e) => {
                 
                 <button
                   onClick={handleCompleteOrder}
-                  disabled={completing || order.orderInfo.status === 'completed'}
+                  disabled={completing || pick(order, 'status') === 'completed'}
                   style={{
                     width: '100%',
                     padding: '12px',
-                    backgroundColor: (completing || order.orderInfo.status === 'completed') ? '#9CA3AF' : '#10B981',
+                    backgroundColor: (completing || pick(order, 'status') === 'completed') ? '#9CA3AF' : '#10B981',
                     color: 'white',
                     border: 'none',
                     borderRadius: '8px',
-                    cursor: (completing || order.orderInfo.status === 'completed') ? 'not-allowed' : 'pointer',
+                    cursor: (completing || pick(order, 'status') === 'completed') ? 'not-allowed' : 'pointer',
                     fontSize: '14px',
                     fontWeight: '500',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    opacity: (completing || order.orderInfo.status === 'completed') ? 0.6 : 1
+                    opacity: (completing || pick(order, 'status') === 'completed') ? 0.6 : 1
                   }}
                 >
-                  {completing ? 'Đang xử lý...' : (order.orderInfo.status === 'completed' ? 'Đã hoàn tất' : 'Hoàn tất đơn hàng')}
+                  {completing ? 'Đang xử lý...' : (pick(order, 'status') === 'completed' ? 'Đã hoàn tất' : 'Hoàn tất đơn hàng')}
                 </button>
               </div>
             </div>

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SalesService.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialSalesMigration : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -67,9 +67,13 @@ namespace SalesService.Migrations
                     UnitPrice = table.Column<decimal>(type: "decimal(18, 2)", nullable: false),
                     TotalPrice = table.Column<decimal>(type: "decimal(18, 2)", nullable: false),
                     Status = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    SalesRepId = table.Column<int>(type: "INTEGER", nullable: false),
                     Notes = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    PaymentType = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
+                    DownPaymentPercent = table.Column<decimal>(type: "decimal(5, 2)", nullable: true),
+                    LoanTerm = table.Column<int>(type: "INTEGER", nullable: true),
+                    InterestRate = table.Column<decimal>(type: "decimal(5, 2)", nullable: true)
                 },
                 constraints: table =>
                 {

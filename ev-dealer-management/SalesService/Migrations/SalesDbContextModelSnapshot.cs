@@ -41,6 +41,9 @@ namespace SalesService.Migrations
                     b.Property<DateTime>("SignDate")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("OrderId");
@@ -92,7 +95,7 @@ namespace SalesService.Migrations
 
             modelBuilder.Entity("SalesService.Models.Order", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("OrderID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
@@ -102,11 +105,30 @@ namespace SalesService.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("DealerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SalespersonId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PaymentType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DeliveryDate")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OrderNumber")
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
@@ -114,9 +136,6 @@ namespace SalesService.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("INTEGER");
 
                     b.Property<int>("QuoteId")
                         .HasColumnType("INTEGER");
@@ -132,14 +151,61 @@ namespace SalesService.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("VehicleId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
+                    b.HasKey("OrderID");
 
                     b.HasIndex("QuoteId");
 
                     b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("SalesService.Models.OrderItem", b =>
+                {
+                    b.Property<int>("OrderItemID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("ColorVariantId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("VehicleModelId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("VehicleVariantId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("ColorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("Discount")
+                        .HasColumnType("decimal(5, 2)");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PromotionApplied")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("VehicleId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("OrderItemID");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("SalesService.Models.Payment", b =>
@@ -217,6 +283,9 @@ namespace SalesService.Migrations
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("VehicleId")
@@ -313,11 +382,13 @@ namespace SalesService.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PaymentType")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Quantity")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SalesRepId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Status")
@@ -330,9 +401,6 @@ namespace SalesService.Migrations
 
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("decimal(18, 2)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
 
                     b.Property<int>("VehicleId")
                         .HasColumnType("INTEGER");
@@ -423,6 +491,17 @@ namespace SalesService.Migrations
                     b.Navigation("Quote");
                 });
 
+            modelBuilder.Entity("SalesService.Models.OrderItem", b =>
+                {
+                    b.HasOne("SalesService.Models.Order", "Order")
+                        .WithMany("OrderItems")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("SalesService.Models.Payment", b =>
                 {
                     b.HasOne("SalesService.Models.Order", "Order")
@@ -432,6 +511,11 @@ namespace SalesService.Migrations
                         .IsRequired();
 
                     b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("SalesService.Models.Order", b =>
+                {
+                    b.Navigation("OrderItems");
                 });
 #pragma warning restore 612, 618
         }

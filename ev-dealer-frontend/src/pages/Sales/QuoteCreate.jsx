@@ -15,17 +15,17 @@ const PlusIcon = () => (
   </svg>
 );
 
-// Modified TrashIcon to accept color and size props
+// Corrected TrashIcon SVG path
 const TrashIcon = ({ color = "currentColor", size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
-    <polyline points="3 6 5 6 21 6"/>
-    <path d="M19 6v14a2 0 0 1-2 2H7a2 0 0 1-2-2V6m3 0V4a2 0 0 1 2-2h4a2 0 0 1 2 2v2"/>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6"></polyline>
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
   </svg>
 );
 
 const DownloadIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M21 15v4a2 0 0 1-2 2H5a2 0 0 1-2-2v-4"/>
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
     <polyline points="7 10 12 15 17 10"/>
     <line x1="12" y1="15" x2="12" y2="3"/>
   </svg>
@@ -44,8 +44,6 @@ export default function QuoteCreate() {
   const [selectedCustomerId, setSelectedCustomerId] = useState(''); // State for selected customer ID from dropdown
   const [customerSearchTerm, setCustomerSearchTerm] = useState(''); // New state for customer search
 
-  // Removed salesPersons state and fetching logic
-  
   // Customer info
   const [customerInfo, setCustomerInfo] = useState({
     id: '', // Store selected customer ID
@@ -58,7 +56,14 @@ export default function QuoteCreate() {
   
   // Quote items
   const [quoteItems, setQuoteItems] = useState([
-    { vehicleId: '', vehicleName: '', quantity: 1, unitPrice: 0, discount: 0, stockQuantity: 0 }
+    {
+      vehicleId: '',
+      vehicleName: '',
+      quantity: 1,
+      unitPrice: 0,
+      discount: 0,
+      stockQuantity: 0
+    }
   ]);
   
   // Payment info
@@ -73,7 +78,8 @@ export default function QuoteCreate() {
   const [additionalInfo, setAdditionalInfo] = useState({
     deliveryDate: '',
     notes: '',
-    salesPerson: '', // Reverted to text input for sales person name
+    salesPersonId: 1, // Dummy ID for now, will be from backend
+    salesPersonName: 'Nguyễn Văn A', // Dummy name for now, will be from backend
     validUntil: ''
   });
 
@@ -167,8 +173,9 @@ const validateForm = () => {
     return false;
   }
   
-  if (!additionalInfo.salesPerson.trim()) { // Validate salesPerson text input
-    alert('Vui lòng nhập tên nhân viên bán hàng.');
+  // SalesRepId is now from state, not direct input, so check if it's valid
+  if (!additionalInfo.salesPersonId) { 
+    alert('Không tìm thấy ID nhân viên bán hàng.');
     return false;
   }
 
@@ -192,6 +199,16 @@ const validateForm = () => {
     const selectedVehicle = vehicles.find(v => v.id === parseInt(item.vehicleId));
     if (selectedVehicle && item.quantity > selectedVehicle.stockQuantity) {
       alert(`Số lượng xe "${selectedVehicle.model}" vượt quá số lượng tồn kho (${selectedVehicle.stockQuantity}).`);
+      return false;
+    }
+    // Validate discount per item: must be between 0 and 15 (business rule)
+    const discountVal = parseFloat(item.discount) || 0;
+    if (discountVal < 0) {
+      alert('Giảm giá không được âm.');
+      return false;
+    }
+    if (discountVal > 15) {
+      alert('Giảm giá tối đa là 15%. Vui lòng điều chỉnh phần giảm giá.');
       return false;
     }
   }
@@ -225,8 +242,10 @@ const validateForm = () => {
   const calculateTotal = () => {
     return quoteItems.reduce((total, item) => {
       const itemTotal = item.unitPrice * item.quantity;
-      const discountAmount = itemTotal * (item.discount / 100);
-      return total + (itemTotal - discountAmount);
+      const percentDiscount = itemTotal * (item.discount / 100);
+      let finalItemTotal = itemTotal - percentDiscount;
+      if (finalItemTotal < 0) finalItemTotal = 0;
+      return total + finalItemTotal;
     }, 0);
   };
 
@@ -270,11 +289,11 @@ const validateForm = () => {
   };
 
   const addQuoteItem = () => {
-    setQuoteItems([...quoteItems, { 
-      vehicleId: '', 
-      vehicleName: '', 
-      quantity: 1, 
-      unitPrice: 0, 
+    setQuoteItems([...quoteItems, {
+      vehicleId: '',
+      vehicleName: '',
+      quantity: 1,
+      unitPrice: 0,
       discount: 0,
       stockQuantity: 0
     }]);
@@ -282,11 +301,11 @@ const validateForm = () => {
 
   const removeQuoteItem = (index) => {
     const newItems = quoteItems.filter((_, i) => i !== index);
-    setQuoteItems(newItems.length > 0 ? newItems : [{ 
-      vehicleId: '', 
-      vehicleName: '', 
-      quantity: 1, 
-      unitPrice: 0, 
+    setQuoteItems(newItems.length > 0 ? newItems : [{
+      vehicleId: '',
+      vehicleName: '',
+      quantity: 1,
+      unitPrice: 0,
       discount: 0,
       stockQuantity: 0
     }]);
@@ -295,15 +314,13 @@ const validateForm = () => {
   const updateQuoteItem = (index, field, value) => {
     const newItems = [...quoteItems];
     newItems[index][field] = value;
-    
     // Auto-fill vehicle info when vehicle is selected
     if (field === 'vehicleId') {
-      const vehicle = vehicles.find(v => v.id === parseInt(value)); // Parse value to int
+      const vehicle = vehicles.find(v => v.id === parseInt(value));
       if (vehicle) {
-        newItems[index].vehicleName = vehicle.model; // Use vehicle.model for name
+        newItems[index].vehicleName = vehicle.model;
         newItems[index].unitPrice = vehicle.price;
-        newItems[index].stockQuantity = vehicle.stockQuantity; // Update stock quantity
-        // Reset quantity if it exceeds new stock or is 0
+        newItems[index].stockQuantity = vehicle.stockQuantity;
         if (newItems[index].quantity > vehicle.stockQuantity || newItems[index].quantity === 0) {
           newItems[index].quantity = vehicle.stockQuantity > 0 ? 1 : 0;
         }
@@ -314,70 +331,89 @@ const validateForm = () => {
         newItems[index].quantity = 0;
       }
     }
-    
     setQuoteItems(newItems);
   };
 
-const handleGenerateQuote = async () => {
-  if (!validateForm()) {
-    return;
-  }
+  // Toggle showExtraDiscount for a quote item
+  const toggleExtraDiscount = (index) => {
+    const newItems = [...quoteItems];
+    newItems[index].showExtraDiscount = !newItems[index].showExtraDiscount;
+    // Reset fields if hiding
+    if (!newItems[index].showExtraDiscount) {
+      newItems[index].extraDiscountType = '';
+      newItems[index].extraDiscountAmount = 0;
+    }
+    setQuoteItems(newItems);
+  };
 
-  setLoading(true);
-  
-  try {
-    const firstQuoteItem = quoteItems.find(item => item.vehicleId);
-    if (!firstQuoteItem) {
-      alert('No valid vehicle selected for the quote.');
-      setLoading(false);
+  const handleGenerateQuote = async () => {
+    if (!validateForm()) {
       return;
     }
 
-    // 1. Create Quote
-    const createQuotePayload = {
-      customerId: customerInfo.id, // Use selected customer ID
-      vehicleId: parseInt(firstQuoteItem.vehicleId),
-      quantity: firstQuoteItem.quantity,
-      notes: additionalInfo.notes || `Quote for ${customerInfo.name} - ${firstQuoteItem.vehicleName}`,
-      salesPerson: additionalInfo.salesPerson, // Include sales person name from text input
-      
-      // Include payment details
-      paymentType: paymentInfo.type === 'full' ? 'Full' : 'Installment',
-      downPaymentPercent: paymentInfo.type === 'installment' ? paymentInfo.downPaymentPercent : null,
-      loanTerm: paymentInfo.type === 'installment' ? paymentInfo.loanTerm : null,
-      interestRate: paymentInfo.type === 'installment' ? paymentInfo.interestRate : null,
-    };
+    setLoading(true);
 
-    const quoteResponse = await axios.post('http://localhost:5036/api/Sales/quotes', createQuotePayload); // Call through API Gateway
-    const quoteId = quoteResponse.data.id;
-    console.log('Quote created successfully with ID:', quoteId);
-
-    // 2. Update Quote Status to Accepted
-    await axios.put(`http://localhost:5036/api/Sales/quotes/${quoteId}/status`, "Accepted", { // Call through API Gateway
-      headers: {
-        'Content-Type': 'application/json'
+    try {
+      const firstQuoteItem = quoteItems.find(item => item.vehicleId);
+      if (!firstQuoteItem) {
+        alert('No valid vehicle selected for the quote.');
+        setLoading(false);
+        return;
       }
-    });
-    console.log('Quote status updated to Accepted for ID:', quoteId);
 
-    // 3. Create Order from Accepted Quote
-    const createOrderPayload = {
-      quoteId: quoteId,
-      paymentMethod: paymentInfo.type === 'full' ? 'Cash' : 'Installment', // Map frontend payment type to backend
-      notes: additionalInfo.notes || `Order from quote ${quoteId} for ${customerInfo.name}`,
-    };
-    await axios.post('http://localhost:5036/api/Sales/orders', createOrderPayload); // Call through API Gateway
-    console.log('Order created successfully from Quote ID:', quoteId);
-    
-    alert('Đơn hàng đã được tạo thành công!');
-    navigate('/sales'); // Navigate to sales list
-  } catch (error) {
-    console.error('Error creating order process:', error.response ? error.response.data : error.message);
-    alert('Tạo đơn hàng thất bại. Vui lòng kiểm tra console để biết chi tiết.');
-  } finally {
-    setLoading(false);
-  }
-};
+      // 1. Create Quote
+      // Determine overall quote status based on discounts
+      // Business rule: max discount allowed = 15%
+      // - If any discount > 15% -> validation already prevents this
+      // - If maxDiscount > 5% and <=15% -> status = 'PendingApproval'
+      // - If maxDiscount <= 5% -> status = 'Finalized'
+      const maxDiscount = quoteItems.reduce((max, it) => Math.max(max, parseFloat(it.discount) || 0), 0);
+      const initialStatus = (maxDiscount > 5 && maxDiscount <= 15) ? 'PendingApproval' : 'Finalized';
+      
+      // Debug log
+      console.log('🔍 Quote Creation - Discount Details:');
+      console.log('  Quote Items:', quoteItems.map(it => ({ vehicleId: it.vehicleId, discount: it.discount })));
+      console.log('  Max Discount:', maxDiscount);
+      console.log('  Initial Status:', initialStatus);
+      console.log('  Condition (maxDiscount > 5 && maxDiscount <= 15):', maxDiscount > 5 && maxDiscount <= 15);
+
+      const createQuotePayload = {
+        customerId: customerInfo.id,
+        vehicleId: parseInt(firstQuoteItem.vehicleId),
+        colorVariantId: firstQuoteItem.colorVariantId,
+        quantity: firstQuoteItem.quantity,
+        unitPrice: firstQuoteItem.unitPrice,
+        totalPrice: calculateTotal(),
+        notes: additionalInfo.notes || `Quote for ${customerInfo.name} - ${firstQuoteItem.vehicleName}`,
+        salesRepId: additionalInfo.salesPersonId,
+        status: initialStatus,
+        paymentType: paymentInfo.type === 'full' ? 'Full' : 'Installment',
+        downPaymentPercent: paymentInfo.type === 'installment' ? paymentInfo.downPaymentPercent : null,
+        loanTerm: paymentInfo.type === 'installment' ? paymentInfo.loanTerm : null,
+        interestRate: paymentInfo.type === 'installment' ? paymentInfo.interestRate : null,
+        // Chỉ lưu các trường cũ, không có giảm giá khác
+        quoteItems: quoteItems.map(item => ({
+          vehicleId: parseInt(item.vehicleId),
+          vehicleName: item.vehicleName,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          discountPercent: item.discount
+        }))
+      };
+
+      const quoteResponse = await axios.post('http://localhost:5036/api/Sales/quotes', createQuotePayload);
+      const quoteId = quoteResponse.data.id;
+      console.log('Quote created successfully with ID:', quoteId);
+
+      alert('Báo giá đã được tạo thành công!');
+      navigate('/sales/quotes');
+    } catch (error) {
+      console.error('Error creating quote:', error.response ? error.response.data : error.message);
+      alert('Tạo báo giá thất bại. Vui lòng kiểm tra console để biết chi tiết.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDownloadQuote = async () => {
     if (!validateForm()) {
@@ -400,8 +436,12 @@ const handleGenerateQuote = async () => {
           vehicleName: item.vehicleName,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
-          discount: item.discount,
-          itemTotal: (item.unitPrice * item.quantity) * (1 - item.discount / 100)
+          discountPercent: item.discount,
+          itemTotal: Math.max(
+            (item.unitPrice * item.quantity)
+            - (item.unitPrice * item.quantity * (item.discount / 100)),
+            0
+          )
         })),
         paymentInfo: {
           type: paymentInfo.type,
@@ -412,7 +452,7 @@ const handleGenerateQuote = async () => {
         additionalInfo: {
           deliveryDate: additionalInfo.deliveryDate,
           notes: additionalInfo.notes,
-          salesPerson: additionalInfo.salesPerson,
+          salesPerson: additionalInfo.salesPersonName,
           validUntil: additionalInfo.validUntil,
         },
         totalCalculatedAmount: calculateTotal(),
@@ -477,12 +517,17 @@ const handleGenerateQuote = async () => {
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
         {/* Header */}
         <div style={{ 
+          position: 'sticky', // Make header sticky
+          top: 0, // Stick to the top
+          zIndex: 10, // Ensure it stays above other content
+          backgroundColor: '#F8FAFC', // Match background to avoid transparency issues
+          paddingTop: '24px', // Add padding to compensate for sticky position
+          paddingBottom: '16px',
+          borderBottom: '1px solid #E2E8F0',
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'space-between', 
           marginBottom: '24px',
-          paddingBottom: '16px',
-          borderBottom: '1px solid #E2E8F0'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button 
@@ -595,7 +640,6 @@ const handleGenerateQuote = async () => {
                       backgroundColor: '#F8FAFC',
                       height: '40px',
                       boxSizing: 'border-box',
-                      marginBottom: '12px',
                       color: '#374151'
                     }}
                   />
@@ -626,6 +670,7 @@ const handleGenerateQuote = async () => {
                   </select>
                 </div>
                 
+                {/* 2x2 layout for customer details */}
                 <div style={{ minWidth: 0 }}>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                     Họ và tên
@@ -692,7 +737,7 @@ const handleGenerateQuote = async () => {
                   />
                 </div>
                 
-                <div style={{ gridColumn: 'span 2', minWidth: 0 }}>
+                <div style={{ minWidth: 0 }}>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                     Địa chỉ
                   </label>
@@ -758,11 +803,11 @@ const handleGenerateQuote = async () => {
                   marginBottom: index < quoteItems.length - 1 ? '16px' : '0',
                   backgroundColor: '#F8FAFC'
                 }}>
-                  <div style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) auto', 
-                    gap: '12px', 
-                    alignItems: 'end' 
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) auto',
+                    gap: '12px',
+                    alignItems: 'end'
                   }}>
                     <div style={{ minWidth: 0 }}>
                       <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
@@ -780,23 +825,23 @@ const handleGenerateQuote = async () => {
                           backgroundColor: '#F8FAFC',
                           height: '40px',
                           boxSizing: 'border-box',
-                          color: '#374151' // Ensure text color is visible
+                          color: '#374151'
                         }}
                       >
                         <option value="">-- Chọn xe --</option>
                         {vehicles.map(vehicle => (
-                          <option 
-                            key={vehicle.id} 
+                          <option
+                            key={vehicle.id}
                             value={vehicle.id}
-                            disabled={vehicle.stockQuantity === 0} // Disable if stock is 0
-                            style={{ color: vehicle.stockQuantity === 0 ? '#9CA3AF' : '#374151' }} // Gray out if stock is 0
+                            disabled={vehicle.stockQuantity === 0}
+                            style={{ color: vehicle.stockQuantity === 0 ? '#9CA3AF' : '#374151' }}
                           >
                             {vehicle.model} - {formatCurrency(vehicle.price)} ({vehicle.stockQuantity === 0 ? 'Hết hàng' : `Còn: ${vehicle.stockQuantity}`})
                           </option>
                         ))}
                       </select>
                     </div>
-                    
+
                     <div style={{ minWidth: 0 }}>
                       <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                         Số lượng
@@ -804,10 +849,10 @@ const handleGenerateQuote = async () => {
                       <input
                         type="number"
                         min="1"
-                        max={item.stockQuantity > 0 ? item.stockQuantity : 1} // Max quantity based on stock
+                        max={item.stockQuantity > 0 ? item.stockQuantity : 1}
                         value={item.quantity}
                         onChange={(e) => updateQuoteItem(index, 'quantity', parseInt(e.target.value) || 1)}
-                        disabled={!item.vehicleId || item.stockQuantity === 0} // Disable if no vehicle selected or out of stock
+                        disabled={!item.vehicleId || item.stockQuantity === 0}
                         style={{
                           width: '100%',
                           padding: '10px 12px',
@@ -817,11 +862,11 @@ const handleGenerateQuote = async () => {
                           backgroundColor: '#F8FAFC',
                           height: '40px',
                           boxSizing: 'border-box',
-                          color: '#374151' // Ensure text color is visible
+                          color: '#374151'
                         }}
                       />
                     </div>
-                    
+
                     <div style={{ minWidth: 0 }}>
                       <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                         Đơn giá
@@ -839,7 +884,7 @@ const handleGenerateQuote = async () => {
                           backgroundColor: '#F1F5F9',
                           height: '40px',
                           boxSizing: 'border-box',
-                          color: '#374151' // Ensure text color is visible
+                          color: '#374151'
                         }}
                       />
                     </div>
@@ -863,11 +908,11 @@ const handleGenerateQuote = async () => {
                           backgroundColor: '#F8FAFC',
                           height: '40px',
                           boxSizing: 'border-box',
-                          color: '#374151' // Ensure text color is visible
+                          color: '#374151'
                         }}
                       />
                     </div>
-                    
+
                     <button
                       onClick={() => removeQuoteItem(index)}
                       disabled={quoteItems.length === 1}
@@ -884,7 +929,6 @@ const handleGenerateQuote = async () => {
                         justifyContent: 'center'
                       }}
                     >
-                      {/* Pass color directly to TrashIcon */}
                       <TrashIcon color={quoteItems.length === 1 ? '#94A3B8' : '#DC2626'} size={20} />
                     </button>
                   </div>
@@ -894,7 +938,13 @@ const handleGenerateQuote = async () => {
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
                         <span style={{ color: '#64748B' }}>Thành tiền:</span>
                         <span style={{ fontWeight: '600', color: '#0F172A' }}>
-                          {formatCurrency((item.unitPrice * item.quantity) * (1 - item.discount / 100))}
+                          {formatCurrency(
+                            Math.max(
+                              (item.unitPrice * item.quantity)
+                              - (item.unitPrice * item.quantity * (item.discount / 100)),
+                              0
+                            )
+                          )}
                         </span>
                       </div>
                     </div>
@@ -1027,7 +1077,7 @@ const handleGenerateQuote = async () => {
 
           {/* Sidebar */}
           <div style={{ minWidth: 0 }}> {/* Thêm minWidth: 0 để tránh tràn layout */}
-            {/* Quote Summary */}
+            {/* Sales Person Information */}
             <div style={{
               backgroundColor: 'white',
               borderRadius: '12px',
@@ -1037,72 +1087,49 @@ const handleGenerateQuote = async () => {
               boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)'
             }}>
               <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#0F172A', marginBottom: '20px' }}>
-                Tóm tắt báo giá
+                Thông tin nhân viên
               </h2>
               
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
-                  Nhân viên bán hàng <span style={{ color: 'red' }}>*</span>
+                  ID nhân viên
                 </label>
                 <input
                   type="text"
-                  value={additionalInfo.salesPerson}
-                  onChange={(e) => setAdditionalInfo({...additionalInfo, salesPerson: e.target.value})}
+                  value={additionalInfo.salesPersonId}
+                  readOnly
                   style={{
                     width: '100%',
                     padding: '10px 12px',
                     border: '1px solid #CBD5E1',
                     borderRadius: '8px',
                     fontSize: '14px',
-                    backgroundColor: '#F8FAFC',
+                    backgroundColor: '#F1F5F9',
                     height: '40px',
                     boxSizing: 'border-box',
-                    color: '#374151' // Ensure text color is visible
-                  }}
-                  placeholder="Nhập tên nhân viên bán hàng"
-                />
-              </div>
-              
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
-                  Ngày giao xe dự kiến
-                </label>
-                <input
-                  type="date"
-                  value={additionalInfo.deliveryDate}
-                  onChange={(e) => setAdditionalInfo({...additionalInfo, deliveryDate: e.target.value})}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    border: '1px solid #CBD5E1',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    backgroundColor: '#F8FAFC',
-                    height: '40px',
-                    boxSizing: 'border-box',
-                    color: '#374151' // Ensure text color is visible
+                    color: '#374151'
                   }}
                 />
               </div>
               
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
-                  Báo giá có hiệu lực đến
+                  Tên nhân viên
                 </label>
                 <input
-                  type="date"
-                  value={additionalInfo.validUntil}
-                  onChange={(e) => setAdditionalInfo({...additionalInfo, validUntil: e.target.value})}
+                  type="text"
+                  value={additionalInfo.salesPersonName}
+                  readOnly
                   style={{
                     width: '100%',
                     padding: '10px 12px',
                     border: '1px solid #CBD5E1',
                     borderRadius: '8px',
                     fontSize: '14px',
-                    backgroundColor: '#F8FAFC',
+                    backgroundColor: '#F1F5F9',
                     height: '40px',
                     boxSizing: 'border-box',
-                    color: '#374151' // Ensure text color is visible
+                    color: '#374151'
                   }}
                 />
               </div>
@@ -1125,7 +1152,7 @@ const handleGenerateQuote = async () => {
                     resize: 'vertical',
                     boxSizing: 'border-box',
                     minHeight: '80px',
-                    color: '#374151' // Ensure text color is visible
+                    color: '#374151'
                   }}
                   placeholder="Thêm ghi chú cho báo giá..."
                 />

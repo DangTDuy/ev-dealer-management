@@ -6,15 +6,28 @@ const authService = {
     try {
       const response = await api.post('/auth/login', { username, password })
 
-      // Save token and user info
-      if (response.token) {
-        localStorage.setItem('token', response.token)
-        localStorage.setItem('user', JSON.stringify(response.user))
+      // Backend may return `Token` / `User` (PascalCase) or `token` / `user` (camelCase)
+      const token = response?.token || response?.Token
+      const user = response?.user || response?.User
 
-        if (rememberMe) {
-          localStorage.setItem('rememberMe', 'true')
-        }
+      // Clear any old auth data to avoid stale tokens
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+
+      if (token) {
+        localStorage.setItem('token', token)
       }
+
+      if (user) {
+        localStorage.setItem('user', JSON.stringify(user))
+      }
+
+      if (rememberMe) {
+        localStorage.setItem('rememberMe', 'true')
+      }
+
+      // Notify listeners (AuthProvider) to refresh current user
+      try { window.dispatchEvent(new Event('authChanged')) } catch (e) {}
 
       return response
     } catch (error) {
@@ -57,6 +70,8 @@ const authService = {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     localStorage.removeItem('rememberMe')
+    // notify listeners and redirect
+    try { window.dispatchEvent(new Event('authChanged')) } catch (e) {}
     window.location.href = '/login'
   },
 

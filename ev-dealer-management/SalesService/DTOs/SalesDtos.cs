@@ -14,6 +14,13 @@ namespace SalesService.DTOs
         public int Quantity { get; set; } = 1;
         public string? Notes { get; set; }
 
+        [Required] // Added SalesRepId
+        public int SalesRepId { get; set; }
+
+        // Status field for quote (Finalized, PendingApproval)
+        [StringLength(50)]
+        public string Status { get; set; } = "Finalized"; // e.g., Finalized, PendingApproval
+
         // New payment-related fields
         [Required]
         [StringLength(50)]
@@ -41,6 +48,8 @@ namespace SalesService.DTOs
         public string Status { get; set; } = "Pending"; // e.g., Pending, Accepted, Rejected
         public string? Notes { get; set; }
 
+        public int SalesRepId { get; set; } // Added SalesRepId
+
         // New payment-related fields
         public string PaymentType { get; set; } = "Full";
         public decimal? DownPaymentPercent { get; set; }
@@ -48,7 +57,6 @@ namespace SalesService.DTOs
         public decimal? InterestRate { get; set; }
 
         public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
     }
 
     // DTOs for Orders
@@ -56,22 +64,78 @@ namespace SalesService.DTOs
     {
         [Required]
         public int QuoteId { get; set; }
-        public string? PaymentMethod { get; set; } // e.g., Cash, Installment
+        [Required]
+        public int SalespersonId { get; set; } // New: who handles the sale
+
+        public int? DealerId { get; set; } // New: DealerID
+
+        [Required]
+        [StringLength(50)]
+        public string PaymentMethod { get; set; } = string.Empty; // New: e.g., Cash, Bank transfer, Financing via bank
+
+        [Required]
+        [StringLength(50)]
+        public string PaymentType { get; set; } = string.Empty; // New: Cash / BankTransfer (semantic)
+
+        [Required]
+        public DateTime DeliveryDate { get; set; } // New: Preferred Delivery Date
+
         public string? Notes { get; set; }
+
+        public required List<CreateOrderItemDto> OrderItems { get; set; } // New: List of order items
+    }
+
+    public class CreateOrderItemDto
+    {
+        [Required]
+        public int VehicleId { get; set; }
+        public int? VehicleModelId { get; set; }
+        public int? VehicleVariantId { get; set; }
+        public int? ColorId { get; set; }
+        public int? ColorVariantId { get; set; }
+        [Required]
+        [Range(1, int.MaxValue)]
+        public int Quantity { get; set; }
+        [Required]
+        public decimal UnitPrice { get; set; }
+        public decimal? Discount { get; set; }
+        public string? PromotionApplied { get; set; }
     }
 
     public class OrderDto
     {
-        public int Id { get; set; }
+        public int OrderID { get; set; }
+        public string? OrderNumber { get; set; }
         public int QuoteId { get; set; }
         public int CustomerId { get; set; }
-        public int VehicleId { get; set; }
-        public int Quantity { get; set; }
+        public int? DealerId { get; set; } // New: DealerID
+        // Removed VehicleId and Quantity
         public decimal TotalPrice { get; set; }
         public string Status { get; set; } = "Pending"; // e.g., Pending, Confirmed, Shipped, Delivered, Cancelled
         public string PaymentStatus { get; set; } = "Pending"; // e.g., Pending, Paid, PartiallyPaid, Refunded
-        public string? PaymentMethod { get; set; }
+        public string PaymentMethod { get; set; } = string.Empty; // New
+        public string PaymentType { get; set; } = string.Empty; // New
+        public DateTime DeliveryDate { get; set; } // New
         public string? Notes { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+
+        public required List<OrderItemDto> OrderItems { get; set; } // New: List of order items
+    }
+
+    public class OrderItemDto
+    {
+        public int OrderItemID { get; set; }
+        public int OrderId { get; set; }
+        public int VehicleId { get; set; }
+        public int? VehicleModelId { get; set; }
+        public int? VehicleVariantId { get; set; }
+        public int? ColorId { get; set; }
+        public int? ColorVariantId { get; set; }
+        public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
+        public decimal? Discount { get; set; }
+        public string? PromotionApplied { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
@@ -92,6 +156,7 @@ namespace SalesService.DTOs
         public string ContractDetails { get; set; } = string.Empty;
         public DateTime SignDate { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; } // Added UpdatedAt
     }
 
     // DTOs for Promotions
@@ -179,6 +244,12 @@ namespace SalesService.DTOs
         [Required]
         public DateTime EstimatedDeliveryDate { get; set; }
 
+        public DateTime? ActualDeliveryDate { get; set; } // Added
+        
+        [Required] // Added
+        [StringLength(50)] // Added
+        public string Status { get; set; } = "Pending"; // Added
+
         [StringLength(1000)]
         public string? Notes { get; set; }
     }
@@ -219,8 +290,15 @@ namespace SalesService.DTOs
         public decimal Amount { get; set; }
 
         [Required]
+        public DateTime PaymentDate { get; set; } = DateTime.UtcNow; // Added
+
+        [Required]
         [StringLength(50)]
         public string PaymentMethod { get; set; } = "Cash"; // e.g., Cash, BankTransfer, Installment
+
+        [Required] // Added
+        [StringLength(50)] // Added
+        public string Status { get; set; } = "Completed"; // Added
 
         [StringLength(200)]
         public string? TransactionId { get; set; }

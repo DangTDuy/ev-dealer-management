@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios'; // Import axios
-// import { mockOrders } from '../../data/mockDataSales'; // Remove mock data import
+import { useAuth } from '../../context/AuthContext'; // Import useAuth
 
 // Simple SVG Icons
 const SearchIcon = () => (
@@ -34,7 +34,54 @@ const UserIcon = () => (
   </svg>
 );
 
+const CheckIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+);
+
+// New StatusBadge component
+const StatusBadge = ({ status }) => {
+  const statusStyles = {
+    pending: { text: 'Chờ xử lý', color: '#F59E0B', backgroundColor: '#FFFBEB' },
+    confirmed: { text: 'Đã xác nhận', color: '#10B981', backgroundColor: '#D1FAE5' },
+    indelivery: { text: 'Đang giao', color: '#3B82F6', backgroundColor: '#EFF6FF' },
+    completed: { text: 'Hoàn tất', color: '#065F46', backgroundColor: '#D1FAE5' },
+    cancelled: { text: 'Đã hủy', color: '#EF4444', backgroundColor: '#FEF2F2' },
+  };
+
+  const style = statusStyles[status?.toLowerCase()] || { text: status, color: '#64748B', backgroundColor: '#F1F5F9' };
+
+  return (
+    <span style={{
+      display: 'inline-block',
+      padding: '4px 12px',
+      borderRadius: '9999px',
+      fontSize: '12px',
+      fontWeight: '500',
+      color: style.color,
+      backgroundColor: style.backgroundColor,
+    }}>
+      {style.text}
+    </span>
+  );
+};
+
+
 export default function SalesDashboard() {
+  const { user, isStaff, isManager, isAdmin } = useAuth(); // Get user role info
+  
+  // Debug logging
+  console.log('🔍 User Auth Info:', { user, isStaff, isManager, isAdmin });
+  
+  // Helper to read fields with multiple casing/variants from API responses
+  const pick = (obj, ...keys) => {
+    for (const k of keys) {
+      if (!obj) continue;
+      if (Object.prototype.hasOwnProperty.call(obj, k) && obj[k] !== undefined) return obj[k];
+    }
+    return undefined;
+  };
   const [searchTerm, setSearchTerm] = useState('');
   const [customerSearch, setCustomerSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -44,12 +91,20 @@ export default function SalesDashboard() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const fetchOrders = async () => { // Change function name
+  const fetchOrders = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get('http://localhost:5036/api/Sales/orders'); // Fetch orders through API Gateway
-      setOrders(response.data);
+      const response = await axios.get('http://localhost:5036/api/Sales/orders');
+      console.log('Raw API response:', response.data);
+      
+      // Handle both OData format { value: [...], Count: 3 } and direct array
+      const ordersData = Array.isArray(response.data) 
+        ? response.data 
+        : (response.data?.value || response.data?.data || []);
+      
+      console.log('Parsed orders:', ordersData);
+      setOrders(ordersData);
     } catch (err) {
       console.error('Error fetching orders:', err);
       setError('Failed to load sales data.');
@@ -59,7 +114,7 @@ export default function SalesDashboard() {
   };
 
   useEffect(() => {
-    fetchOrders(); // Call fetchOrders
+    fetchOrders();
   }, []);
 
   const formatCurrency = (amount) => {
@@ -69,18 +124,37 @@ export default function SalesDashboard() {
     }).format(amount);
   };
 
-  // Adjust filtering logic for orders
+  // Adjust filtering logic for orders (use safe fallbacks)
   const filteredOrders = orders.filter(order => {
-    // Temporarily disable all filters to ensure all fetched orders are displayed
-    return true; 
+    const idVal = pick(order, 'orderID', 'OrderID', 'orderId', 'id');
+    const custVal = pick(order, 'customerId', 'CustomerId');
+    const statusVal = String(pick(order, 'status', 'Status') ?? '').toLowerCase();
+    const paymentVal = String(pick(order, 'paymentStatus', 'PaymentStatus') ?? '').toLowerCase();
+
+    const matchesSearchTerm = String(idVal ?? '').includes(searchTerm);
+    const matchesCustomerSearch = String(custVal ?? '').includes(customerSearch);
+    const matchesStatus = statusFilter === 'all' || statusVal === statusFilter;
+    const matchesPayment = paymentFilter === 'all' || paymentVal === paymentFilter;
+
+    return matchesSearchTerm && matchesCustomerSearch && matchesStatus && matchesPayment;
   });
 
-  const handleViewOrder = (orderId) => { // Change to handleViewOrder
-    navigate(`/sales/${orderId}`); // Navigate to order detail
+  const handleViewOrder = (orderId) => {
+    if (!orderId || orderId === 'undefined') {
+      console.error('Invalid order ID:', orderId);
+      alert('Lỗi: ID đơn hàng không hợp lệ. Vui lòng thử lại.');
+      return;
+    }
+    console.log('Navigating to order:', orderId);
+    navigate(`/sales/${orderId}`);
   };
 
   const handleCreateQuote = () => {
     navigate('/sales/quote/new');
+  };
+
+  const handleViewQuotes = () => {
+    navigate('/sales/quotes'); // New route for quote list
   };
 
   if (loading) {
@@ -145,12 +219,15 @@ export default function SalesDashboard() {
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              color: '#64748B',
-              fontSize: '14px'
+              gap: '12px'
             }}>
               <UserIcon />
-              <span>admin@enduser.com</span>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A' }}>{user?.fullName || user?.name || '...'}</span>
+                <span style={{ fontSize: '12px', backgroundColor: '#D1FAE5', color: '#059669', padding: '4px 8px', borderRadius: '9999px', fontWeight: 600 }}>
+                  {user?.role ? user.role.replace(/([a-z])([A-Z])/g, '$1 $2') : 'Chưa xác định'}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -161,12 +238,20 @@ export default function SalesDashboard() {
         margin: '0 auto',
         padding: '24px'
       }}>
-        {/* Control Panel */}
+        {/* Role card removed per request; header now shows compact role badge */}
+
+        {/* Control Panel (Sticky) */}
         <div style={{
+          position: 'sticky', // Make this section sticky
+          top: 0, // Stick to the top
+          zIndex: 10, // Ensure it stays above other content
+          backgroundColor: '#F8FAFC', // Match background to avoid transparency issues
+          paddingTop: '24px', // Add padding to compensate for sticky position
+          paddingBottom: '24px', // Add padding to separate from content below
           display: 'grid',
           gridTemplateColumns: '1fr 300px',
           gap: '24px',
-          marginBottom: '24px'
+          marginBottom: '0px' // Remove bottom margin as paddingBottom handles spacing
         }}>
           {/* Bộ lọc và tìm kiếm - BỐ CỤC MỚI 2x2 */}
           <div style={{
@@ -327,8 +412,8 @@ export default function SalesDashboard() {
                     <option value="all">Tất cả trạng thái</option>
                     <option value="pending">Chờ xử lý</option>
                     <option value="confirmed">Đã xác nhận</option>
-                    <option value="shipped">Đã giao hàng</option>
-                    <option value="delivered">Đã nhận hàng</option>
+                    <option value="indelivery">Đang giao</option>
+                    <option value="completed">Hoàn tất</option>
                     <option value="cancelled">Đã hủy</option>
                   </select>
                 </div>
@@ -383,12 +468,14 @@ export default function SalesDashboard() {
             </div>
           </div>
 
-          {/* Thống kê nhanh */}
+          {/* Thống kê nhanh & Actions */}
           <div style={{
             backgroundColor: 'white',
             borderRadius: '12px',
             border: '1px solid #E2E8F0',
-            padding: '20px'
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column'
           }}>
             <h2 style={{ 
               fontSize: '18px', 
@@ -396,75 +483,83 @@ export default function SalesDashboard() {
               color: '#0F172A', 
               margin: '0 0 16px 0' 
             }}>
-              Tổng quan
+              Thao tác
             </h2>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '12px',
-                backgroundColor: '#F0F9FF',
-                borderRadius: '8px'
-              }}>
-                <span style={{ fontSize: '14px', color: '#0369A1' }}>Tổng đơn hàng</span>
-                <span style={{ fontSize: '18px', fontWeight: '700', color: '#0369A1' }}>
-                  {orders.length}
-                </span>
-              </div>
-              
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '12px',
-                backgroundColor: '#FEF7CD',
-                borderRadius: '8px'
-              }}>
-                <span style={{ fontSize: '14px', color: '#92400E' }}>Chờ xử lý</span>
-                <span style={{ fontSize: '18px', fontWeight: '700', color: '#92400E' }}>
-                  {orders.filter(o => o.status.toLowerCase() === 'pending').length}
-                </span>
-              </div>
-              
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '12px',
-                backgroundColor: '#D1FAE5',
-                borderRadius: '8px'
-              }}>
-                <span style={{ fontSize: '14px', color: '#065F46' }}>Đã giao hàng</span>
-                <span style={{ fontSize: '18px', fontWeight: '700', color: '#065F46' }}>
-                  {orders.filter(o => o.status.toLowerCase() === 'delivered').length}
-                </span>
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexGrow: 1 }}>
+              {/* Nút cho Staff */}
+              {(isStaff || isAdmin) && (
+                <button 
+                  onClick={handleCreateQuote}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    backgroundColor: '#3B82F6',
+                    color: 'white',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    fontWeight: '500',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}
+                >
+                  <PlusIcon />
+                  Tạo báo giá
+                </button>
+              )}
+
+              {/* Nút cho Manager */}
+              {(isManager || isAdmin) && (
+                <button 
+                  // onClick={handleApproveQuotes} // Sẽ thêm hàm này sau
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    backgroundColor: '#F59E0B',
+                    color: 'white',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    fontWeight: '500',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}
+                >
+                  <CheckIcon />
+                  Duyệt báo giá
+                </button>
+              )}
+
+              {/* Nút chung */}
+              <button 
+                onClick={handleViewQuotes}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  backgroundColor: '#10B981',
+                  color: 'white',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  fontWeight: '500',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                <EyeIcon />
+                Danh sách báo giá
+              </button>
             </div>
-            
-            <button 
-              onClick={handleCreateQuote}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                backgroundColor: '#3B82F6',
-                color: 'white',
-                padding: '12px',
-                borderRadius: '8px',
-                fontWeight: '500',
-                border: 'none',
-                cursor: 'pointer',
-                marginTop: '16px',
-                fontSize: '14px'
-              }}
-            >
-              <PlusIcon />
-              Tạo báo giá mới
-            </button>
           </div>
         </div>
 
@@ -505,11 +600,13 @@ export default function SalesDashboard() {
             <table style={{ 
               width: '100%', 
               borderCollapse: 'collapse',
-              minWidth: '800px',
+              minWidth: '1200px', // Increased min-width for better spacing
               tableLayout: 'fixed'
             }}>
               <colgroup>
-                <col style={{ width: '15%' }} /><col style={{ width: '20%' }} /><col style={{ width: '20%' }} /><col style={{ width: '15%' }} /><col style={{ width: '15%' }} /><col style={{ width: '15%' }} />
+                {['12%','15%','15%','15%','12%','12%','19%'].map((w, i) => (
+                  <col key={i} style={{ width: w }} />
+                ))}
               </colgroup>
               <thead style={{ 
                 backgroundColor: '#F8FAFC', 
@@ -546,14 +643,26 @@ export default function SalesDashboard() {
                   </th>
                   <th style={{ 
                     padding: '16px 12px', 
+                    textAlign: 'left',
+                    fontSize: '12px', 
+                    fontWeight: '600', 
+                    color: '#475569', 
+                    textTransform: 'uppercase', 
+                    letterSpacing: '0.05em',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
                   }}>
-                    ID Xe
+                    Xe
                   </th>
                   <th style={{ 
                     padding: '16px 12px', 
+                    textAlign: 'left',
+                    fontSize: '12px', 
+                    fontWeight: '600', 
+                    color: '#475569', 
+                    textTransform: 'uppercase', 
+                    letterSpacing: '0.05em',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
@@ -562,11 +671,31 @@ export default function SalesDashboard() {
                   </th>
                   <th style={{ 
                     padding: '16px 12px', 
+                    textAlign: 'left',
+                    fontSize: '12px', 
+                    fontWeight: '600', 
+                    color: '#475569', 
+                    textTransform: 'uppercase', 
+                    letterSpacing: '0.05em',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
                   }}>
                     Trạng thái
+                  </th>
+                  <th style={{ 
+                    padding: '16px 12px', 
+                    textAlign: 'left',
+                    fontSize: '12px', 
+                    fontWeight: '600', 
+                    color: '#475569', 
+                    textTransform: 'uppercase', 
+                    letterSpacing: '0.05em',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}>
+                    Thanh toán
                   </th>
                   <th style={{ 
                     padding: '16px 12px', 
@@ -580,9 +709,12 @@ export default function SalesDashboard() {
               </thead>
               <tbody>
                 {filteredOrders.length > 0 ? (
-                  filteredOrders.map((order, index) => (
+                  filteredOrders.map((order, index) => {
+                    const orderItems = pick(order, 'orderItems', 'OrderItems') || [];
+                    const firstItem = orderItems[0] || {};
+                    return (
                     <tr 
-                      key={order.id} 
+                      key={pick(order, 'orderID','OrderID','orderId','id') ?? Math.random()} 
                       style={{ 
                         borderBottom: index < filteredOrders.length - 1 ? '1px solid #F1F5F9' : 'none'
                       }}
@@ -598,7 +730,7 @@ export default function SalesDashboard() {
                           fontWeight: '600', 
                           color: '#3B82F6'
                         }}>
-                          {order.id}
+                          {pick(order, 'orderNumber','OrderNumber') ?? pick(order, 'orderID','OrderID','orderId','id')}
                         </span>
                       </td>
                       <td style={{ 
@@ -616,7 +748,7 @@ export default function SalesDashboard() {
                             textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap'
                           }}>
-                            {order.customerId}
+                            {pick(order,'customerId','CustomerId')}
                           </div>
                           <div style={{ 
                             fontSize: '12px', 
@@ -640,17 +772,6 @@ export default function SalesDashboard() {
                           alignItems: 'center',
                           gap: '12px'
                         }}>
-                          {/* <img 
-                            src={order.vehicleImage} 
-                            alt={order.vehicle} 
-                            style={{ 
-                              width: '48px', 
-                              height: '32px', 
-                              objectFit: 'cover', 
-                              borderRadius: '6px',
-                              flexShrink: 0
-                            }}
-                          /> */}
                           <span style={{ 
                             color: '#0F172A',
                             fontSize: '14px',
@@ -658,7 +779,7 @@ export default function SalesDashboard() {
                             textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap'
                           }}>
-                            {order.vehicleId} (SL: {order.quantity})
+                            {`ID: ${pick(firstItem, 'vehicleId', 'VehicleId')} (SL: ${pick(firstItem, 'quantity', 'Quantity')})`}
                           </span>
                         </div>
                       </td>
@@ -676,19 +797,16 @@ export default function SalesDashboard() {
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap'
                         }}>
-                          {formatCurrency(order.totalPrice)}
+                          {formatCurrency(pick(order,'totalPrice','TotalPrice') ?? 0)}
                         </div>
-                        {/* order.paymentType === 'installment' && (
-                          <div style={{ 
-                            fontSize: '12px', 
-                            color: '#64748B',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                          }}>
-                            Đặt cọc: {formatCurrency(order.downPayment)}
-                          </div>
-                        ) */}
+                      </td>
+                      <td style={{ 
+                        padding: '16px 12px', 
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}>
+                        <StatusBadge status={pick(order, 'status', 'Status')} />
                       </td>
                       <td style={{ 
                         padding: '16px 12px', 
@@ -698,13 +816,13 @@ export default function SalesDashboard() {
                       }}>
                         <span style={{ 
                           fontSize: '14px', 
-                          color: order.status.toLowerCase() === 'pending' ? '#F59E0B' : (order.status.toLowerCase() === 'confirmed' ? '#10B981' : '#EF4444'),
+                          color: pick(order, 'paymentStatus', 'PaymentStatus')?.toLowerCase() === 'pending' ? '#F59E0B' : (pick(order, 'paymentStatus', 'PaymentStatus')?.toLowerCase() === 'paid' ? '#10B981' : '#EF4444'),
                           fontWeight: '500',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap'
                         }}>
-                          {order.status}
+                          {pick(order,'paymentStatus','PaymentStatus')}
                         </span>
                       </td>
                       <td style={{ 
@@ -714,7 +832,7 @@ export default function SalesDashboard() {
                         overflow: 'hidden'
                       }}>
                         <button 
-                          onClick={() => handleViewOrder(order.id)}
+                          onClick={() => handleViewOrder(pick(order, 'orderID','OrderID','orderId','id'))}
                           style={{
                             display: 'inline-flex',
                             alignItems: 'center',
@@ -743,10 +861,11 @@ export default function SalesDashboard() {
                         </button>
                       </td>
                     </tr>
-                  ))
+                  );
+                  })
                 ) : (
                   <tr>
-                    <td colSpan="6" style={{ 
+                    <td colSpan="7" style={{ // Changed colSpan to 7
                       padding: '48px 24px', 
                       textAlign: 'center' 
                     }}>

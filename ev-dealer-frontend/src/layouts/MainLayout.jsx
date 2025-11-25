@@ -58,7 +58,7 @@ const MainLayout = () => {
       { text: 'Báo cáo', icon: <ReportIcon />, path: '/reports' },
     ];
 
-    if (currentUser && currentUser.role === 'Admin') {
+    if (currentUser?.role === 'Admin') {
       items.push({
         text: 'Quản lý người dùng',
         icon: <AdminIcon />,
