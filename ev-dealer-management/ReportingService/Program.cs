@@ -11,6 +11,8 @@ using Npgsql;
 using ev_dealer_reporting.Data;
 using System.IO;
 using ev_dealer_reporting.Models;
+using ev_dealer_reporting.Services;
+using ev_dealer_reporting.DTOs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +24,9 @@ builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnC
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Add custom services
+builder.Services.AddScoped<IForecastingService, ForecastingService>();
 
 // CORS - allow local frontend during development
 builder.Services.AddCors(options =>
@@ -103,6 +108,35 @@ using (var scope = app.Services.CreateScope())
         Console.Error.WriteLine($"Warning: could not apply database migrations: {ex.Message}");
     }
 }
+
+// ============================================================================
+// AI FORECAST ENDPOINT
+// ============================================================================
+app.MapGet("/api/reports/demand-forecast", async (IForecastingService forecastingService, string? from, string? to) =>
+{
+    try
+    {
+        DateTime? fromDate = null;
+        DateTime? toDate = null;
+        
+        if (!string.IsNullOrEmpty(from) && DateTime.TryParse(from, out var fd))
+            fromDate = fd;
+        if (!string.IsNullOrEmpty(to) && DateTime.TryParse(to, out var td))
+            toDate = td;
+            
+        var forecast = await forecastingService.GenerateDemandForecastAsync(fromDate, toDate);
+        return Results.Json(forecast);
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"Error in GET /api/reports/demand-forecast: {ex.Message}");
+        return Results.Json(new { success = false, error = "An error occurred while generating the forecast.", details = ex.Message }, statusCode: 500);
+    }
+})
+.WithName("GetDemandForecast")
+.WithOpenApi()
+.Produces<DemandForecastDto>(200)
+.Produces(500);
 
 // ============================================================================
 // REPORT ENDPOINTS - Using Real Data from Database

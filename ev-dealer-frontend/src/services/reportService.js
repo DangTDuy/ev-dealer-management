@@ -135,6 +135,22 @@ export const reportService = {
     }
   },
 
+  getDemandForecast: async (params = {}) => {
+    try {
+      const { from, to } = params;
+      const queryParams = new URLSearchParams();
+      if (from) queryParams.append("from", from);
+      if (to) queryParams.append("to", to);
+      
+      const url = `/demand-forecast${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
+      const response = await reportingApi.get(url);
+      return response.data || response;
+    } catch (error) {
+      console.error("Error fetching demand forecast:", error);
+      throw error;
+    }
+  },
+
   createInventorySummary: async (payload) => {
     if (!payload) throw new Error("Payload is required");
     return reportingApi.post("/inventory-summary", payload);
