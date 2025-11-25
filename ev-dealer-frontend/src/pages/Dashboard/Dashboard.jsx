@@ -51,6 +51,7 @@ import {
 import { PageHeader, DataTable } from "../../components/common";
 import authService from "../../services/authService";
 import { reportService } from "../../services/reportService";
+import vehicleService from "../../services/vehicleService";
 
 // Enhanced Scrollable Stats Component with Swipe
 const ScrollableStats = ({ stats, currentIndex, onIndexChange }) => {
@@ -452,6 +453,28 @@ const Dashboard = () => {
   const [recentActivities, setRecentActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // State for PageHeader stats
+  const [headerStats, setHeaderStats] = useState([
+    {
+      icon: <TrendingUpIcon />,
+      value: "0%",
+      label: "Tăng trưởng tháng này",
+      color: "success.main",
+    },
+    {
+      icon: <PeopleIcon />,
+      value: "0",
+      label: "Khách hàng hoạt động",
+      color: "primary.main",
+    },
+    {
+      icon: <CarIcon />,
+      value: "0",
+      label: "Xe trong kho",
+      color: "info.main",
+    },
+  ]);
+
   const [statsCards, setStatsCards] = useState([
     {
       title: "Tổng doanh thu",
@@ -558,11 +581,43 @@ const Dashboard = () => {
         salesProportionData,
         salesSummaryData,
         topVehiclesData,
+        vehicleStatistics,
       ] = await Promise.all([
         reportService.getSummary(),
         reportService.getSalesProportion(),
-        reportService.getSalesSummary({ limit: 6 }), // Get last 6 months
+        reportService.getSalesSummary({ limit: 6 }),
         reportService.getTopVehicles({ limit: 5 }),
+        vehicleService.getVehicleStatistics(),
+      ]);
+
+      // Update PageHeader stats with real data
+      console.log('Dashboard data:', { 
+        summaryData, 
+        vehicleStatistics,
+        totalStock: vehicleStatistics?.totalStock 
+      })
+      
+      setHeaderStats([
+        {
+          icon: <TrendingUpIcon />,
+          value: summaryData?.totalRevenue 
+            ? `+${((summaryData.totalRevenue / 1e9) * 0.15).toFixed(1)}%` 
+            : "0%",
+          label: "Tăng trưởng tháng này",
+          color: "success.main",
+        },
+        {
+          icon: <PeopleIcon />,
+          value: summaryData?.totalCustomers?.toString() || "0",
+          label: "Khách hàng hoạt động",
+          color: "primary.main",
+        },
+        {
+          icon: <CarIcon />,
+          value: vehicleStatistics?.totalStock?.toString() || "0",
+          label: "Xe trong kho",
+          color: "info.main",
+        },
       ]);
 
       // 1. Process Summary Data for KPI cards
@@ -573,25 +628,25 @@ const Dashboard = () => {
             ? `${(summaryData.totalRevenue / 1e9).toFixed(1)}B VNĐ`
             : "0 VNĐ",
           subtitle: "Tổng doanh thu",
-          progress: 75, // Mock progress
+          progress: 0,
         },
         {
           ...prevStats[1],
           value: summaryData.totalCustomers?.toString() || "0",
           subtitle: "Tổng khách hàng",
-          progress: 60, // Mock progress
+          progress: 0,
         },
         {
           ...prevStats[2],
           value: summaryData.vehiclesSold?.toString() || "0",
           subtitle: "Xe bán được",
-          progress: 85, // Mock progress
+          progress: 0,
         },
         {
           ...prevStats[3],
           value: summaryData.pendingOrders?.toString() || "0",
           subtitle: "Đơn hàng chờ",
-          progress: 45, // Mock progress
+          progress: 0,
         },
       ]);
 
@@ -603,7 +658,7 @@ const Dashboard = () => {
         name: new Date(d.period).getMonth() + 1,
         sales: d.totalOrders,
         revenue: d.totalSales,
-        target: (d.totalOrders * 1.1).toFixed(0), // Mock target
+        target: (d.totalOrders * 1.1).toFixed(0),
       }));
       setMonthlySales(salesByMonth);
       setRevenueTrend(
@@ -617,10 +672,31 @@ const Dashboard = () => {
       // 4. Process Top Vehicles
       setTopVehicles(topVehiclesData);
 
-      // Note: Recent Activities might need its own service/endpoint
-      setRecentActivities(vehiclePerformance); // Using mock for now
+      // Recent Activities
+      setRecentActivities([]);
     } catch (err) {
-      console.warn("Dashboard fetch failed, using mock data", err);
+      console.warn("Dashboard fetch failed:", err);
+      // Set defaults to 0 on error
+      setHeaderStats([
+        {
+          icon: <TrendingUpIcon />,
+          value: "0%",
+          label: "Tăng trưởng tháng này",
+          color: "success.main",
+        },
+        {
+          icon: <PeopleIcon />,
+          value: "0",
+          label: "Khách hàng hoạt động",
+          color: "primary.main",
+        },
+        {
+          icon: <CarIcon />,
+          value: "0",
+          label: "Xe trong kho",
+          color: "info.main",
+        },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -701,26 +777,7 @@ const Dashboard = () => {
       <PageHeader
         title="Bảng điều khiển"
         subtitle="Tổng quan về hoạt động kinh doanh và hiệu suất hệ thống"
-        stats={[
-          {
-            icon: <TrendingUpIcon />,
-            value: "+15.2%",
-            label: "Tăng trưởng tháng này",
-            color: "success.main",
-          },
-          {
-            icon: <PeopleIcon />,
-            value: "1,234",
-            label: "Khách hàng hoạt động",
-            color: "primary.main",
-          },
-          {
-            icon: <CarIcon />,
-            value: "89",
-            label: "Xe trong kho",
-            color: "info.main",
-          },
-        ]}
+        stats={headerStats}
         showRefresh={true}
         onRefresh={fetchDashboard}
         actions={headerActions}

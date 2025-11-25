@@ -434,6 +434,35 @@ const vehicleService = {
         expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
       }
     }
+  },
+
+  // Get vehicle statistics - total stock count
+  getVehicleStatistics: async () => {
+    try {
+      const response = await api.get('/vehicles', { params: { PageSize: 1000 } })
+      
+      // Handle different response formats - same as getVehicles
+      let vehicles = []
+      if (response.items && Array.isArray(response.items)) {
+        vehicles = response.items
+      } else if (response.Items && Array.isArray(response.Items)) {
+        vehicles = response.Items
+      } else if (Array.isArray(response)) {
+        vehicles = response
+      }
+      
+      // Calculate total stock - check both camelCase and PascalCase
+      const totalStock = vehicles.reduce((sum, v) => {
+        const stock = v.stockQuantity || v.StockQuantity || 0
+        return sum + (typeof stock === 'number' ? stock : 0)
+      }, 0)
+      
+      console.log('Vehicle statistics:', { totalStock, vehicleCount: vehicles.length })
+      return { totalStock }
+    } catch (error) {
+      console.warn('Error fetching vehicle statistics:', error)
+      return { totalStock: 0 }
+    }
   }
 }
 
