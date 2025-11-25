@@ -2,7 +2,9 @@ import axios from "axios";
 
 // Create axios instance for ReportingService (different port)
 const reportingApi = axios.create({
-  baseURL: import.meta.env.VITE_REPORTING_SERVICE_URL || "http://localhost:5208/api/reports",
+  baseURL:
+    import.meta.env.VITE_REPORTING_SERVICE_URL ||
+    "http://localhost:5208/api/reports",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
@@ -35,8 +37,10 @@ export const reportService = {
       if (from) queryParams.append("from", from);
       if (to) queryParams.append("to", to);
       if (type) queryParams.append("type", type);
-      
-      const url = `/summary${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
+
+      const url = `/summary${
+        queryParams.toString() ? "?" + queryParams.toString() : ""
+      }`;
       const response = await reportingApi.get(url);
       return response.metrics || response;
     } catch (error) {
@@ -51,8 +55,10 @@ export const reportService = {
       const queryParams = new URLSearchParams();
       if (from) queryParams.append("from", from);
       if (to) queryParams.append("to", to);
-      
-      const url = `/sales-by-region${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
+
+      const url = `/sales-by-region${
+        queryParams.toString() ? "?" + queryParams.toString() : ""
+      }`;
       const response = await reportingApi.get(url);
       return Array.isArray(response) ? response : response.data || [];
     } catch (error) {
@@ -67,8 +73,10 @@ export const reportService = {
       const queryParams = new URLSearchParams();
       if (from) queryParams.append("from", from);
       if (to) queryParams.append("to", to);
-      
-      const url = `/sales-proportion${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
+
+      const url = `/sales-proportion${
+        queryParams.toString() ? "?" + queryParams.toString() : ""
+      }`;
       const response = await reportingApi.get(url);
       return Array.isArray(response) ? response : response.data || [];
     } catch (error) {
@@ -84,8 +92,10 @@ export const reportService = {
       if (from) queryParams.append("from", from);
       if (to) queryParams.append("to", to);
       if (limit) queryParams.append("limit", limit.toString());
-      
-      const url = `/top-vehicles${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
+
+      const url = `/top-vehicles${
+        queryParams.toString() ? "?" + queryParams.toString() : ""
+      }`;
       const response = await reportingApi.get(url);
       return Array.isArray(response) ? response : response.data || [];
     } catch (error) {
@@ -101,7 +111,9 @@ export const reportService = {
       if (params.toDate) queryParams.append("toDate", params.toDate);
       if (params.dealerId) queryParams.append("dealerId", params.dealerId);
 
-      const url = `/sales-summary${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
+      const url = `/sales-summary${
+        queryParams.toString() ? "?" + queryParams.toString() : ""
+      }`;
       const response = await reportingApi.get(url);
       return response;
     } catch (error) {
@@ -126,11 +138,81 @@ export const reportService = {
       if (params.dealerId) queryParams.append("dealerId", params.dealerId);
       if (params.vehicleId) queryParams.append("vehicleId", params.vehicleId);
 
-      const url = `/inventory-summary${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
+      const url = `/inventory-summary${
+        queryParams.toString() ? "?" + queryParams.toString() : ""
+      }`;
       const response = await reportingApi.get(url);
       return response;
     } catch (error) {
       console.error("Error fetching inventory summary list:", error);
+      throw error;
+    }
+  },
+
+  getSalesByStaff: async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params.from) queryParams.append("from", params.from);
+      if (params.to) queryParams.append("to", params.to);
+
+      const url = `/sales-by-staff${
+        queryParams.toString() ? "?" + queryParams.toString() : ""
+      }`;
+      const response = await reportingApi.get(url);
+      return Array.isArray(response) ? response : response.data || [];
+    } catch (error) {
+      console.error("Error fetching sales by staff:", error);
+      throw error;
+    }
+  },
+
+  getDebtReport: async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params.from) queryParams.append("from", params.from);
+      if (params.to) queryParams.append("to", params.to);
+
+      const url = `/debt-report${
+        queryParams.toString() ? "?" + queryParams.toString() : ""
+      }`;
+      const response = await reportingApi.get(url);
+      return response || { customers: [], manufacturers: [] };
+    } catch (error) {
+      console.error("Error fetching debt report:", error);
+      throw error;
+    }
+  },
+
+  getSalesByDealer: async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params.from) queryParams.append("from", params.from);
+      if (params.to) queryParams.append("to", params.to);
+
+      const url = `/sales-by-dealer${
+        queryParams.toString() ? "?" + queryParams.toString() : ""
+      }`;
+      const response = await reportingApi.get(url);
+      return Array.isArray(response) ? response : response.data || [];
+    } catch (error) {
+      console.error("Error fetching sales by dealer:", error);
+      throw error;
+    }
+  },
+
+  getInventoryTrends: async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params.from) queryParams.append("from", params.from);
+      if (params.to) queryParams.append("to", params.to);
+
+      const url = `/inventory-trends${
+        queryParams.toString() ? "?" + queryParams_toString() : ""
+      }`;
+      const response = await reportingApi.get(url);
+      return Array.isArray(response) ? response : response.data || [];
+    } catch (error) {
+      console.error("Error fetching inventory trends:", error);
       throw error;
     }
   },
@@ -141,10 +223,12 @@ export const reportService = {
       const queryParams = new URLSearchParams();
       if (from) queryParams.append("from", from);
       if (to) queryParams.append("to", to);
-      
-      const url = `/demand-forecast${queryParams.toString() ? "?" + queryParams.toString() : ""}`;
+
+      const url = `/demand-forecast${
+        queryParams.toString() ? "?" + queryParams.toString() : ""
+      }`;
       const response = await reportingApi.get(url);
-      return response.data || response;
+      return response;
     } catch (error) {
       console.error("Error fetching demand forecast:", error);
       throw error;

@@ -49,8 +49,8 @@ import {
   Cell,
 } from "recharts";
 import { PageHeader, DataTable } from "../../components/common";
-import api from "../../services/api";
 import authService from "../../services/authService";
+import { reportService } from "../../services/reportService";
 
 // Enhanced Scrollable Stats Component with Swipe
 const ScrollableStats = ({ stats, currentIndex, onIndexChange }) => {
@@ -445,89 +445,58 @@ const Dashboard = () => {
   const [tabValue, setTabValue] = useState(0);
   const [currentStatIndex, setCurrentStatIndex] = useState(0);
 
-  // Mock data for dashboard
-  const initialStatsCards = [
+  const [revenueByCategory, setRevenueByCategory] = useState([]);
+  const [monthlySales, setMonthlySales] = useState([]);
+  const [revenueTrend, setRevenueTrend] = useState([]);
+  const [topVehicles, setTopVehicles] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const [statsCards, setStatsCards] = useState([
     {
       title: "Tổng doanh thu",
-      subtitle: "Tháng này",
-      value: "2.4B VNĐ",
-      change: "+12.5%",
+      subtitle: "Đang tải...",
+      value: "...",
+      change: "...",
       changeType: "positive",
       icon: <MoneyIcon />,
       color: "success",
-      progress: 75,
+      progress: 0,
     },
     {
       title: "Khách hàng",
-      subtitle: "Tổng số khách hàng",
-      value: "1,234",
-      change: "+8.2%",
+      subtitle: "Đang tải...",
+      value: "...",
+      change: "...",
       changeType: "positive",
       icon: <PeopleIcon />,
       color: "primary",
-      progress: 60,
+      progress: 0,
     },
     {
       title: "Xe bán được",
-      subtitle: "Tháng này",
-      value: "89",
-      change: "+15.3%",
+      subtitle: "Đang tải...",
+      value: "...",
+      change: "...",
       changeType: "positive",
       icon: <CarIcon />,
       color: "info",
-      progress: 85,
+      progress: 0,
     },
     {
       title: "Đơn hàng",
-      subtitle: "Đang xử lý",
-      value: "156",
-      change: "-2.1%",
+      subtitle: "Đang tải...",
+      value: "...",
+      change: "...",
       changeType: "negative",
       icon: <SalesIcon />,
       color: "warning",
-      progress: 45,
+      progress: 0,
     },
-  ];
-
-  // Chart Data
-  const revenueByCategory = [
-    { name: "Sedan", value: 800000000 },
-    { name: "SUV", value: 600000000 },
-    { name: "Hatchback", value: 400000000 },
-    { name: "Luxury", value: 500000000 },
-    { name: "Electric", value: 100000000 },
-  ];
-
-  const monthlySales = [
-    { name: "1", sales: 65, target: 60 },
-    { name: "2", sales: 78, target: 65 },
-    { name: "3", sales: 82, target: 70 },
-    { name: "4", sales: 89, target: 75 },
-    { name: "5", sales: 76, target: 80 },
-    { name: "6", sales: 85, target: 85 },
-  ];
-
-  const revenueTrend = [
-    { month: "Tháng 1", revenue: 1200000000, target: 1100000000 },
-    { month: "Tháng 2", revenue: 1500000000, target: 1300000000 },
-    { month: "Tháng 3", revenue: 1800000000, target: 1500000000 },
-    { month: "Tháng 4", revenue: 2100000000, target: 1800000000 },
-    { month: "Tháng 5", revenue: 1900000000, target: 2000000000 },
-    { month: "Tháng 6", revenue: 2400000000, target: 2200000000 },
-  ];
+  ]);
 
   const vehiclePerformance = [
-    { model: "Tesla Model 3", efficiency: 95, satisfaction: 92 },
-    { model: "BMW i3", efficiency: 88, satisfaction: 85 },
-    { model: "Audi e-tron", efficiency: 92, satisfaction: 90 },
-    { model: "Mercedes EQC", efficiency: 85, satisfaction: 88 },
-    { model: "Porsche Taycan", efficiency: 90, satisfaction: 94 },
-  ];
-
-  // State
-  const [statsCards, setStatsCards] = useState(initialStatsCards);
-
-  const initialRecentActivities = [
+    // Mock data as this API is not available yet
     {
       id: 1,
       type: "sale",
@@ -562,20 +531,6 @@ const Dashboard = () => {
     },
   ];
 
-  const [recentActivities, setRecentActivities] = useState(
-    initialRecentActivities
-  );
-
-  const initialTopVehicles = [
-    { id: 1, name: "Tesla Model 3", sales: 45, revenue: "1.2B VNĐ" },
-    { id: 2, name: "BMW i3", sales: 32, revenue: "800M VNĐ" },
-    { id: 3, name: "Audi e-tron", sales: 28, revenue: "1.5B VNĐ" },
-    { id: 4, name: "Mercedes EQC", sales: 25, revenue: "1.8B VNĐ" },
-    { id: 5, name: "Porsche Taycan", sales: 18, revenue: "2.1B VNĐ" },
-  ];
-
-  const [topVehicles, setTopVehicles] = useState(initialTopVehicles);
-
   const columns = [
     {
       field: "name",
@@ -595,19 +550,75 @@ const Dashboard = () => {
     },
   ];
 
-  const [loading, setLoading] = useState(false);
-
   const fetchDashboard = async () => {
     setLoading(true);
     try {
-      const data = await api.get("/dashboard");
-      if (data) {
-        if (data.stats && Array.isArray(data.stats)) setStatsCards(data.stats);
-        if (data.recentActivities && Array.isArray(data.recentActivities))
-          setRecentActivities(data.recentActivities);
-        if (data.topVehicles && Array.isArray(data.topVehicles))
-          setTopVehicles(data.topVehicles);
-      }
+      const [
+        summaryData,
+        salesProportionData,
+        salesSummaryData,
+        topVehiclesData,
+      ] = await Promise.all([
+        reportService.getSummary(),
+        reportService.getSalesProportion(),
+        reportService.getSalesSummary({ limit: 6 }), // Get last 6 months
+        reportService.getTopVehicles({ limit: 5 }),
+      ]);
+
+      // 1. Process Summary Data for KPI cards
+      setStatsCards((prevStats) => [
+        {
+          ...prevStats[0],
+          value: summaryData.totalRevenue
+            ? `${(summaryData.totalRevenue / 1e9).toFixed(1)}B VNĐ`
+            : "0 VNĐ",
+          subtitle: "Tổng doanh thu",
+          progress: 75, // Mock progress
+        },
+        {
+          ...prevStats[1],
+          value: summaryData.totalCustomers?.toString() || "0",
+          subtitle: "Tổng khách hàng",
+          progress: 60, // Mock progress
+        },
+        {
+          ...prevStats[2],
+          value: summaryData.vehiclesSold?.toString() || "0",
+          subtitle: "Xe bán được",
+          progress: 85, // Mock progress
+        },
+        {
+          ...prevStats[3],
+          value: summaryData.pendingOrders?.toString() || "0",
+          subtitle: "Đơn hàng chờ",
+          progress: 45, // Mock progress
+        },
+      ]);
+
+      // 2. Process Sales Proportion for Pie Chart
+      setRevenueByCategory(salesProportionData);
+
+      // 3. Process Sales Summary for Bar and Line charts
+      const salesByMonth = (salesSummaryData.salesData || []).map((d) => ({
+        name: new Date(d.period).getMonth() + 1,
+        sales: d.totalOrders,
+        revenue: d.totalSales,
+        target: (d.totalOrders * 1.1).toFixed(0), // Mock target
+      }));
+      setMonthlySales(salesByMonth);
+      setRevenueTrend(
+        salesByMonth.map((s) => ({
+          month: `Tháng ${s.name}`,
+          revenue: s.revenue,
+          target: s.revenue * 1.1,
+        }))
+      );
+
+      // 4. Process Top Vehicles
+      setTopVehicles(topVehiclesData);
+
+      // Note: Recent Activities might need its own service/endpoint
+      setRecentActivities(vehiclePerformance); // Using mock for now
     } catch (err) {
       console.warn("Dashboard fetch failed, using mock data", err);
     } finally {
@@ -622,11 +633,6 @@ const Dashboard = () => {
   // User & role-based visibility
   const [currentUser] = useState(() => authService.getCurrentUser());
   const role = currentUser?.role?.toLowerCase() || "customer";
-
-  const visibleStats =
-    role === "admin" || role === "branch"
-      ? statsCards
-      : statsCards.filter((c) => c.title === "Xe bán được");
 
   const headerActions = (() => {
     if (role === "admin") {
@@ -673,6 +679,11 @@ const Dashboard = () => {
   const handleIndexChange = (newIndex) => {
     setCurrentStatIndex(newIndex);
   };
+
+  const visibleStats =
+    role === "admin" || role === "branch"
+      ? statsCards
+      : statsCards.filter((c) => c.title === "Xe bán được");
 
   useEffect(() => {
     if (visibleStats.length > 1) {
@@ -742,6 +753,11 @@ const Dashboard = () => {
               borderColor: "divider",
               px: 4,
               pt: 2,
+              "& .MuiTabs-flexContainer": {
+                justifyContent: {
+                  xs: "flex-start",
+                },
+              },
             }}
           >
             <Tab
@@ -772,7 +788,7 @@ const Dashboard = () => {
           </Tabs>
 
           <Box sx={{ p: 4, minHeight: "400px" }}>
-            {tabValue === 0 && (
+            {tabValue === 0 && ( // Original Tab 0
               <Box>
                 <Typography
                   variant="h5"
@@ -791,7 +807,7 @@ const Dashboard = () => {
               </Box>
             )}
 
-            {tabValue === 1 && (
+            {tabValue === 1 && ( // Original Tab 1
               <Box>
                 <Typography
                   variant="h5"
@@ -810,7 +826,7 @@ const Dashboard = () => {
               </Box>
             )}
 
-            {tabValue === 2 && (
+            {tabValue === 2 && ( // Original Tab 2
               <Box>
                 <Typography
                   variant="h5"
@@ -829,7 +845,7 @@ const Dashboard = () => {
               </Box>
             )}
 
-            {tabValue === 3 && (
+            {tabValue === 3 && ( // Original Tab 3
               <Box>
                 <Typography
                   variant="h5"
@@ -868,7 +884,7 @@ const Dashboard = () => {
               </Box>
             )}
 
-            {tabValue === 4 && (
+            {tabValue === 4 && ( // Original Tab 4
               <Box>
                 <Typography
                   variant="h5"

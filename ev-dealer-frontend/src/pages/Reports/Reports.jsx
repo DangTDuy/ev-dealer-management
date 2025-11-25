@@ -697,6 +697,8 @@ const Reports = () => {
                               fill="#3B82F6"
                               radius={[4, 4, 0, 0]}
                               barSize={32} // FIX: Kích thước cột cố định để đẹp hơn
+                              animationDuration={1500}
+                              animationEasing="ease-out"
                             />
                             <Bar
                               yAxisId="revenue"
