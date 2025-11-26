@@ -44,6 +44,34 @@ namespace SalesService.Controllers
                     _logger.LogWarning("Customer name is missing in CreateOrderRequest.");
                     return BadRequest(new { message = "Customer name is required" });
                 }
+
+                // --- CẬP NHẬT TRẠNG THÁI QUOTE TỪ ACTIVE SANG CONVERTEDTOORDER ---
+                // Kiểm tra nếu QuoteId > 0 (hợp lệ)
+                if (request.QuoteId > 0)
+                {
+                    var quote = await _context.Quotes.FindAsync(request.QuoteId);
+                    if (quote != null)
+                    {
+                        if (quote.Status == "Active")
+                        {
+                            quote.Status = "ConvertedToOrder";
+                            quote.UpdatedAt = DateTime.UtcNow;
+                            _logger.LogInformation("Updated quote {QuoteId} status from Active to ConvertedToOrder", request.QuoteId);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Quote {QuoteId} status is {CurrentStatus}, cannot convert to order", request.QuoteId, quote.Status);
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Quote with ID {QuoteId} not found", request.QuoteId);
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("Invalid QuoteId: {QuoteId}", request.QuoteId);
+                }
                 
                 // Create new Order object
                 var order = new Order
@@ -59,8 +87,8 @@ namespace SalesService.Controllers
                     UnitPrice = request.UnitPrice,
                     
                     // Payment & Delivery
-                    PaymentMethod = request.PaymentType, // "Full" or "Installment"
-                    PaymentForm = request.PaymentMethod, // "Cash" or "Bank transfer"
+                    PaymentMethod = request.PaymentType ?? "Unknown", // Default value if null
+                    PaymentForm = request.PaymentMethod ?? "Unknown", // Default value if null
                     DeliveryPreferredDate = request.DeliveryDate,
                     DeliveryExpectedDate = request.EstimatedDeliveryDate,
                     Notes = request.Notes,
@@ -73,6 +101,10 @@ namespace SalesService.Controllers
                     // Promotion fields
                     DiscountPercent = request.DiscountPercent,
                     DiscountAmount = request.DiscountAmount,
+
+                    // Initialize required properties with default values
+                    OrderNumber = "", // Will be set below
+                    Status = "Pending" // Default status
                 };
 
                 _logger.LogInformation("Order object initialized from request (before price calculation): UnitPrice={UnitPrice}, Quantity={Quantity}, DiscountAmount={DiscountAmount}, DiscountPercent={DiscountPercent}",
@@ -114,20 +146,22 @@ namespace SalesService.Controllers
                 order.OrderNumber = $"ORD-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid().ToString().Substring(0, 4).ToUpper()}";
                 order.Status = "Pending"; // Default status for a new order
 
-                // Add to database
+                // Add to database and save changes (bao gồm cả cập nhật quote status)
                 _context.Orders.Add(order);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Order {OrderNumber} completed for customer {CustomerEmail}. Order ID: {OrderId}.", order.OrderNumber, request.CustomerEmail, order.OrderId);
+                _logger.LogInformation("Order {OrderNumber} completed for customer {CustomerEmail}. Order ID: {OrderId}. Quote status updated to ConvertedToOrder.", 
+                    order.OrderNumber, request.CustomerEmail, order.OrderId);
 
                 return Ok(new
                 {
                     success = true,
-                    message = "Order completed successfully.",
+                    message = "Order completed successfully and quote status updated to ConvertedToOrder.",
                     orderId = order.OrderId,
                     orderNumber = order.OrderNumber,
                     customerEmail = request.CustomerEmail,
-                    totalPrice = order.TotalPrice
+                    totalPrice = order.TotalPrice,
+                    quoteStatusUpdated = request.QuoteId > 0
                 });
             }
             catch (Exception ex)
