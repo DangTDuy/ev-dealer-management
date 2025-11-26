@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios'; // Import axios
 import { useAuth } from '../../context/AuthContext'; // Import useAuth
 
@@ -143,12 +143,14 @@ export default function SalesDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [activeDropdown, setActiveDropdown] = useState(null); // id of active dropdown
   const [dropdownPos, setDropdownPos] = useState(null); // { top, left }
+  const [removedOrderId, setRemovedOrderId] = useState(null);
   const dropdownRefs = useRef({}); // Keep for buttons if needed
   const portalRef = useRef(null);
-  const activeOrder = activeDropdown ? orders.find(o => (pick(o, 'orderID','OrderID','orderId','id')) === activeDropdown) : null;
+  const sanitizeOrderId = (value) => String(value ?? '');
 
 
   const fetchOrders = async () => {
@@ -174,6 +176,14 @@ export default function SalesDashboard() {
   useEffect(() => {
     fetchOrders();
   }, []);
+
+  // Remove a recently rejected order immediately after returning from contract detail page
+  useEffect(() => {
+    const incomingId = location.state?.removedOrderId;
+    if (!incomingId) return;
+    setRemovedOrderId(sanitizeOrderId(incomingId));
+    navigate(location.pathname, { replace: true });
+  }, [location.state?.removedOrderId, location.pathname, navigate]);
 
     // Effect to handle clicks outside dropdowns
   useEffect(() => {
@@ -203,7 +213,15 @@ export default function SalesDashboard() {
   };
 
   // Adjust filtering logic for orders (use safe fallbacks)
-  const filteredOrders = orders.filter(order => {
+  const visibleOrders = removedOrderId
+    ? orders.filter(order => sanitizeOrderId(pick(order, 'orderID', 'OrderID', 'orderId', 'id')) !== removedOrderId)
+    : orders;
+
+  const activeOrder = activeDropdown
+    ? visibleOrders.find(o => sanitizeOrderId(pick(o, 'orderID','OrderID','orderId','id')) === sanitizeOrderId(activeDropdown))
+    : null;
+
+  const filteredOrders = visibleOrders.filter(order => {
     const idVal = pick(order, 'orderID', 'OrderID', 'orderId', 'id');
     const custVal = pick(order, 'customerId', 'CustomerId');
     const statusVal = String(pick(order, 'status', 'Status') ?? '').toLowerCase();

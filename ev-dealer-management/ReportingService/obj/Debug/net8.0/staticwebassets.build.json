@@ -1,11 +1,12 @@
 {
   "Version": 1,
-  "Hash": "K3tU0782bdObty9CLQPLbMotsXYfce2sBwq9k9UvGEM=",
+  "Hash": "SmaTz8CKSS62XhAWhJTXZbJEV4yQ46/t7UfbvFOXMq4=",
   "Source": "ReportingService",
   "BasePath": "_content/ReportingService",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
   "DiscoveryPatterns": [],
-  "Assets": []
+  "Assets": [],
+  "Endpoints": []
 }

@@ -127,18 +127,39 @@ namespace SalesService.Controllers
                 return NotFound(new { message = "Associated order not found." });
             }
 
-            // Update contract status
-            contract.Status = request.Status;
             contract.UpdatedAt = DateTime.UtcNow;
 
-            // Update order status based on contract approval
+            // If rejected, remove both the contract and its order so the order no longer appears in the sales list
+            if (request.Status == "Rejected")
+            {
+                _logger.LogInformation("Contract {ContractId} rejected; removing related order {OrderId}.", id, order.OrderId);
+                _context.Contracts.Remove(contract);
+                _context.Orders.Remove(order);
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("Contract {ContractId} and Order {OrderId} removed after rejection.", id, order.OrderId);
+                }
+                catch (DbUpdateException ex)
+                {
+                    _logger.LogError(ex, "Failed to delete order {OrderId} when rejecting contract {ContractId}.", order.OrderId, id);
+                    return StatusCode(500, new { message = "An error occurred while removing the rejected order.", error = ex.InnerException?.Message ?? ex.Message });
+                }
+
+                return Ok(new { message = "Hợp đồng đã bị từ chối và đơn hàng liên quan đã được xóa." });
+            }
+
+            // Update contract/order status for non-rejection scenarios
+            contract.Status = request.Status;
+
             if (request.Status == "Approved")
             {
                 order.Status = "ReadyForDelivery";
             }
-            else if (request.Status == "Rejected")
+            else
             {
-                order.Status = "Pending"; // Revert order status to pending
+                order.Status = request.Status;
             }
             order.UpdatedAt = DateTime.UtcNow;
 

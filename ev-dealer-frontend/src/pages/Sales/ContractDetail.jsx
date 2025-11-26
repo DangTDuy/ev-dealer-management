@@ -83,7 +83,12 @@ export default function ContractDetail() {
         setLoading(true);
         await axios.put(`http://localhost:5036/api/Contracts/${contractId}/status`, { status });
         alert(`Hợp đồng đã được ${actionText.toLowerCase()} thành công!`);
-        navigate('/sales');
+        const orderIdentifier = order?.orderId ?? order?.OrderId ?? contract?.orderId;
+        if (status === 'Rejected' && orderIdentifier) {
+            navigate('/sales', { state: { removedOrderId: orderIdentifier } });
+        } else {
+            navigate('/sales');
+        }
     } catch (err) {
         console.error(`Error updating contract status:`, err);
         alert(`Lỗi khi ${actionText.toLowerCase()} hợp đồng. ${err.response?.data?.message || err.message}`);
