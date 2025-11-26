@@ -377,7 +377,8 @@ const vehicleService = {
         customerPhone: reservationData.customerPhone,
         colorVariantId: reservationData.colorVariantId,
         notes: reservationData.notes,
-        quantity: reservationData.quantity || 1
+        quantity: reservationData.quantity || 1,
+        deviceToken: reservationData.deviceToken || null
       })
       return response
     } catch (error) {

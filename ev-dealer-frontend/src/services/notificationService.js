@@ -82,17 +82,21 @@ class NotificationService {
   // Get all notifications
   async getNotifications() {
     try {
-      // TODO: Replace with real API call
-      // return await api.get('/notifications')
-
-      // Mock implementation
+      // Read from localStorage (Firebase notifications)
+      const STORAGE_KEY = 'firebase_notifications';
+      const stored = localStorage.getItem(STORAGE_KEY);
+      const notifications = stored ? JSON.parse(stored) : [];
+      
+      // If no Firebase notifications, return mockdata
+      const data = notifications.length > 0 ? notifications : mockNotifications;
+      
       return new Promise((resolve) => {
         setTimeout(() => {
           resolve({
-            data: mockNotifications,
+            data: data,
             success: true
           })
-        }, 500)
+        }, 300)
       })
     } catch (error) {
       console.error('Error fetching notifications:', error)
@@ -103,14 +107,39 @@ class NotificationService {
   // Get notification stats
   async getNotificationStats() {
     try {
-      // TODO: Replace with real API call
-      // return await api.get('/notifications/stats')
-
-      // Mock implementation
+      // Calculate stats from localStorage
+      const STORAGE_KEY = 'firebase_notifications';
+      const stored = localStorage.getItem(STORAGE_KEY);
+      const notifications = stored ? JSON.parse(stored) : [];
+      
+      if (notifications.length === 0) {
+        // Return mockdata if no Firebase notifications
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({
+              data: mockNotificationStats,
+              success: true
+            })
+          }, 300)
+        })
+      }
+      
+      // Calculate real stats
+      const stats = {
+        total: notifications.length,
+        unread: notifications.filter(n => !n.isRead).length,
+        byType: {
+          orders: notifications.filter(n => n.type === 'orders').length,
+          deliveries: notifications.filter(n => n.type === 'deliveries').length,
+          payments: notifications.filter(n => n.type === 'payments').length,
+          system: notifications.filter(n => n.type === 'system').length
+        }
+      };
+      
       return new Promise((resolve) => {
         setTimeout(() => {
           resolve({
-            data: mockNotificationStats,
+            data: stats,
             success: true
           })
         }, 300)
@@ -124,10 +153,17 @@ class NotificationService {
   // Mark notification as read/unread
   async markAsRead(notificationId, isRead = true) {
     try {
-      // TODO: Replace with real API call
-      // return await api.patch(`/notifications/${notificationId}`, { isRead })
-
-      // Mock implementation
+      // Update in localStorage
+      const STORAGE_KEY = 'firebase_notifications';
+      const stored = localStorage.getItem(STORAGE_KEY);
+      const notifications = stored ? JSON.parse(stored) : [];
+      
+      const updated = notifications.map(n => 
+        n.id === notificationId ? { ...n, isRead } : n
+      );
+      
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      
       return new Promise((resolve) => {
         setTimeout(() => {
           resolve({
@@ -135,7 +171,7 @@ class NotificationService {
             success: true,
             message: `Notification marked as ${isRead ? 'read' : 'unread'}`
           })
-        }, 300)
+        }, 200)
       })
     } catch (error) {
       console.error('Error updating notification:', error)
@@ -146,17 +182,22 @@ class NotificationService {
   // Mark all notifications as read
   async markAllAsRead() {
     try {
-      // TODO: Replace with real API call
-      // return await api.patch('/notifications/mark-all-read')
-
-      // Mock implementation
+      // Update all in localStorage
+      const STORAGE_KEY = 'firebase_notifications';
+      const stored = localStorage.getItem(STORAGE_KEY);
+      const notifications = stored ? JSON.parse(stored) : [];
+      
+      const updated = notifications.map(n => ({ ...n, isRead: true }));
+      
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      
       return new Promise((resolve) => {
         setTimeout(() => {
           resolve({
             success: true,
             message: 'All notifications marked as read'
           })
-        }, 500)
+        }, 300)
       })
     } catch (error) {
       console.error('Error marking all notifications as read:', error)
@@ -167,17 +208,22 @@ class NotificationService {
   // Delete notification
   async deleteNotification(notificationId) {
     try {
-      // TODO: Replace with real API call
-      // return await api.delete(`/notifications/${notificationId}`)
-
-      // Mock implementation
+      // Remove from localStorage
+      const STORAGE_KEY = 'firebase_notifications';
+      const stored = localStorage.getItem(STORAGE_KEY);
+      const notifications = stored ? JSON.parse(stored) : [];
+      
+      const filtered = notifications.filter(n => n.id !== notificationId);
+      
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+      
       return new Promise((resolve) => {
         setTimeout(() => {
           resolve({
             success: true,
             message: 'Notification deleted successfully'
           })
-        }, 300)
+        }, 200)
       })
     } catch (error) {
       console.error('Error deleting notification:', error)

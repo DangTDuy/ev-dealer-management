@@ -161,35 +161,8 @@ namespace NotificationService.Services
                 try
                 {
                     using var scope = _serviceProvider.CreateScope();
-                    var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
-                    
-                    Log.Information("Received TestDriveScheduled message: {Message}", message);
-                    
-                    // Deserialize message
-                    var testDriveEvent = JsonSerializer.Deserialize<DTOs.TestDriveScheduledEvent>(message);
-                    
-                    if (testDriveEvent != null)
-                    {
-                        Log.Information("Processing TestDriveScheduledEvent for customer {CustomerEmail}", testDriveEvent.CustomerEmail);
-                        
-                        // Send test drive confirmation email
-                        var success = await emailService.SendTestDriveConfirmationAsync(
-                            testDriveEvent.CustomerEmail,
-                            testDriveEvent.CustomerName,
-                            testDriveEvent.VehicleModel,
-                            testDriveEvent.ScheduledDate
-                        );
-                        
-                        if (success)
-                        {
-                            Log.Information("Test drive confirmation email sent successfully to {CustomerEmail}", testDriveEvent.CustomerEmail);
-                        }
-                        else
-                        {
-                            Log.Error("Failed to send test drive confirmation email to {CustomerEmail}", testDriveEvent.CustomerEmail);
-                        }
-                    }
-                    
+                    var testDriveConsumer = scope.ServiceProvider.GetRequiredService<TestDriveScheduledConsumer>();
+                    await testDriveConsumer.HandleAsync(message);
                     _testDriveChannel.BasicAck(ea.DeliveryTag, false);
                 }
                 catch (Exception ex)

@@ -1,27 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Code\\XD\\project_XD\\ev-dealer-management\\ev-dealer-management\\NotificationService\\NotificationService.csproj": {}
+    "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\NotificationService\\NotificationService.csproj": {}
   },
   "projects": {
-    "C:\\Code\\XD\\project_XD\\ev-dealer-management\\ev-dealer-management\\NotificationService\\NotificationService.csproj": {
+    "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\NotificationService\\NotificationService.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Code\\XD\\project_XD\\ev-dealer-management\\ev-dealer-management\\NotificationService\\NotificationService.csproj",
+        "projectUniqueName": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\NotificationService\\NotificationService.csproj",
         "projectName": "NotificationService",
-        "projectPath": "C:\\Code\\XD\\project_XD\\ev-dealer-management\\ev-dealer-management\\NotificationService\\NotificationService.csproj",
-        "packagesPath": "C:\\Users\\ASUS\\.nuget\\packages\\",
-        "outputPath": "C:\\Code\\XD\\project_XD\\ev-dealer-management\\ev-dealer-management\\NotificationService\\obj\\",
+        "projectPath": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\NotificationService\\NotificationService.csproj",
+        "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+        "outputPath": "D:\\Nam_3\\ev-dealer-management\\ev-dealer-management\\NotificationService\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\ASUS\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -45,6 +43,10 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "FirebaseAdmin": {
+              "target": "Package",
+              "version": "[3.0.1, )"
+            },
             "MassTransit": {
               "target": "Package",
               "version": "[8.2.3, )"
@@ -61,10 +63,6 @@
               "target": "Package",
               "version": "[6.8.1, )"
             },
-            "SendGrid": {
-              "target": "Package",
-              "version": "[9.29.3, )"
-            },
             "Serilog.AspNetCore": {
               "target": "Package",
               "version": "[9.0.0, )"
@@ -80,10 +78,6 @@
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[6.6.2, )"
-            },
-            "Twilio": {
-              "target": "Package",
-              "version": "[7.13.7, )"
             }
           },
           "imports": [

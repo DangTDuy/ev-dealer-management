@@ -7,11 +7,11 @@ namespace NotificationService.Consumers;
 
 public class VehicleReservedConsumer
 {
-    private readonly ISmsService _smsService;
+    private readonly IFcmService _fcmService;
 
-    public VehicleReservedConsumer(ISmsService smsService)
+    public VehicleReservedConsumer(IFcmService fcmService)
     {
-        _smsService = smsService;
+        _fcmService = fcmService;
     }
 
     public async Task HandleAsync(string message)
@@ -25,22 +25,48 @@ public class VehicleReservedConsumer
                 return;
             }
 
-            Log.Information("Processing VehicleReservedEvent for Reservation: {ReservationId}", reservedEvent.ReservationId);
+            Log.Information("Processing VehicleReservedEvent for Vehicle: {VehicleId}, Customer: {CustomerName}", 
+                reservedEvent.VehicleId, reservedEvent.CustomerName);
 
-            var success = await _smsService.SendReservationConfirmationAsync(
-                reservedEvent.CustomerPhone,
-                reservedEvent.CustomerName,
-                reservedEvent.VehicleModel,
-                reservedEvent.ColorName
+            // Check if device token is available
+            if (string.IsNullOrWhiteSpace(reservedEvent.DeviceToken))
+            {
+                Log.Warning("No device token found for Vehicle: {VehicleId}, Customer: {CustomerName}. Skipping push notification.", 
+                    reservedEvent.VehicleId, reservedEvent.CustomerName);
+                return;
+            }
+
+            // Send push notification
+            var title = "🚗 Đặt xe thành công!";
+            var colorInfo = !string.IsNullOrWhiteSpace(reservedEvent.ColorVariantName) 
+                ? $" màu {reservedEvent.ColorVariantName}" 
+                : "";
+            var body = $"Xe {reservedEvent.VehicleName}{colorInfo} (SL: {reservedEvent.Quantity}) đã được đặt thành công. Chúng tôi sẽ liên hệ bạn sớm!";
+            var data = new Dictionary<string, string>
+            {
+                { "type", "orders" },
+                { "vehicleId", reservedEvent.VehicleId.ToString() },
+                { "vehicleName", reservedEvent.VehicleName },
+                { "customerName", reservedEvent.CustomerName },
+                { "quantity", reservedEvent.Quantity.ToString() }
+            };
+
+            var success = await _fcmService.SendNotificationAsync(
+                reservedEvent.DeviceToken,
+                title,
+                body,
+                data
             );
 
             if (success)
             {
-                Log.Information("Reservation confirmation SMS sent for Reservation: {ReservationId}", reservedEvent.ReservationId);
+                Log.Information("Reservation confirmation push notification sent for Vehicle: {VehicleId}, Customer: {CustomerName}", 
+                    reservedEvent.VehicleId, reservedEvent.CustomerName);
             }
             else
             {
-                Log.Error("Failed to send reservation confirmation SMS for Reservation: {ReservationId}", reservedEvent.ReservationId);
+                Log.Error("Failed to send reservation confirmation push notification for Vehicle: {VehicleId}, Customer: {CustomerName}", 
+                    reservedEvent.VehicleId, reservedEvent.CustomerName);
             }
         }
         catch (Exception ex)

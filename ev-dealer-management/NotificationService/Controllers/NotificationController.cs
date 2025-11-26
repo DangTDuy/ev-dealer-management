@@ -7,91 +7,123 @@ namespace NotificationService.Controllers;
 [Route("api/[controller]")]
 public class NotificationController : ControllerBase
 {
-    private readonly IEmailService _emailService;
-    private readonly ISmsService _smsService;
+    private readonly IFcmService _fcmService;
 
-    public NotificationController(IEmailService emailService, ISmsService smsService)
+    public NotificationController(IFcmService fcmService)
     {
-        _emailService = emailService;
-        _smsService = smsService;
+        _fcmService = fcmService;
     }
 
-    [HttpPost("test-email")]
-    public async Task<IActionResult> TestEmail([FromBody] TestEmailRequest request)
+    /// <summary>
+    /// Test FCM notification - Send a test push notification to a device
+    /// </summary>
+    [HttpPost("test-fcm")]
+    public async Task<IActionResult> TestFcm([FromBody] TestFcmRequest request)
     {
-        var success = await _emailService.SendEmailAsync(
-            request.To,
-            request.Subject,
-            request.HtmlContent
+        var success = await _fcmService.SendNotificationAsync(
+            request.DeviceToken,
+            request.Title,
+            request.Body,
+            request.Data
         );
 
         return success 
-            ? Ok(new { message = "Email sent successfully" })
-            : BadRequest(new { message = "Failed to send email" });
+            ? Ok(new { message = "Push notification sent successfully" })
+            : BadRequest(new { message = "Failed to send push notification" });
     }
 
-    [HttpPost("test-sms")]
-    public async Task<IActionResult> TestSms([FromBody] TestSmsRequest request)
+    /// <summary>
+    /// Subscribe a device token to a topic
+    /// </summary>
+    [HttpPost("subscribe-topic")]
+    public async Task<IActionResult> SubscribeToTopic([FromBody] SubscribeTopicRequest request)
     {
-        var success = await _smsService.SendSmsAsync(
-            request.PhoneNumber,
-            request.Message
+        var success = await _fcmService.SubscribeToTopicAsync(
+            request.DeviceToken,
+            request.Topic
         );
 
         return success 
-            ? Ok(new { message = "SMS sent successfully" })
-            : BadRequest(new { message = "Failed to send SMS" });
+            ? Ok(new { message = $"Subscribed to topic: {request.Topic}" })
+            : BadRequest(new { message = $"Failed to subscribe to topic: {request.Topic}" });
     }
 
-    [HttpPost("order-confirmation")]
-    public async Task<IActionResult> SendOrderConfirmation([FromBody] OrderConfirmationRequest request)
+    /// <summary>
+    /// Unsubscribe a device token from a topic
+    /// </summary>
+    [HttpPost("unsubscribe-topic")]
+    public async Task<IActionResult> UnsubscribeFromTopic([FromBody] SubscribeTopicRequest request)
     {
-        var success = await _emailService.SendOrderConfirmationAsync(
-            request.CustomerEmail,
-            request.CustomerName,
-            request.VehicleModel,
-            request.TotalPrice,
-            request.OrderId
+        var success = await _fcmService.UnsubscribeFromTopicAsync(
+            request.DeviceToken,
+            request.Topic
         );
 
         return success 
-            ? Ok(new { message = "Order confirmation email sent successfully" })
-            : BadRequest(new { message = "Failed to send order confirmation email" });
+            ? Ok(new { message = $"Unsubscribed from topic: {request.Topic}" })
+            : BadRequest(new { message = $"Failed to unsubscribe from topic: {request.Topic}" });
     }
 
-    [HttpPost("reservation-confirmation")]
-    public async Task<IActionResult> SendReservationConfirmation([FromBody] ReservationConfirmationRequest request)
+    /// <summary>
+    /// Send notification to a topic (broadcast)
+    /// </summary>
+    [HttpPost("send-to-topic")]
+    public async Task<IActionResult> SendToTopic([FromBody] SendToTopicRequest request)
     {
-        var success = await _smsService.SendReservationConfirmationAsync(
-            request.CustomerPhone,
-            request.CustomerName,
-            request.VehicleModel,
-            request.ColorName
+        var success = await _fcmService.SendToTopicAsync(
+            request.Topic,
+            request.Title,
+            request.Body,
+            request.Data
         );
 
         return success 
-            ? Ok(new { message = "Reservation confirmation SMS sent successfully" })
-            : BadRequest(new { message = "Failed to send reservation confirmation SMS" });
+            ? Ok(new { message = $"Notification sent to topic: {request.Topic}" })
+            : BadRequest(new { message = $"Failed to send notification to topic: {request.Topic}" });
     }
 
-    [HttpPost("test-drive-confirmation")]
-    public async Task<IActionResult> SendTestDriveConfirmation([FromBody] TestDriveConfirmationRequest request)
+    /// <summary>
+    /// Send notification to multiple devices at once
+    /// </summary>
+    [HttpPost("send-multicast")]
+    public async Task<IActionResult> SendMulticast([FromBody] SendMulticastRequest request)
     {
-        var success = await _emailService.SendTestDriveConfirmationAsync(
-            request.CustomerEmail,
-            request.CustomerName,
-            request.VehicleModel,
-            request.ScheduledDate
+        var success = await _fcmService.SendMulticastAsync(
+            request.DeviceTokens,
+            request.Title,
+            request.Body,
+            request.Data
         );
 
         return success 
-            ? Ok(new { message = "Test drive confirmation email sent successfully" })
-            : BadRequest(new { message = "Failed to send test drive confirmation email" });
+            ? Ok(new { message = $"Multicast notification sent to {request.DeviceTokens.Count} devices" })
+            : BadRequest(new { message = "Failed to send multicast notification" });
     }
 }
 
-public record TestEmailRequest(string To, string Subject, string HtmlContent);
-public record TestSmsRequest(string PhoneNumber, string Message);
-public record OrderConfirmationRequest(string CustomerEmail, string CustomerName, string VehicleModel, decimal TotalPrice, string OrderId);
-public record ReservationConfirmationRequest(string CustomerPhone, string CustomerName, string VehicleModel, string ColorName);
-public record TestDriveConfirmationRequest(string CustomerEmail, string CustomerName, string VehicleModel, DateTime ScheduledDate);
+// Request DTOs
+public record TestFcmRequest(
+    string DeviceToken, 
+    string Title, 
+    string Body, 
+    Dictionary<string, string>? Data = null
+);
+
+public record SubscribeTopicRequest(
+    string DeviceToken, 
+    string Topic
+);
+
+public record SendToTopicRequest(
+    string Topic, 
+    string Title, 
+    string Body, 
+    Dictionary<string, string>? Data = null
+);
+
+public record SendMulticastRequest(
+    List<string> DeviceTokens, 
+    string Title, 
+    string Body, 
+    Dictionary<string, string>? Data = null
+);

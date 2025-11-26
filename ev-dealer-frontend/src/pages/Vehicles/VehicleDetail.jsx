@@ -69,6 +69,7 @@ import {
 import vehicleService from '../../services/vehicleService'
 import resolveImagePath from '../../utils/imageUtils'
 import NotificationToast from '../../components/Notification/NotificationToast'
+import ReservationDialog from '../../components/vehicles/ReservationDialog'
 
 const VehicleDetail = () => {
   const { id } = useParams()
@@ -83,6 +84,7 @@ const VehicleDetail = () => {
   const [imageLoading, setImageLoading] = useState(true)
   const [failedImages, setFailedImages] = useState(new Set())
   const [zoomOpen, setZoomOpen] = useState(false)
+  const [reservationDialogOpen, setReservationDialogOpen] = useState(false)
 
 
 
@@ -1096,6 +1098,55 @@ const VehicleDetail = () => {
                           </Box>
                         ))}
                       </Stack>
+
+                      {/* Reservation Button */}
+                      <Button
+                        variant="contained"
+                        size="large"
+                        fullWidth
+                        disabled={vehicle.stockQuantity === 0}
+                        onClick={() => setReservationDialogOpen(true)}
+                        sx={{
+                          py: 2,
+                          fontSize: '1.1rem',
+                          fontWeight: 700,
+                          borderRadius: 3,
+                          textTransform: 'none',
+                          bgcolor: 'white',
+                          color: '#06b6d4',
+                          boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
+                          '&:hover': {
+                            bgcolor: 'rgba(255,255,255,0.95)',
+                            transform: 'translateY(-2px)',
+                            boxShadow: '0 12px 28px rgba(0,0,0,0.2)',
+                          },
+                          '&:disabled': {
+                            bgcolor: 'rgba(255,255,255,0.3)',
+                            color: 'rgba(255,255,255,0.5)',
+                          },
+                          transition: 'all 0.3s ease',
+                        }}
+                      >
+                        {vehicle.stockQuantity > 0 ? (
+                          <>🚗 Đặt xe ngay</>
+                        ) : (
+                          <>❌ Hết hàng</>
+                        )}
+                      </Button>
+
+                      {vehicle.stockQuantity > 0 && (
+                        <Typography 
+                          variant="caption" 
+                          sx={{ 
+                            color: 'rgba(255,255,255,0.8)', 
+                            textAlign: 'center',
+                            display: 'block',
+                            mt: 1
+                          }}
+                        >
+                          💡 Bạn sẽ nhận thông báo ngay sau khi đặt xe!
+                        </Typography>
+                      )}
                     </Stack>
                   </CardContent>
                 </Paper>
@@ -1333,6 +1384,16 @@ const VehicleDetail = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* 🚗 Reservation Dialog */}
+      <ReservationDialog
+        open={reservationDialogOpen}
+        onClose={() => setReservationDialogOpen(false)}
+        vehicle={{
+          ...vehicle,
+          selectedColorId: vehicle?.colorVariants?.[selectedColor]?.id
+        }}
+      />
 
       {/* 🔔 Notification Toast */}
       <NotificationToast

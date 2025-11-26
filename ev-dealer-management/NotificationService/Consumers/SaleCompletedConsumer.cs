@@ -7,11 +7,11 @@ namespace NotificationService.Consumers;
 
 public class SaleCompletedConsumer
 {
-    private readonly IEmailService _emailService;
+    private readonly IFcmService _fcmService;
 
-    public SaleCompletedConsumer(IEmailService emailService)
+    public SaleCompletedConsumer(IFcmService fcmService)
     {
-        _emailService = emailService;
+        _fcmService = fcmService;
     }
 
     public async Task HandleAsync(string message)
@@ -27,21 +27,38 @@ public class SaleCompletedConsumer
 
             Log.Information("Processing SaleCompletedEvent for Order: {OrderId}", saleEvent.OrderId);
 
-            var success = await _emailService.SendOrderConfirmationAsync(
-                saleEvent.CustomerEmail,
-                saleEvent.CustomerName,
-                saleEvent.VehicleModel,
-                saleEvent.TotalPrice,
-                saleEvent.OrderId
+            // Check if device token is available
+            if (string.IsNullOrWhiteSpace(saleEvent.DeviceToken))
+            {
+                Log.Warning("No device token found for Order: {OrderId}. Skipping push notification.", saleEvent.OrderId);
+                return;
+            }
+
+            // Send push notification
+            var title = "🎉 Đơn hàng đã hoàn tất!";
+            var body = $"Đơn hàng #{saleEvent.OrderId} của bạn đã được xử lý. Xe {saleEvent.VehicleModel} - Tổng: {saleEvent.TotalPrice:C}. Cảm ơn bạn đã tin tưởng!";
+            var data = new Dictionary<string, string>
+            {
+                { "type", "sale" },
+                { "orderId", saleEvent.OrderId },
+                { "vehicleModel", saleEvent.VehicleModel },
+                { "totalPrice", saleEvent.TotalPrice.ToString("F2") }
+            };
+
+            var success = await _fcmService.SendNotificationAsync(
+                saleEvent.DeviceToken,
+                title,
+                body,
+                data
             );
 
             if (success)
             {
-                Log.Information("Order confirmation email sent for Order: {OrderId}", saleEvent.OrderId);
+                Log.Information("Order confirmation push notification sent for Order: {OrderId}", saleEvent.OrderId);
             }
             else
             {
-                Log.Error("Failed to send order confirmation email for Order: {OrderId}", saleEvent.OrderId);
+                Log.Error("Failed to send order confirmation push notification for Order: {OrderId}", saleEvent.OrderId);
             }
         }
         catch (Exception ex)

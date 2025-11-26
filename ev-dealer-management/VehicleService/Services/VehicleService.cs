@@ -456,6 +456,47 @@ public class VehicleService : IVehicleService
         return true;
     }
 
+    public async Task<VehicleReservedEvent?> ReserveVehicleAsync(int vehicleId, ReservationRequestDto request)
+    {
+        var vehicle = await _context.Vehicles
+            .Include(v => v.ColorVariants)
+            .FirstOrDefaultAsync(v => v.Id == vehicleId);
+
+        if (vehicle == null || vehicle.StockQuantity < request.Quantity)
+        {
+            return null;
+        }
+
+        // Get color variant name if provided
+        string? colorVariantName = null;
+        if (request.ColorVariantId.HasValue)
+        {
+            var colorVariant = vehicle.ColorVariants
+                .FirstOrDefault(cv => cv.Id == request.ColorVariantId.Value);
+            colorVariantName = colorVariant?.Name;
+        }
+
+        // Create and publish vehicle reserved event
+        var vehicleReservedEvent = new VehicleReservedEvent
+        {
+            VehicleId = vehicleId,
+            VehicleName = vehicle.Model,
+            CustomerName = request.CustomerName,
+            CustomerEmail = request.CustomerEmail,
+            CustomerPhone = request.CustomerPhone,
+            ColorVariantId = request.ColorVariantId,
+            ColorVariantName = colorVariantName,
+            Quantity = request.Quantity,
+            Notes = request.Notes,
+            ReservedAt = DateTime.UtcNow,
+            DeviceToken = request.DeviceToken
+        };
+
+        _messageProducer.PublishMessage(vehicleReservedEvent);
+
+        return vehicleReservedEvent;
+    }
+
     public async Task<List<DealerDto>> GetDealersAsync()
     {
         return await _context.Dealers

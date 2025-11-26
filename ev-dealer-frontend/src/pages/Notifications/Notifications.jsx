@@ -81,6 +81,21 @@ const Notifications = () => {
     filterNotifications()
   }, [notifications, activeFilter])
 
+  // Listen for real-time Firebase notifications
+  useEffect(() => {
+    const handleNewNotification = (event) => {
+      console.log('🔔 Real-time notification received:', event.detail)
+      // Reload notifications to show the new one
+      loadNotifications()
+    }
+
+    window.addEventListener('firebase-notification-received', handleNewNotification)
+
+    return () => {
+      window.removeEventListener('firebase-notification-received', handleNewNotification)
+    }
+  }, [])
+
   const loadNotifications = async () => {
     try {
       setLoading(true)

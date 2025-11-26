@@ -161,4 +161,32 @@ public class VehiclesController : ControllerBase
             return BadRequest(new { message = "Failed to delete vehicle: " + ex.Message });
         }
     }
+
+    [HttpPost("{id}/reserve")]
+    public async Task<ActionResult> ReserveVehicle(int id, [FromBody] ReservationRequestDto request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return ValidationProblem(ModelState);
+            }
+
+            var result = await _vehicleService.ReserveVehicleAsync(id, request);
+            if (result == null)
+            {
+                return NotFound(new { message = "Vehicle not found or insufficient stock" });
+            }
+
+            return Ok(new
+            {
+                message = "Vehicle reserved successfully",
+                reservation = result
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }

@@ -6,4 +6,5 @@ public class TestDriveScheduledEvent
     public required string CustomerName { get; set; }
     public required string VehicleModel { get; set; }
     public DateTime ScheduledDate { get; set; }
+    public string? DeviceToken { get; set; }
 }

@@ -10,6 +10,7 @@ public interface IVehicleService
     Task<VehicleDto> CreateVehicleAsync(CreateVehicleDto createDto, List<IFormFile>? imageFiles = null);
     Task<VehicleDto?> UpdateVehicleAsync(int id, UpdateVehicleDto updateDto, List<IFormFile>? imageFiles = null);
     Task<bool> DeleteVehicleAsync(int id);
+    Task<VehicleReservedEvent?> ReserveVehicleAsync(int vehicleId, ReservationRequestDto request);
     Task<List<DealerDto>> GetDealersAsync();
     Task<DealerDto?> GetDealerByIdAsync(int id);
     Task<DealerDto> CreateDealerAsync(CreateDealerDto createDto);

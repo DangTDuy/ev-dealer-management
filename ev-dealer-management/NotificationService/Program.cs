@@ -22,9 +22,8 @@ try
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
-    // Register Email and SMS Services
-    builder.Services.AddScoped<IEmailService, EmailService>();
-    builder.Services.AddScoped<ISmsService, SmsService>();
+    // Register Firebase FCM Service (Singleton for better performance)
+    builder.Services.AddSingleton<IFcmService, FirebaseFcmService>();
 
     // Register Consumers
     builder.Services.AddScoped<SaleCompletedConsumer>();
@@ -34,6 +33,17 @@ try
     // Register RabbitMQ Consumer Service
     builder.Services.AddSingleton<IMessageConsumer, RabbitMQConsumerService>();
     builder.Services.AddHostedService<RabbitMQConsumerHostedService>();
+
+    // Add CORS
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowFrontend", policy =>
+        {
+            policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+    });
 
     // Add Controllers
     builder.Services.AddControllers();
@@ -46,6 +56,9 @@ try
         app.UseSwagger();
         app.UseSwaggerUI();
     }
+
+    // Enable CORS
+    app.UseCors("AllowFrontend");
 
     app.UseHttpsRedirection();
     app.MapControllers();
