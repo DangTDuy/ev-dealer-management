@@ -805,8 +805,10 @@ export default function SalesDashboard() {
               <tbody>
                 {filteredOrders.length > 0 ? (
                   filteredOrders.map((order, index) => {
-                    const orderItems = pick(order, 'orderItems', 'OrderItems') || [];
-                    const firstItem = orderItems[0] || {};
+                    // Lấy vehicleId và quantity trực tiếp từ đối tượng order
+                    const vehicleId = pick(order, 'vehicleId', 'VehicleId');
+                    const quantity = pick(order, 'quantity', 'Quantity');
+                    
                     const orderId = pick(order, 'orderID','OrderID','orderId','id');
                     const orderStatus = pick(order, 'status', 'Status')?.toLowerCase();
                     const contractStatus = pick(order, 'contract', 'Contract')?.status?.toLowerCase();
@@ -869,7 +871,7 @@ export default function SalesDashboard() {
                             textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap'
                           }}>
-                            {`ID: ${pick(firstItem, 'vehicleId', 'VehicleId')} (SL: ${pick(firstItem, 'quantity', 'Quantity')})`}
+                            {`ID: ${vehicleId} (SL: ${quantity})`}
                           </span>
                         </div>
                       </td>
@@ -883,8 +885,7 @@ export default function SalesDashboard() {
                           fontWeight: '600', 
                           color: '#0F172A',
                           fontSize: '14px',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
+                          overflow: 'text-overflow',
                           whiteSpace: 'nowrap'
                         }}>
                           {formatCurrency(pick(order,'totalPrice','TotalPrice') ?? 0)}
@@ -916,7 +917,7 @@ export default function SalesDashboard() {
                                           setActiveDropdown(null);
                                       } else {
                                           setActiveDropdown(orderId);
-                                          setDropdownPos({ top: rect.bottom + window.scrollY, left: rect.left + window.scrollX });
+                                          setDropdownPos({ top: rect.bottom + window.scrollY, left: rect.left - 150 }); // Adjust to show on the left
                                       }
                                   }}
                                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B' }}
