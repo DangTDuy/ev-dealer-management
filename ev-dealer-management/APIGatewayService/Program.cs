@@ -89,6 +89,14 @@ var ocelotConfiguration = new ConfigurationBuilder()
         { "Routes:8:DownstreamHostAndPorts:0:Host", "localhost" },
         { "Routes:8:DownstreamHostAndPorts:0:Port", "5003" },
 
+        // New route for updating order status
+        { "Routes:9:UpstreamPathTemplate", "/api/Orders/{orderId}/status" },
+        { "Routes:9:UpstreamHttpMethod:0", "PUT" },
+        { "Routes:9:DownstreamPathTemplate", "/api/Orders/{orderId}/status" },
+        { "Routes:9:DownstreamScheme", "http" },
+        { "Routes:9:DownstreamHostAndPorts:0:Host", "localhost" },
+        { "Routes:9:DownstreamHostAndPorts:0:Port", "5003" },
+
         { "GlobalConfiguration:BaseUrl", "http://localhost:5036" }
     })
     .Build();

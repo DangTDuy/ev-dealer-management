@@ -139,7 +139,6 @@ export default function SalesDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [customerSearch, setCustomerSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [paymentFilter, setPaymentFilter] = useState('all');
   const [orders, setOrders] = useState([]); // Change to orders
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -208,14 +207,12 @@ export default function SalesDashboard() {
     const idVal = pick(order, 'orderID', 'OrderID', 'orderId', 'id');
     const custVal = pick(order, 'customerId', 'CustomerId');
     const statusVal = String(pick(order, 'status', 'Status') ?? '').toLowerCase();
-    const paymentVal = String(pick(order, 'paymentStatus', 'PaymentStatus') ?? '').toLowerCase();
 
     const matchesSearchTerm = String(idVal ?? '').includes(searchTerm);
     const matchesCustomerSearch = String(custVal ?? '').includes(customerSearch);
     const matchesStatus = statusFilter === 'all' || statusVal === statusFilter;
-    const matchesPayment = paymentFilter === 'all' || paymentVal === paymentFilter;
 
-    return matchesSearchTerm && matchesCustomerSearch && matchesStatus && matchesPayment;
+    return matchesSearchTerm && matchesCustomerSearch && matchesStatus;
   });
 
   const handleViewDetail = (order) => {
@@ -262,7 +259,8 @@ export default function SalesDashboard() {
       
       setLoading(true);
       try {
-          await axios.put(`http://localhost:5036/api/Sales/orders/${orderId}/status`, { status: newStatus });
+          // Changed the API endpoint from /api/Sales/orders to /api/Orders
+          await axios.put(`http://localhost:5036/api/Orders/${orderId}/status`, { status: newStatus });
           alert(successMessage);
           fetchOrders(); // Refresh data
       } catch (err) {
@@ -403,7 +401,7 @@ export default function SalesDashboard() {
               Bộ lọc & Tìm kiếm
             </h2>
             
-            {/* BỐ CỤC MỚI: 2 HÀNG 2 CỘT */}
+            {/* BỐ CỤC MỚC: 2 HÀNG 2 CỘT */}
             <div style={{ 
               display: 'grid', 
               gridTemplateColumns: '1fr 1fr', 
@@ -549,53 +547,6 @@ export default function SalesDashboard() {
                   </select>
                 </div>
               </div>
-
-              {/* Hàng 2 - Cột 2: Hình thức thanh toán */}
-              <div style={{ minWidth: 0 }}>
-                <label style={{ 
-                  display: 'block', 
-                  fontSize: '14px', 
-                  fontWeight: '500', 
-                  color: '#374151', 
-                  marginBottom: '8px' 
-                }}>
-                  Thanh toán
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <select
-                    value={paymentFilter}
-                    onChange={(e) => setPaymentFilter(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      border: '1px solid #D1D5DB',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      backgroundColor: '#F9FAFB',
-                      color: '#374151',
-                      height: '40px',
-                      boxSizing: 'border-box',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      minWidth: '100%',
-                      maxWidth: '100%',
-                      appearance: 'none',
-                      backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
-                      backgroundRepeat: 'no-repeat',
-                      backgroundPosition: 'right 12px center',
-                      backgroundSize: '16px',
-                      paddingRight: '36px'
-                    }}
-                  >
-                    <option value="all">Tất cả hình thức</option>
-                    <option value="pending">Chờ thanh toán</option>
-                    <option value="paid">Đã thanh toán</option>
-                    <option value="partial">Thanh toán một phần</option>
-                    <option value="failed">Thanh toán thất bại</option>
-                  </select>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -736,7 +687,7 @@ export default function SalesDashboard() {
             }}>
               <colgroup>
                  <col style={{ width: '5%' }} />
-                 {['12%','15%','15%','15%','12%','12%','19%'].map((w, i) => (
+                 {['12%','15%','15%','12%','19%'].map((w, i) => (
                   <col key={i} style={{ width: w }} />
                 ))}
               </colgroup>
@@ -817,20 +768,6 @@ export default function SalesDashboard() {
                   </th>
                   <th style={{ 
                     padding: '16px 12px', 
-                    textAlign: 'left',
-                    fontSize: '12px', 
-                    fontWeight: '600', 
-                    color: '#475569', 
-                    textTransform: 'uppercase', 
-                    letterSpacing: '0.05em',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}>
-                    Thanh toán
-                  </th>
-                  <th style={{ 
-                    padding: '16px 12px', 
                     whiteSpace: 'nowrap', 
                     textAlign: 'center',
                     overflow: 'hidden'
@@ -855,7 +792,6 @@ export default function SalesDashboard() {
                     const orderId = pick(order, 'orderID','OrderID','orderId','id');
                     const orderStatus = pick(order, 'status', 'Status')?.toLowerCase();
                     const contractStatus = pick(order, 'contract', 'Contract')?.status?.toLowerCase();
-                    const paymentStatus = pick(order, 'paymentStatus', 'PaymentStatus')?.toLowerCase();
 
                     return (
                     <tr 
@@ -946,23 +882,6 @@ export default function SalesDashboard() {
                       </td>
                       <td style={{ 
                         padding: '16px 12px', 
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                      }}>
-                        <span style={{ 
-                          fontSize: '14px', 
-                          color: paymentStatus === 'pending' ? '#F59E0B' : (paymentStatus === 'paid' ? '#10B981' : '#EF4444'),
-                          fontWeight: '500',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
-                        }}>
-                          {pick(order,'paymentStatus','PaymentStatus')}
-                        </span>
-                      </td>
-                      <td style={{ 
-                        padding: '16px 12px', 
                         whiteSpace: 'nowrap', 
                         textAlign: 'center',
                         overflow: 'hidden'
@@ -995,7 +914,7 @@ export default function SalesDashboard() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan="8" style={{ // Changed colSpan to 8
+                    <td colSpan="6" style={{ // Changed colSpan to 6
                       padding: '48px 24px', 
                       textAlign: 'center' 
                     }}>

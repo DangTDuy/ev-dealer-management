@@ -24,7 +24,7 @@ b. Quản lý bán hàng
 c. Quản lý khách hàng
 + Lưu trữ hồ sơ khách hàng.
 + Quản lý lịch hẹn lái thử.
-+ Ghi nhận phản hồi & xử lý khiếu nại.
++ Ghi nhận phản hồi & xử lý khiếu nại. x
 d. Báo cáo
 + Doanh số theo nhân viên bán hàng.
 + Báo cáo công nợ khách hàng, hãng xe."

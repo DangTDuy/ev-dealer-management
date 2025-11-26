@@ -189,6 +189,38 @@ namespace SalesService.Controllers
         }
 
         /// <summary>
+        /// Updates the status of an order.
+        /// </summary>
+        [HttpPut("{id}/status")]
+        public async Task<IActionResult> UpdateOrderStatus(int id, [FromBody] UpdateStatusRequest request)
+        {
+            _logger.LogInformation("Attempting to update status for Order ID: {OrderId} to {Status}", id, request.Status);
+
+            var order = await _context.Orders.FindAsync(id);
+            if (order == null)
+            {
+                _logger.LogWarning("Order with ID {OrderId} not found.", id);
+                return NotFound(new { message = $"Order with ID {id} not found." });
+            }
+
+            order.Status = request.Status;
+            order.UpdatedAt = DateTime.UtcNow;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Successfully updated status for Order ID {OrderId} to {Status}.", id, request.Status);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database update failed when updating status for Order ID {OrderId}.", id);
+                return StatusCode(500, new { message = "An error occurred while updating the order status.", error = ex.InnerException?.Message ?? ex.Message });
+            }
+
+            return Ok(new { message = "Order status updated successfully." });
+        }
+
+        /// <summary>
         /// Health check endpoint
         /// </summary>
         [HttpGet("health")]
