@@ -38,6 +38,7 @@ import CustomerDetail from "../pages/Customers/CustomerDetail";
 import CustomerNew from "../pages/Customers/CustomerNew";
 import CustomerEdit from "../pages/Customers/CustomerEdit";
 import TestDriveForm from "../pages/Customers/TestDriveForm";
+import TestDriveList from "../pages/Customers/TestDriveList"; // New: Import TestDriveList
 import DealerList from "../pages/Dealers/DealerList";
 import DealerDetail from "../pages/Dealers/DealerDetail";
 import Reports from "../pages/Reports/Reports";
@@ -92,7 +93,7 @@ const AppRoutes = () => {
         <Route path="/sales/contract/create/:orderId" element={<ContractCreate />} />
         <Route path="/sales/contract/detail/:contractId" element={<ContractDetail />} /> {/* New: Route for contract detail */}
         <Route path="/sales/order/:orderId" element={<OrderDetail />} />
-        {/* <Route path="/sales/manage" element={<SalesManagementPage />} /> */} {/* REMOVED: New Sales Management Route */}
+        {/* <Route path="/sales/manage" element={<SalesManagementPage />} */} {/* REMOVED: New Sales Management Route */}
 
         {/* Customer Routes */}
         <Route path="/customers" element={<CustomerList />} />
@@ -100,6 +101,9 @@ const AppRoutes = () => {
         <Route path="/customers/:id" element={<CustomerDetail />} />
         <Route path="/customers/:id/edit" element={<CustomerEdit />} />
         <Route path="/customers/test-drive/new" element={<TestDriveForm />} />
+
+        {/* Test Drive Routes */}
+        <Route path="/test-drives" element={<TestDriveList />} /> {/* New: Route for TestDriveList */}
 
         {/* Dealer Routes */}
         <Route path="/dealers" element={<DealerList />} />

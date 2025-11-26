@@ -97,6 +97,30 @@ var ocelotConfiguration = new ConfigurationBuilder()
         { "Routes:9:DownstreamHostAndPorts:0:Host", "localhost" },
         { "Routes:9:DownstreamHostAndPorts:0:Port", "5003" },
 
+        // New route for TestDrives by customer ID
+        { "Routes:10:UpstreamPathTemplate", "/api/TestDrives/customer/{customerId}" },
+        { "Routes:10:UpstreamHttpMethod:0", "GET" },
+        { "Routes:10:DownstreamPathTemplate", "/api/TestDrives/customer/{customerId}" },
+        { "Routes:10:DownstreamScheme", "http" },
+        { "Routes:10:DownstreamHostAndPorts:0:Host", "localhost" },
+        { "Routes:10:DownstreamHostAndPorts:0:Port", "5039" }, // CustomerService port
+
+        // New route for creating TestDrives
+        { "Routes:11:UpstreamPathTemplate", "/api/TestDrives" },
+        { "Routes:11:UpstreamHttpMethod:0", "POST" },
+        { "Routes:11:DownstreamPathTemplate", "/api/TestDrives" },
+        { "Routes:11:DownstreamScheme", "http" },
+        { "Routes:11:DownstreamHostAndPorts:0:Host", "localhost" },
+        { "Routes:11:DownstreamHostAndPorts:0:Port", "5039" }, // CustomerService port
+
+        // New route for getting all TestDrives
+        { "Routes:12:UpstreamPathTemplate", "/api/TestDrives" },
+        { "Routes:12:UpstreamHttpMethod:0", "GET" },
+        { "Routes:12:DownstreamPathTemplate", "/api/TestDrives" },
+        { "Routes:12:DownstreamScheme", "http" },
+        { "Routes:12:DownstreamHostAndPorts:0:Host", "localhost" },
+        { "Routes:12:DownstreamHostAndPorts:0:Port", "5039" }, // CustomerService port
+
         { "GlobalConfiguration:BaseUrl", "http://localhost:5036" }
     })
     .Build();
