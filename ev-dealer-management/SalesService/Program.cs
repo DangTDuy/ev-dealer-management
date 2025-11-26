@@ -1,4 +1,5 @@
 using SalesService.Data;
+using SalesService.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Data.Sqlite;
@@ -8,8 +9,17 @@ using System.Text.Json.Serialization; // Required for ReferenceHandler
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure QuestPDF license
-QuestPDF.Settings.License = LicenseType.Community;
+// Configure QuestPDF license (with error handling for Docker/Linux)
+try
+{
+    QuestPDF.Settings.License = LicenseType.Community;
+}
+catch (Exception ex)
+{
+    // Log error but don't fail startup - QuestPDF is only used for PDF generation
+    Console.WriteLine($"[WARNING] Failed to initialize QuestPDF: {ex.Message}");
+    Console.WriteLine("[INFO] Service will continue without PDF generation support");
+}
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -37,6 +47,9 @@ builder.Services.AddDbContext<SalesDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
            .LogTo(Console.WriteLine, LogLevel.Information)
            .EnableSensitiveDataLogging());
+
+// Register RabbitMQ Message Publisher
+builder.Services.AddSingleton<IMessagePublisher, RabbitMQMessagePublisher>();
 
 var app = builder.Build();
 

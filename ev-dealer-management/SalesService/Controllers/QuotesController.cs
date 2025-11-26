@@ -4,6 +4,8 @@ using SalesService.Data;
 using SalesService.Models; // Ensure Quote model is imported
 using Microsoft.Extensions.Logging;
 using SalesService.DTOs; // Import DTOs namespace
+using SalesService.Services;
+using Microsoft.Extensions.Configuration;
 using System; // Required for DateTime
 
 namespace SalesService.Controllers
@@ -14,11 +16,19 @@ namespace SalesService.Controllers
     {
         private readonly SalesDbContext _context;
         private readonly ILogger<QuotesController> _logger;
+        private readonly IMessagePublisher _messagePublisher;
+        private readonly IConfiguration _configuration;
 
-        public QuotesController(SalesDbContext context, ILogger<QuotesController> logger)
+        public QuotesController(
+            SalesDbContext context, 
+            ILogger<QuotesController> logger,
+            IMessagePublisher messagePublisher,
+            IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
+            _messagePublisher = messagePublisher;
+            _configuration = configuration;
         }
 
         private DateTime GetVietnamNow()
@@ -126,6 +136,33 @@ namespace SalesService.Controllers
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation("Quote created successfully with ID: {QuoteId}", quote.Id);
+
+                // Publish QuoteCreated event to RabbitMQ
+                try
+                {
+                    var quoteCreatedEvent = new QuoteCreatedEvent
+                    {
+                        QuoteId = quote.Id.ToString(),
+                        CustomerId = quote.CustomerId,
+                        DealerId = quote.DealerId,
+                        SalespersonId = quote.SalespersonId,
+                        VehicleId = quote.VehicleId,
+                        Quantity = quote.Quantity,
+                        TotalBasePrice = quote.TotalBasePrice,
+                        Status = quote.Status,
+                        CreatedAt = quote.CreatedAt
+                    };
+
+                    var quoteCreatedQueue = _configuration["RabbitMQ:Queues:QuoteCreated"] ?? "quote.created";
+                    await _messagePublisher.PublishMessageAsync(quoteCreatedQueue, quoteCreatedEvent);
+                    _logger.LogInformation("Published QuoteCreated event for Quote {QuoteId}", quote.Id);
+                }
+                catch (Exception ex)
+                {
+                    // Log error but don't fail the request
+                    _logger.LogError(ex, "Error publishing QuoteCreated event to RabbitMQ for Quote {QuoteId}", quote.Id);
+                }
+
                 return CreatedAtAction(nameof(GetAllQuotes), new { id = quote.Id }, quote); // Return 201 Created
             }
             catch (Exception ex)

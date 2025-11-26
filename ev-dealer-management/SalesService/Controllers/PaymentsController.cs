@@ -2,7 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using SalesService.Data;
 using SalesService.DTOs;
 using SalesService.Models;
+using SalesService.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,10 +18,20 @@ namespace SalesService.Controllers
     public class PaymentsController : ControllerBase
     {
         private readonly SalesDbContext _context;
+        private readonly IMessagePublisher _messagePublisher;
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<PaymentsController> _logger;
 
-        public PaymentsController(SalesDbContext context)
+        public PaymentsController(
+            SalesDbContext context,
+            IMessagePublisher messagePublisher,
+            IConfiguration configuration,
+            ILogger<PaymentsController> logger)
         {
             _context = context;
+            _messagePublisher = messagePublisher;
+            _configuration = configuration;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -62,7 +75,43 @@ namespace SalesService.Controllers
             _context.Payments.Add(payment);
             await _context.SaveChangesAsync();
 
-            var paymentDto = new PaymentDto { /* map properties */ };
+            // Publish PaymentReceived event
+            try
+            {
+                var paymentReceivedEvent = new PaymentReceivedEvent
+                {
+                    PaymentId = payment.PaymentId.ToString(),
+                    OrderId = payment.OrderId.ToString(),
+                    Amount = payment.Amount,
+                    PaymentMethod = payment.Method,
+                    Status = payment.Status,
+                    PaidDate = payment.PaidDate ?? payment.CreatedAt,
+                    CreatedAt = payment.CreatedAt
+                };
+
+                var paymentReceivedQueue = _configuration["RabbitMQ:Queues:PaymentReceived"] ?? "payment.received";
+                await _messagePublisher.PublishMessageAsync(paymentReceivedQueue, paymentReceivedEvent);
+                _logger.LogInformation("Published PaymentReceived event for Payment {PaymentId}", payment.PaymentId);
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't fail the request
+                _logger.LogError(ex, "Error publishing PaymentReceived event for Payment {PaymentId}", payment.PaymentId);
+            }
+
+            var paymentDto = new PaymentDto
+            {
+                Id = payment.PaymentId,
+                OrderId = payment.OrderId,
+                Amount = payment.Amount,
+                PaymentDate = payment.PaidDate ?? DateTime.MinValue,
+                PaymentMethod = payment.Method,
+                Status = payment.Status,
+                TransactionId = payment.TransactionCode,
+                Notes = payment.Notes,
+                CreatedAt = payment.CreatedAt,
+                UpdatedAt = payment.UpdatedAt
+            };
             return CreatedAtAction(nameof(GetPayments), new { id = payment.PaymentId }, paymentDto);
         }
     }

@@ -8,7 +8,7 @@ $services = @(
     "NotificationService"
 )
 
-$basePath = "C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management"
+$basePath = "D:\gitclone\ev-dealer-management\ev-dealer-management"
 
 # Khởi tạo chuỗi lệnh cho Windows Terminal
 $wtArgs = ""

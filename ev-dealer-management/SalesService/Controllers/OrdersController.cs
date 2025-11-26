@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using SalesService.DTOs;
+using SalesService.Services;
 using Microsoft.Extensions.Logging;
 using SalesService.Data;
 using Microsoft.EntityFrameworkCore;
 using SalesService.Models;
+using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
+using System.Text.Json;
 using System; // Required for DateTime
 
 namespace SalesService.Controllers
@@ -15,11 +18,19 @@ namespace SalesService.Controllers
     {
         private readonly ILogger<OrdersController> _logger;
         private readonly SalesDbContext _context;
+        private readonly IMessagePublisher _messagePublisher;
+        private readonly IConfiguration _configuration;
 
-        public OrdersController(ILogger<OrdersController> logger, SalesDbContext context)
+        public OrdersController(
+            ILogger<OrdersController> logger, 
+            SalesDbContext context,
+            IMessagePublisher messagePublisher,
+            IConfiguration configuration)
         {
             _logger = logger;
             _context = context;
+            _messagePublisher = messagePublisher;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -153,6 +164,56 @@ namespace SalesService.Controllers
                 _logger.LogInformation("Order {OrderNumber} completed for customer {CustomerEmail}. Order ID: {OrderId}. Quote status updated to ConvertedToOrder.", 
                     order.OrderNumber, request.CustomerEmail, order.OrderId);
 
+                // Publish events to RabbitMQ
+                _logger.LogInformation("Starting to publish events to RabbitMQ for Order {OrderNumber}", order.OrderNumber);
+                try
+                {
+                    // Get vehicle model name
+                    _logger.LogInformation("Fetching vehicle model for VehicleId {VehicleId}", order.VehicleId);
+                    var vehicleModel = await GetVehicleModelAsync(order.VehicleId);
+                    _logger.LogInformation("Vehicle model retrieved: {VehicleModel}", vehicleModel);
+
+                    // Publish OrderCreated event
+                    var orderCreatedEvent = new OrderCreatedEvent
+                    {
+                        OrderId = order.OrderId.ToString(),
+                        OrderNumber = order.OrderNumber,
+                        CustomerId = order.CustomerId,
+                        DealerId = order.DealerId,
+                        VehicleId = order.VehicleId,
+                        Quantity = order.Quantity,
+                        TotalPrice = order.TotalPrice,
+                        PaymentMethod = order.PaymentMethod,
+                        Status = order.Status,
+                        CreatedAt = order.CreatedAt
+                    };
+
+                    var orderCreatedQueue = _configuration["RabbitMQ:Queues:OrderCreated"] ?? "order.created";
+                    await _messagePublisher.PublishMessageAsync(orderCreatedQueue, orderCreatedEvent);
+                    _logger.LogInformation("Published OrderCreated event for Order {OrderNumber}", order.OrderNumber);
+
+                    // Publish SaleCompleted event (for NotificationService)
+                    var saleCompletedEvent = new SaleCompletedEvent
+                    {
+                        OrderId = order.OrderId.ToString(),
+                        CustomerEmail = request.CustomerEmail,
+                        CustomerName = request.CustomerName,
+                        VehicleModel = vehicleModel,
+                        TotalPrice = order.TotalPrice,
+                        CompletedAt = order.CreatedAt,
+                        DeviceToken = null // Can be added later if available in request
+                    };
+
+                    var saleCompletedQueue = _configuration["RabbitMQ:Queues:SaleCompleted"] ?? "sales.completed";
+                    await _messagePublisher.PublishMessageAsync(saleCompletedQueue, saleCompletedEvent);
+                    _logger.LogInformation("Published SaleCompleted event for Order {OrderNumber}", order.OrderNumber);
+                }
+                catch (Exception ex)
+                {
+                    // Log error but don't fail the request
+                    _logger.LogError(ex, "Error publishing events to RabbitMQ for Order {OrderNumber}", order.OrderNumber);
+                }
+
                 return Ok(new
                 {
                     success = true,
@@ -237,13 +298,36 @@ namespace SalesService.Controllers
                 return NotFound(new { message = $"Order with ID {id} not found." });
             }
 
+            var oldStatus = order.Status;
             order.Status = request.Status;
             order.UpdatedAt = DateTime.UtcNow;
 
             try
             {
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Successfully updated status for Order ID {OrderId} to {Status}.", id, request.Status);
+                _logger.LogInformation("Successfully updated status for Order ID {OrderId} from {OldStatus} to {NewStatus}.", id, oldStatus, request.Status);
+
+                // Publish OrderStatusChanged event
+                try
+                {
+                    var statusChangedEvent = new OrderStatusChangedEvent
+                    {
+                        OrderId = order.OrderId.ToString(),
+                        OrderNumber = order.OrderNumber,
+                        OldStatus = oldStatus,
+                        NewStatus = request.Status,
+                        ChangedAt = order.UpdatedAt
+                    };
+
+                    var statusChangedQueue = _configuration["RabbitMQ:Queues:OrderStatusChanged"] ?? "order.status.changed";
+                    await _messagePublisher.PublishMessageAsync(statusChangedQueue, statusChangedEvent);
+                    _logger.LogInformation("Published OrderStatusChanged event for Order {OrderNumber}", order.OrderNumber);
+                }
+                catch (Exception ex)
+                {
+                    // Log error but don't fail the request
+                    _logger.LogError(ex, "Error publishing OrderStatusChanged event for Order {OrderNumber}", order.OrderNumber);
+                }
             }
             catch (DbUpdateException ex)
             {
@@ -261,6 +345,47 @@ namespace SalesService.Controllers
         public IActionResult Health()
         {
             return Ok(new { status = "healthy", service = "SalesService", timestamp = DateTime.UtcNow });
+        }
+
+        /// <summary>
+        /// Helper method to get vehicle model name from VehicleService
+        /// </summary>
+        private async Task<string> GetVehicleModelAsync(int vehicleId)
+        {
+            try
+            {
+                var vehicleServiceUrl = _configuration["Services:VehicleService"] ?? "http://localhost:5001";
+                using var httpClient = new HttpClient();
+                httpClient.Timeout = TimeSpan.FromSeconds(5);
+                
+                var response = await httpClient.GetAsync($"{vehicleServiceUrl}/api/vehicles/{vehicleId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(json);
+                    
+                    // Try to get model name from various possible property names
+                    if (doc.RootElement.TryGetProperty("model", out var modelProp))
+                    {
+                        return modelProp.GetString() ?? $"Vehicle-{vehicleId}";
+                    }
+                    if (doc.RootElement.TryGetProperty("name", out var nameProp))
+                    {
+                        return nameProp.GetString() ?? $"Vehicle-{vehicleId}";
+                    }
+                    if (doc.RootElement.TryGetProperty("vehicleName", out var vehicleNameProp))
+                    {
+                        return vehicleNameProp.GetString() ?? $"Vehicle-{vehicleId}";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to fetch vehicle model for VehicleId {VehicleId}", vehicleId);
+            }
+            
+            // Return fallback value
+            return $"Vehicle-{vehicleId}";
         }
     }
 }
