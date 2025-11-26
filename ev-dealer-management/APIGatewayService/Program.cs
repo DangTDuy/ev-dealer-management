@@ -121,6 +121,30 @@ var ocelotConfiguration = new ConfigurationBuilder()
         { "Routes:12:DownstreamHostAndPorts:0:Host", "localhost" },
         { "Routes:12:DownstreamHostAndPorts:0:Port", "5039" }, // CustomerService port
 
+        // New route for /api/dealers
+        { "Routes:13:UpstreamPathTemplate", "/api/dealers" },
+        { "Routes:13:UpstreamHttpMethod:0", "GET" },
+        { "Routes:13:DownstreamPathTemplate", "/api/dealers" },
+        { "Routes:13:DownstreamScheme", "http" },
+        { "Routes:13:DownstreamHostAndPorts:0:Host", "localhost" },
+        { "Routes:13:DownstreamHostAndPorts:0:Port", "5004" }, // Assuming DealerService runs on port 5004
+
+        // New route for /api/vehicletypes
+        { "Routes:14:UpstreamPathTemplate", "/api/vehicletypes" },
+        { "Routes:14:UpstreamHttpMethod:0", "GET" },
+        { "Routes:14:DownstreamPathTemplate", "/api/vehicletypes" },
+        { "Routes:14:DownstreamScheme", "http" },
+        { "Routes:14:DownstreamHostAndPorts:0:Host", "localhost" },
+        { "Routes:14:DownstreamHostAndPorts:0:Port", "5068" }, // Assuming VehicleService handles vehicletypes
+
+        // New route for images
+        { "Routes:15:UpstreamPathTemplate", "/images/{everything}" },
+        { "Routes:15:UpstreamHttpMethod:0", "GET" },
+        { "Routes:15:DownstreamPathTemplate", "/images/{everything}" },
+        { "Routes:15:DownstreamScheme", "http" },
+        { "Routes:15:DownstreamHostAndPorts:0:Host", "localhost" },
+        { "Routes:15:DownstreamHostAndPorts:0:Port", "5068" }, // Assuming VehicleService serves images
+
         { "GlobalConfiguration:BaseUrl", "http://localhost:5036" }
     })
     .Build();
