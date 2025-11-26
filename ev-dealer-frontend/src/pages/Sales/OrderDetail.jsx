@@ -37,7 +37,7 @@ export default function OrderDetail() {
 		const fetchData = async () => {
 			try {
 				setLoading(true);
-				const res = await api.get(`/Sales/orders/${orderId}`);
+				const res = await api.get(`/orders/${orderId}`);
 				if (!res) throw new Error('Không tìm thấy đơn hàng.');
 				setOrder(res);
 
@@ -218,4 +218,3 @@ export default function OrderDetail() {
 		</div>
 	);
 }
-

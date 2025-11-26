@@ -30,7 +30,8 @@ import OrderDetail from "../pages/Sales/OrderDetail";
 import QuoteList from "../pages/Sales/QuoteList"; // Import QuoteList
 import QuoteView from "../pages/Sales/QuoteView";
 import OrderCreateFromQuote from "../pages/Sales/OrderCreateFromQuote"; // New: Import OrderCreateFromQuote
-// import ContractCreate from "../pages/Sales/ContractCreate"; // REMOVED: ContractCreate is no longer directly accessible from SalesList
+import ContractCreate from "../pages/Sales/ContractCreate"; // REMOVED: ContractCreate is no longer directly accessible from SalesList
+import ContractDetail from "../pages/Sales/ContractDetail"; // New: Import ContractDetail
 // import SalesManagementPage from "../pages/Sales/SalesManagementPage"; // REMOVED: Import the new page
 import CustomerList from "../pages/Customers/CustomerList";
 import CustomerDetail from "../pages/Customers/CustomerDetail";
@@ -88,7 +89,8 @@ const AppRoutes = () => {
         <Route path="/sales/quotes" element={<QuoteList />} /> {/* New QuoteList Route */}
         <Route path="/sales/quotes/:id/view" element={<QuoteView />} />
         <Route path="/sales/orders/create-from-quote/:quoteId" element={<OrderCreateFromQuote />} /> {/* New: Route for creating order from quote */}
-        {/* <Route path="/sales/contract/new" element={<ContractCreate />} /> */} {/* REMOVED: ContractCreate route */}
+        <Route path="/sales/contract/create/:orderId" element={<ContractCreate />} />
+        <Route path="/sales/contract/detail/:contractId" element={<ContractDetail />} /> {/* New: Route for contract detail */}
         <Route path="/sales/order/:orderId" element={<OrderDetail />} />
         {/* <Route path="/sales/manage" element={<SalesManagementPage />} /> */} {/* REMOVED: New Sales Management Route */}
 

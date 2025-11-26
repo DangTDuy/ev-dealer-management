@@ -157,6 +157,32 @@ namespace SalesService.Controllers
         }
 
         /// <summary>
+        /// Get a specific order by its ID.
+        /// </summary>
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Order>> GetOrderById(int id)
+        {
+            try
+            {
+                var order = await _context.Orders.FindAsync(id);
+
+                if (order == null)
+                {
+                    _logger.LogWarning("Order with ID {OrderId} not found.", id);
+                    return NotFound();
+                }
+
+                _logger.LogInformation("Retrieved order with ID {OrderId}.", id);
+                return Ok(order);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving order with ID {OrderId}.", id);
+                return StatusCode(500, new { message = "Failed to retrieve order", error = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Health check endpoint
         /// </summary>
         [HttpGet("health")]

@@ -221,15 +221,26 @@ export default function SalesDashboard() {
     return matchesSearchTerm && matchesCustomerSearch && matchesStatus && matchesPayment;
   });
 
-  const handleViewOrder = (orderId) => {
-    if (!orderId || orderId === 'undefined') {
-      console.error('Invalid order ID:', orderId);
-      alert('Lỗi: ID đơn hàng không hợp lệ. Vui lòng thử lại.');
-      return;
+  const handleViewDetail = (order) => {
+    const orderId = pick(order, 'orderID', 'OrderID', 'orderId', 'id');
+    const status = pick(order, 'status', 'Status')?.toLowerCase();
+    const contractId = pick(order, 'contract', 'Contract')?.contractId;
+
+    if (!orderId) {
+        console.error('Invalid order ID:', orderId);
+        alert('Lỗi: ID đơn hàng không hợp lệ.');
+        return;
     }
-    console.log('Navigating to order:', orderId);
-    navigate(`/sales/order/${orderId}`);
-  };
+
+    if (status === 'pendingapproval' && contractId) {
+        console.log(`Navigating to contract detail for contract: ${contractId}`);
+        navigate(`/sales/contract/detail/${contractId}`);
+    } else {
+        console.log(`Navigating to order detail for order: ${orderId}`);
+        navigate(`/sales/order/${orderId}`);
+    }
+    setActiveDropdown(null);
+};
 
   const handleCreateQuote = () => {
     navigate('/sales/quote/new');
@@ -245,7 +256,7 @@ export default function SalesDashboard() {
   };
 
   const handleCreateContract = (orderId) => {
-      navigate(`/sales/orders/${orderId}/contract/create`);
+      navigate(`/sales/contract/create/${orderId}`);
       setActiveDropdown(null);
   };
 
@@ -1069,7 +1080,7 @@ export default function SalesDashboard() {
                       )}
 
                       {/* --- Common Actions --- */}
-                      <button onClick={() => handleViewOrder(activeDropdown)} style={menuButtonStyle}>
+                      <button onClick={() => handleViewDetail(activeOrder)} style={menuButtonStyle}>
                           <EyeIcon /> Xem chi tiết
                       </button>
                   </>

@@ -265,8 +265,12 @@ export default function OrderCreateFromQuote() {
     try {
       setLoading(true);
       await axios.post('http://localhost:5003/api/Orders/complete', payload); // Corrected port and endpoint
-      // alert('Đơn hàng đã được tạo thành công!'); // Removed alert
-      navigate('/sales/orders'); // Navigate to sales orders list
+      
+      // *** DEBUGGING STEP ***
+      console.log("Order created successfully. Preparing to navigate...");
+      alert("Đơn hàng đã được tạo thành công! Sẽ điều hướng ngay bây giờ.");
+
+      navigate('/sales'); // Navigate to sales list
     } catch (err) {
       let errorMessage = 'Tạo đơn hàng thất bại. Vui lòng thử lại.';
       if (err.response) {

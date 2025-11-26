@@ -10,44 +10,53 @@ const BackIcon = () => (
   </svg>
 );
 
-const SaveIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-    <polyline points="7 3 7 8 15 8"></polyline>
-  </svg>
+const CheckCircleIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+        <polyline points="22 4 12 14.01 9 11.01" />
+    </svg>
 );
 
-export default function ContractCreate() {
-  const { orderId } = useParams();
+const XCircleIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="15" y1="9" x2="9" y2="15" />
+        <line x1="9" y1="9" x2="15" y2="15" />
+    </svg>
+);
+
+
+export default function ContractDetail() {
+  const { contractId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isManager, isAdmin } = useAuth();
   
+  const [contract, setContract] = useState(null);
   const [order, setOrder] = useState(null);
   const [customer, setCustomer] = useState(null);
   const [vehicle, setVehicle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Contract fields
-  const [contractDate, setContractDate] = useState(new Date().toISOString().slice(0, 10));
-  const [terms, setTerms] = useState('');
-  const [depositReceived, setDepositReceived] = useState(false);
-
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount || 0);
   };
 
   useEffect(() => {
-    const fetchOrderDetails = async () => {
+    const fetchContractDetails = async () => {
       try {
         setLoading(true);
-        // 1. Fetch Order
-        const orderResponse = await axios.get(`http://localhost:5036/api/Orders/${orderId}`);
+        // 1. Fetch Contract
+        const contractResponse = await axios.get(`http://localhost:5036/api/Contracts/${contractId}`);
+        const fetchedContract = contractResponse.data;
+        setContract(fetchedContract);
+
+        // 2. Fetch Order
+        const orderResponse = await axios.get(`http://localhost:5036/api/Orders/${fetchedContract.orderId}`);
         const fetchedOrder = orderResponse.data;
         setOrder(fetchedOrder);
 
-        // 2. Fetch Customer and Vehicle in parallel
+        // 3. Fetch Customer and Vehicle in parallel
         const [customerRes, vehicleRes] = await Promise.all([
           axios.get(`http://localhost:5036/api/customers/${fetchedOrder.customerId}`),
           axios.get(`http://localhost:5036/api/vehicles/${fetchedOrder.vehicleId}`)
@@ -57,50 +66,38 @@ export default function ContractCreate() {
 
       } catch (err) {
         console.error('Error fetching contract data:', err);
-        setError('Không thể tải dữ liệu để tạo hợp đồng.');
+        setError('Không thể tải dữ liệu hợp đồng.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchOrderDetails();
-  }, [orderId]);
+    fetchContractDetails();
+  }, [contractId]);
 
-  const handleCreateContract = async () => {
-    if (!contractDate || !terms) {
-      alert('Vui lòng điền đầy đủ các trường bắt buộc.');
-      return;
-    }
-
-    const payload = {
-      orderId: parseInt(orderId),
-      customerId: order.customerId,
-      salespersonId: String(user.id), // Convert salespersonId to string
-      contractDate: contractDate,
-      termsAndConditions: terms,
-      depositAmountReceived: depositReceived,
-      // The backend will set the status and other fields
-    };
-
-    console.log("Sending contract payload:", payload);
+  const handleUpdateStatus = async (status) => {
+    const actionText = status === 'Approved' ? 'Duyệt' : 'Từ chối';
+    if (!window.confirm(`Bạn có chắc chắn muốn ${actionText.toLowerCase()} hợp đồng này?`)) return;
 
     try {
-      setLoading(true);
-      // *** FIX: Call API Gateway (port 5036) instead of direct service port ***
-      await axios.post('http://localhost:5036/api/Contracts', payload);
-      alert('Hợp đồng đã được tạo thành công và đang chờ duyệt!');
-      navigate('/sales'); // Navigate back to sales list
+        setLoading(true);
+        await axios.put(`http://localhost:5036/api/Contracts/${contractId}/status`, { status });
+        alert(`Hợp đồng đã được ${actionText.toLowerCase()} thành công!`);
+        navigate('/sales');
     } catch (err) {
-      console.error('Error creating contract:', err);
-      alert(`Tạo hợp đồng thất bại. Lỗi: ${err.response?.data?.message || err.message}`);
+        console.error(`Error updating contract status:`, err);
+        alert(`Lỗi khi ${actionText.toLowerCase()} hợp đồng. ${err.response?.data?.message || err.message}`);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
 
+
   if (loading) return <div className="text-center py-10">Đang tải dữ liệu...</div>;
   if (error) return <div className="text-center py-10 text-red-500">Lỗi: {error}</div>;
-  if (!order || !customer || !vehicle) return <div className="text-center py-10">Không tìm thấy thông tin.</div>;
+  if (!contract || !order || !customer || !vehicle) return <div className="text-center py-10">Không tìm thấy thông tin.</div>;
+
+  const canApprove = (isManager || isAdmin);
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#F8FAFC', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
@@ -112,19 +109,27 @@ export default function ContractCreate() {
               <BackIcon /> Quay lại
             </button>
             <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#0F172A', margin: 0 }}>
-              Tạo Hợp Đồng cho Đơn Hàng #{orderId}
+              Chi Tiết Hợp Đồng #{contract.contractNumber}
             </h1>
           </div>
-          <button onClick={handleCreateContract} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', backgroundColor: loading ? '#9CA3AF' : '#2563EB', color: 'white', border: 'none', borderRadius: '8px', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500' }}>
-            <SaveIcon /> {loading ? 'Đang lưu...' : 'Lưu Hợp Đồng'}
-          </button>
+          {canApprove && contract.status === 'PendingApproval' && (
+            <div style={{ display: 'flex', gap: '12px' }}>
+                <button onClick={() => handleUpdateStatus('Approved')} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', backgroundColor: loading ? '#9CA3AF' : '#10B981', color: 'white', border: 'none', borderRadius: '8px', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500' }}>
+                    <CheckCircleIcon /> {loading ? 'Đang xử lý...' : 'Duyệt'}
+                </button>
+                <button onClick={() => handleUpdateStatus('Rejected')} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', backgroundColor: loading ? '#9CA3AF' : '#EF4444', color: 'white', border: 'none', borderRadius: '8px', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '500' }}>
+                    <XCircleIcon /> {loading ? 'Đang xử lý...' : 'Từ chối'}
+                </button>
+            </div>
+          )}
         </div>
 
         <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '32px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)' }}>
           {/* Contract Header */}
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
             <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1E293B' }}>HỢP ĐỒNG MUA BÁN XE</h2>
-            <p style={{ fontSize: '14px', color: '#64748B' }}>Số: ....../HĐMB-2024</p>
+            <p style={{ fontSize: '14px', color: '#64748B' }}>Số: {contract.contractNumber}</p>
+             <p style={{ fontSize: '14px', color: '#64748B' }}>Trạng thái: <span style={{fontWeight: 'bold'}}>{contract.status}</span></p>
           </div>
 
           {/* Parties */}
@@ -179,13 +184,9 @@ export default function ContractCreate() {
           {/* Terms and Conditions */}
           <div style={{ marginBottom: '32px' }}>
             <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px' }}>Điều 3: Điều khoản và điều kiện</h3>
-            <textarea
-              value={terms}
-              onChange={(e) => setTerms(e.target.value)}
-              placeholder="Nhập các điều khoản và điều kiện của hợp đồng..."
-              rows={8}
-              style={{ width: '100%', padding: '12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '14px' }}
-            />
+            <div style={{ width: '100%', padding: '12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '14px', backgroundColor: '#F9FAFB' }}>
+                {contract.notes || 'Không có điều khoản bổ sung.'}
+            </div>
           </div>
           
           {/* Other Fields */}
@@ -194,17 +195,17 @@ export default function ContractCreate() {
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Ngày lập hợp đồng</label>
               <input
                 type="date"
-                value={contractDate}
-                onChange={(e) => setContractDate(e.target.value)}
-                style={{ width: '100%', padding: '10px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '14px' }}
+                value={contract.signedDate ? new Date(contract.signedDate).toISOString().slice(0, 10) : ''}
+                readOnly
+                style={{ width: '100%', padding: '10px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '14px', backgroundColor: '#F9FAFB' }}
               />
             </div>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', paddingTop: '24px' }}>
               <input
                 type="checkbox"
                 id="depositReceived"
-                checked={depositReceived}
-                onChange={(e) => setDepositReceived(e.target.checked)}
+                checked={contract.paymentStatus === 'Partial'}
+                readOnly
                 style={{ width: '16px', height: '16px', marginRight: '8px' }}
               />
               <label htmlFor="depositReceived" style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>

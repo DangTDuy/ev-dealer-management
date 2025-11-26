@@ -234,3 +234,11 @@ System.Text.Json.JsonException: JSON deserialization for type 'NotificationServi
 2025-11-26 06:47:44.134 +07:00 [INF] Processing VehicleReservedEvent for Vehicle: 33, Customer: Huynh Dang
 2025-11-26 06:47:45.252 +07:00 [INF] FCM notification sent successfully. MessageId: projects/ev-dealer-management-6c620/messages/92f7196c-7d3c-43a4-877e-0eaeefaac36f, Token: dK0sI0cE...JH3uaK9s
 2025-11-26 06:47:45.254 +07:00 [INF] Reservation confirmation push notification sent for Vehicle: 33, Customer: Huynh Dang
+2025-11-26 15:08:04.241 +07:00 [INF] Starting NotificationService...
+2025-11-26 15:08:04.681 +07:00 [INF] NotificationService started successfully on http://localhost:5051
+2025-11-26 15:08:05.122 +07:00 [INF] RabbitMQ consumer connection and channels initialized successfully.
+2025-11-26 15:08:05.147 +07:00 [INF] RabbitMQ Consumer Hosted Service running.
+2025-11-26 15:08:05.232 +07:00 [INF] Started consuming from queue: sales.completed
+2025-11-26 15:08:05.236 +07:00 [INF] Started consuming from queue: vehicle.reserved
+2025-11-26 15:08:05.240 +07:00 [INF] Started consuming from queue: testdrive.scheduled
+2025-11-26 15:08:05.241 +07:00 [INF] Started consuming messages from all queues.
