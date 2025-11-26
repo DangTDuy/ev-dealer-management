@@ -112,6 +112,11 @@ const complaintService = {
         throw new Error(errorData.message || `Không thể cập nhật khiếu nại với ID: ${id}.`);
       }
 
+      // Nếu backend trả về 204 No Content, không cố gắng phân tích JSON
+      if (response.status === 204) {
+        return {}; // Trả về một đối tượng rỗng hoặc null để báo hiệu thành công
+      }
+
       return await response.json();
     } catch (error) {
       console.error(`Lỗi khi cập nhật khiếu nại với ID ${id}:`, error);
