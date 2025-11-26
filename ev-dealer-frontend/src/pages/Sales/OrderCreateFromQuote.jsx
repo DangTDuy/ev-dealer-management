@@ -179,7 +179,31 @@ export default function OrderCreateFromQuote() {
     setSelectedPromotion(null);
   };
 
+  const baseTotal = quote?.totalBasePrice ?? ((quote?.basePrice || 0) * (quote?.quantity || 1)); // Use totalBasePrice
+  let promoAmount = 0;
+  if (selectedPromotion) {
+    const promoValue = parseFloat(selectedPromotion.value); // Ensure value is parsed to float here
+    if (selectedPromotion.type === 'percent') {
+      promoAmount = baseTotal * (promoValue / 100);
+    } else if (selectedPromotion.type === 'amount') {
+      promoAmount = promoValue;
+    }
+  }
+  const computedTotal = Math.max(0, Math.round(baseTotal - promoAmount));
+
   const handleCreateOrder = async () => {
+    // --- Debugging Logs (Moved to the top) ---
+    console.log('--- Debugging Total Amount Calculation ---');
+    console.log('Quote object:', quote);
+    console.log('quote.totalBasePrice:', quote?.totalBasePrice);
+    console.log('quote.basePrice:', quote?.basePrice);
+    console.log('quote.quantity:', quote?.quantity);
+    console.log('baseTotal (calculated):', baseTotal);
+    console.log('selectedPromotion:', selectedPromotion);
+    console.log('promoAmount (calculated):', promoAmount);
+    console.log('computedTotal (final):', computedTotal);
+    console.log('------------------------------------------');
+
     // --- Validation ---
     if (!paymentMethod || !deliveryDate || !estimatedDeliveryDate) {
       alert('Vui lòng điền đầy đủ các trường bắt buộc (*).');
@@ -187,6 +211,10 @@ export default function OrderCreateFromQuote() {
     }
     if (paymentType === 'Installment' && parseVndInput(downPaymentAmount) <= 0) {
         alert('Vui lòng nhập số tiền đặt cọc hợp lệ.');
+        return;
+    }
+    if (computedTotal <= 0) {
+        alert('Tổng số tiền phải lớn hơn 0 sau khi áp dụng khuyến mãi.');
         return;
     }
 
@@ -222,7 +250,7 @@ export default function OrderCreateFromQuote() {
       colorId: quote.colorId,
       quantity: quote.quantity,
       unitPrice: quote.basePrice, // Use basePrice from quote
-      totalPrice: quote.totalBasePrice, // Use totalBasePrice from quote
+      totalAmount: computedTotal, // *** Đã thay đổi từ totalPrice sang totalAmount ***
       
       // Promotion fields
       promotionId: selectedPromotion?.promotionId || null,
@@ -237,33 +265,39 @@ export default function OrderCreateFromQuote() {
     try {
       setLoading(true);
       await axios.post('http://localhost:5003/api/Orders/complete', payload); // Corrected port and endpoint
-      alert('Đơn hàng đã được tạo thành công!');
+      // alert('Đơn hàng đã được tạo thành công!'); // Removed alert
       navigate('/sales/orders'); // Navigate to sales orders list
     } catch (err) {
-      const errorMessage = err.response?.data?.title || err.response?.data?.errors?.DiscountNote?.[0] || err.response?.data || err.message;
-      console.error('Error creating order:', errorMessage, 'Payload:', payload);
-      alert(`Tạo đơn hàng thất bại. Lỗi: ${errorMessage}`);
-      if (err.response?.data?.errors) {
-        console.error('Validation Errors:', err.response.data.errors);
-        let errorMessages = Object.entries(err.response.data.errors).map(([key, value]) => `${key}: ${value.join(', ')}`).join('\n');
-        alert(`Lỗi xác thực:\n${errorMessages}`);
+      let errorMessage = 'Tạo đơn hàng thất bại. Vui lòng thử lại.';
+      if (err.response) {
+        if (err.response.data?.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.response.data?.title) {
+          errorMessage = err.response.data.title;
+        } else if (err.response.data?.errors) {
+          // Handle validation errors object
+          const validationErrors = Object.entries(err.response.data.errors)
+            .map(([key, value]) => `${key}: ${value.join(', ')}`)
+            .join('\n');
+          errorMessage = `Lỗi xác thực:\n${validationErrors}`;
+        } else if (typeof err.response.data === 'string') {
+          errorMessage = err.response.data;
+        } else {
+          errorMessage = JSON.stringify(err.response.data); // Fallback to stringify if it's an object without specific message
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
       }
+      
+      console.error('Error creating order:', err, 'Payload:', payload); // Log full error object for debugging
+      alert(`Tạo đơn hàng thất bại. Lỗi: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
   };
 
-  const baseTotal = quote?.totalBasePrice ?? ((quote?.basePrice || 0) * (quote?.quantity || 1)); // Use totalBasePrice
-  let promoAmount = 0;
-  if (selectedPromotion) {
-    const promoValue = parseFloat(selectedPromotion.value); // Ensure value is parsed to float here
-    if (selectedPromotion.type === 'percent') {
-      promoAmount = baseTotal * (promoValue / 100);
-    } else if (selectedPromotion.type === 'amount') {
-      promoAmount = promoValue;
-    }
-  }
-  const computedTotal = Math.max(0, Math.round(baseTotal - promoAmount));
+  // Moved baseTotal and computedTotal calculation before handleCreateOrder
+  // to ensure computedTotal is available for validation and payload.
 
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Đang tải dữ liệu...</div>;
   if (error) return <div style={{color: 'red', padding: '24px'}}>Lỗi: {error}</div>;
