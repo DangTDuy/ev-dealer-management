@@ -27,13 +27,19 @@ namespace CustomerService.Controllers
                 {
                     Id = c.Id,
                     CustomerId = c.CustomerId,
+                    Type = c.Type, // Added Type
                     Title = c.Title,
                     Description = c.Description,
                     Status = c.Status,
                     CreatedAt = c.CreatedAt,
                     ResolvedAt = c.ResolvedAt,
                     Resolution = c.Resolution,
-                    CustomerName = c.Customer != null ? c.Customer.Name : null
+                    CustomerName = c.Customer != null ? c.Customer.Name : null,
+                    AssignedToStaffID = c.AssignedToStaffID, // Added
+                    Priority = c.Priority, // Added
+                    RelatedOrderID = c.RelatedOrderID, // Added
+                    RelatedVehicleID = c.RelatedVehicleID, // Added
+                    UpdatedAt = c.UpdatedAt // Added
                 })
                 .ToListAsync();
         }
@@ -49,13 +55,19 @@ namespace CustomerService.Controllers
                 {
                     Id = c.Id,
                     CustomerId = c.CustomerId,
+                    Type = c.Type, // Added Type
                     Title = c.Title,
                     Description = c.Description,
                     Status = c.Status,
                     CreatedAt = c.CreatedAt,
                     ResolvedAt = c.ResolvedAt,
                     Resolution = c.Resolution,
-                    CustomerName = c.Customer != null ? c.Customer.Name : null
+                    CustomerName = c.Customer != null ? c.Customer.Name : null,
+                    AssignedToStaffID = c.AssignedToStaffID, // Added
+                    Priority = c.Priority, // Added
+                    RelatedOrderID = c.RelatedOrderID, // Added
+                    RelatedVehicleID = c.RelatedVehicleID, // Added
+                    UpdatedAt = c.UpdatedAt // Added
                 })
                 .FirstOrDefaultAsync();
 
@@ -80,10 +92,16 @@ namespace CustomerService.Controllers
             var complaint = new Complaint
             {
                 CustomerId = createComplaintRequest.CustomerId,
+                Type = createComplaintRequest.Type, // Assigned Type from request
                 Title = createComplaintRequest.Title,
                 Description = createComplaintRequest.Description,
                 Status = "Open", // Default status
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                AssignedToStaffID = createComplaintRequest.AssignedToStaffID, // Added
+                Priority = createComplaintRequest.Priority, // Added
+                RelatedOrderID = createComplaintRequest.RelatedOrderID, // Added
+                RelatedVehicleID = createComplaintRequest.RelatedVehicleID, // Added
+                UpdatedAt = DateTime.UtcNow // Added
             };
 
             _context.Complaints.Add(complaint);
@@ -93,13 +111,19 @@ namespace CustomerService.Controllers
             {
                 Id = complaint.Id,
                 CustomerId = complaint.CustomerId,
+                Type = complaint.Type, // Included Type in response DTO
                 Title = complaint.Title,
                 Description = complaint.Description,
                 Status = complaint.Status,
                 CreatedAt = complaint.CreatedAt,
                 ResolvedAt = complaint.ResolvedAt,
                 Resolution = complaint.Resolution,
-                CustomerName = (await _context.Customers.FindAsync(complaint.CustomerId))?.Name
+                CustomerName = (await _context.Customers.FindAsync(complaint.CustomerId))?.Name,
+                AssignedToStaffID = complaint.AssignedToStaffID, // Added
+                Priority = complaint.Priority, // Added
+                RelatedOrderID = complaint.RelatedOrderID, // Added
+                RelatedVehicleID = complaint.RelatedVehicleID, // Added
+                UpdatedAt = complaint.UpdatedAt // Added
             };
 
             return CreatedAtAction(nameof(GetComplaint), new { id = complaint.Id }, complaintDto);
@@ -119,6 +143,12 @@ namespace CustomerService.Controllers
             complaint.Description = updateComplaintRequest.Description ?? complaint.Description;
             complaint.Status = updateComplaintRequest.Status ?? complaint.Status;
             complaint.Resolution = updateComplaintRequest.Resolution ?? complaint.Resolution;
+            complaint.Type = updateComplaintRequest.Type ?? complaint.Type; // Added Type update
+            complaint.AssignedToStaffID = updateComplaintRequest.AssignedToStaffID ?? complaint.AssignedToStaffID; // Added
+            complaint.Priority = updateComplaintRequest.Priority ?? complaint.Priority; // Added
+            complaint.RelatedOrderID = updateComplaintRequest.RelatedOrderID ?? complaint.RelatedOrderID; // Added
+            complaint.RelatedVehicleID = updateComplaintRequest.RelatedVehicleID ?? complaint.RelatedVehicleID; // Added
+            complaint.UpdatedAt = DateTime.UtcNow; // Update UpdatedAt
 
             if (updateComplaintRequest.Status == "Resolved" && complaint.ResolvedAt == null)
             {

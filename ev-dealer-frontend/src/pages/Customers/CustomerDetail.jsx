@@ -28,12 +28,13 @@ import {
   Edit as EditIcon,
   Phone as PhoneIcon,
   Email as EmailIcon,
-  LocationOn as LocationIcon, // Corrected import alias
+  LocationOn as LocationIcon,
   CalendarToday as CalendarIcon,
   DirectionsCar as CarIcon,
   ShoppingCart as ShoppingIcon,
   Engineering as EngineeringIcon,
   Search as SearchIcon,
+  Feedback as FeedbackIcon,
 } from "@mui/icons-material";
 import { PageHeader, DataTable } from "../../components/common";
 import { customerService } from "../../services/customerService";
@@ -127,6 +128,13 @@ const CustomerDetail = () => {
       color: "primary",
       onClick: () => navigate("/customers/test-drive/new", { state: { customer } }),
     },
+    {
+      label: "Tạo khiếu nại",
+      icon: <FeedbackIcon />,
+      variant: "contained",
+      color: "secondary",
+      onClick: () => navigate(`/complaints/new`, { state: { customerId: id, customerName: customer.name } }),
+    },
   ];
 
   if (loading) {
@@ -194,7 +202,7 @@ const CustomerDetail = () => {
       <Container maxWidth="xl" sx={{ flex: 1, mt: 3 }}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 3, borderRadius: 3, mb: 3 }}>
+            <Paper sx={{ p: 3, borderRadius: 3, mb: 3, elevation: 3 }}> {/* Added elevation */}
               <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
                 <Avatar
                   sx={{
@@ -204,12 +212,13 @@ const CustomerDetail = () => {
                     fontSize: "2rem",
                     fontWeight: "bold",
                     mr: 2,
+                    flexShrink: 0, // Prevent avatar from shrinking
                   }}
                 >
                   {customer.name.charAt(0)}
                 </Avatar>
                 <Box>
-                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}> {/* Adjusted margin */}
                     {customer.name}
                   </Typography>
                   <Chip
@@ -222,13 +231,13 @@ const CustomerDetail = () => {
 
               <List sx={{ p: 0 }}>
                 <ListItem sx={{ px: 0, py: 1 }}>
-                  <ListItemIcon>
+                  <ListItemIcon sx={{ minWidth: 40 }}> {/* Adjusted minWidth for icon alignment */}
                     <EmailIcon color="primary" />
                   </ListItemIcon>
                   <ListItemText primary="Email" secondary={customer.email} />
                 </ListItem>
                 <ListItem sx={{ px: 0, py: 1 }}>
-                  <ListItemIcon>
+                  <ListItemIcon sx={{ minWidth: 40 }}>
                     <PhoneIcon color="primary" />
                   </ListItemIcon>
                   <ListItemText
@@ -237,8 +246,8 @@ const CustomerDetail = () => {
                   />
                 </ListItem>
                 <ListItem sx={{ px: 0, py: 1 }}>
-                  <ListItemIcon>
-                    <LocationIcon color="primary" /> {/* Changed from LocationOnIcon to LocationIcon */}
+                  <ListItemIcon sx={{ minWidth: 40 }}>
+                    <LocationIcon color="primary" />
                   </ListItemIcon>
                   <ListItemText
                     primary="Địa chỉ"
@@ -246,7 +255,7 @@ const CustomerDetail = () => {
                   />
                 </ListItem>
                 <ListItem sx={{ px: 0, py: 1 }}>
-                  <ListItemIcon>
+                  <ListItemIcon sx={{ minWidth: 40 }}>
                     <CalendarIcon color="primary" />
                   </ListItemIcon>
                   <ListItemText
@@ -263,7 +272,7 @@ const CustomerDetail = () => {
           </Grid>
 
           <Grid item xs={12} md={8}>
-            <Paper sx={{ p: 2, borderRadius: 3, mb: 3 }}>
+            <Paper sx={{ p: 2, borderRadius: 3, mb: 3, elevation: 3 }}> {/* Added elevation */}
               <TextField
                 fullWidth
                 placeholder="Tìm kiếm trong lịch sử..."
@@ -279,7 +288,7 @@ const CustomerDetail = () => {
               />
             </Paper>
 
-            <Paper sx={{ borderRadius: 3 }}>
+            <Paper sx={{ borderRadius: 3, elevation: 3 }}> {/* Added elevation */}
               <Tabs
                 value={tabValue}
                 onChange={handleTabChange}

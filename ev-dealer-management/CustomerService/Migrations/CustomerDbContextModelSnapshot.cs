@@ -23,6 +23,9 @@ namespace CustomerService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("AssignedToStaffID")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
@@ -33,6 +36,16 @@ namespace CustomerService.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Priority")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("RelatedOrderID")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("RelatedVehicleID")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Resolution")
                         .HasColumnType("TEXT");
 
@@ -41,6 +54,7 @@ namespace CustomerService.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
+                        .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Title")
@@ -48,11 +62,81 @@ namespace CustomerService.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
 
                     b.ToTable("Complaints");
+                });
+
+            modelBuilder.Entity("CustomerService.Models.ComplaintAttachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ComplaintId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("UploadedByStaffID")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComplaintId");
+
+                    b.ToTable("ComplaintAttachments");
+                });
+
+            modelBuilder.Entity("CustomerService.Models.ComplaintHistoryEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("ActionDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ActionType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ComplaintId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Details")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("StaffId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComplaintId");
+
+                    b.ToTable("ComplaintHistoryEntries");
                 });
 
             modelBuilder.Entity("CustomerService.Models.Customer", b =>
@@ -63,6 +147,9 @@ namespace CustomerService.Migrations
 
                     b.Property<string>("Address")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("DealerId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -165,6 +252,28 @@ namespace CustomerService.Migrations
                     b.Navigation("Customer");
                 });
 
+            modelBuilder.Entity("CustomerService.Models.ComplaintAttachment", b =>
+                {
+                    b.HasOne("CustomerService.Models.Complaint", "Complaint")
+                        .WithMany("Attachments")
+                        .HasForeignKey("ComplaintId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Complaint");
+                });
+
+            modelBuilder.Entity("CustomerService.Models.ComplaintHistoryEntry", b =>
+                {
+                    b.HasOne("CustomerService.Models.Complaint", "Complaint")
+                        .WithMany("History")
+                        .HasForeignKey("ComplaintId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Complaint");
+                });
+
             modelBuilder.Entity("CustomerService.Models.Purchase", b =>
                 {
                     b.HasOne("CustomerService.Models.Customer", null)
@@ -183,6 +292,13 @@ namespace CustomerService.Migrations
                         .IsRequired();
 
                     b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("CustomerService.Models.Complaint", b =>
+                {
+                    b.Navigation("Attachments");
+
+                    b.Navigation("History");
                 });
 
             modelBuilder.Entity("CustomerService.Models.Customer", b =>

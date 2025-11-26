@@ -33,6 +33,7 @@ import {
   Menu as MenuIcon,
   ChevronLeft as ChevronLeftIcon,
   AdminPanelSettings as AdminIcon,
+  Feedback as FeedbackIcon, // Thêm import này
 } from '@mui/icons-material';
 import authService from '../services/authService';
 
@@ -54,6 +55,8 @@ const MainLayout = () => {
       { text: 'Bảng điều khiển', icon: <DashboardIcon />, path: '/dashboard' },
       { text: 'Quản lý xe', icon: <CarIcon />, path: '/vehicles' },
       { text: 'Khách hàng', icon: <PeopleIcon />, path: '/customers' },
+      // Thêm mục "Khiếu nại" vào đây
+      { text: 'Khiếu nại', icon: <FeedbackIcon />, path: '/complaints' }, 
       { text: 'Bán hàng', icon: <SalesIcon />, path: '/sales' },
       { text: 'Báo cáo', icon: <ReportIcon />, path: '/reports' },
     ];

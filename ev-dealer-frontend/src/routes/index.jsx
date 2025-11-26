@@ -49,6 +49,11 @@ import Settings from "../pages/Settings/Settings";
 // Admin Pages
 import UserManagement from "../pages/Admin/UserManagement";
 
+// Complaint Pages (NEW IMPORTS)
+import ComplaintListPage from "../pages/Complaints/ComplaintListPage";
+import ComplaintNew from "../pages/Complaints/ComplaintNew"; // Changed from CreateComplaintPage
+import ComplaintDetailPage from "../pages/Complaints/ComplaintDetailPage";
+
 // Protected Route
 import ProtectedRoute from "../components/common/ProtectedRoute";
 
@@ -108,6 +113,11 @@ const AppRoutes = () => {
         {/* Dealer Routes */}
         <Route path="/dealers" element={<DealerList />} />
         <Route path="/dealers/:id" element={<DealerDetail />} />
+
+        {/* Complaints Routes (NEW ROUTES) */}
+        <Route path="/complaints" element={<ComplaintListPage />} />
+        <Route path="/complaints/new" element={<ComplaintNew />} /> {/* Changed to ComplaintNew */}
+        <Route path="/complaints/:id" element={<ComplaintDetailPage />} />
 
         {/* Reports */}
         <Route path="/reports" element={<Reports />} />

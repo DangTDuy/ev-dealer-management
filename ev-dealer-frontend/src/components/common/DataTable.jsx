@@ -143,6 +143,14 @@ const DataTable = ({
       ? column.valueGetter({ row, field: column.field }) 
       : row[column.field];
 
+    // THÊM ĐOẠN CODE NÀY:
+    // Kiểm tra nếu có hàm renderCell tùy chỉnh được cung cấp cho cột
+    if (column.renderCell) {
+      // Truyền các tham số cần thiết cho hàm renderCell tùy chỉnh
+      return column.renderCell({ value, row, field: column.field });
+    }
+    // KẾT THÚC ĐOẠN CODE THÊM VÀO
+
     switch (column.type) {
       case 'avatar':
         return (

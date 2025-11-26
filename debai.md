@@ -24,18 +24,27 @@ b. Quản lý bán hàng
 c. Quản lý khách hàng
 + Lưu trữ hồ sơ khách hàng.
 + Quản lý lịch hẹn lái thử.
-+ Ghi nhận phản hồi & xử lý khiếu nại. x
++ Ghi nhận phản hồi & xử lý khiếu nại.
+
+
 d. Báo cáo
 + Doanh số theo nhân viên bán hàng.
 + Báo cáo công nợ khách hàng, hãng xe."
+
 "2. Chức năng cho Hãng xe (EVM Staff, Admin)
+
+
 a. Quản lý sản phẩm & phân phối
 + Quản lý danh mục xe điện (mẫu, phiên bản, màu sắc).
 + Quản lý tồn kho tổng, điều phối xe cho từng đại lý.
 + Quản lý giá sỉ, chính sách chiết khấu, khuyến mãi theo đại lý.
+
+
 b. Quản lý đại lý
 + Quản lý hợp đồng, chỉ tiêu doanh số, công nợ.
 + Quản lý tài khoản đại lý trên hệ thống.
+
+
 c. Báo cáo & phân tích
   c. Quản lý khách hàng
 + Lưu trữ hồ sơ khách hàng.
