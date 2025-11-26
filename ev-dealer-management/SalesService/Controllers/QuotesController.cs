@@ -1,0 +1,138 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using SalesService.Data;
+using SalesService.Models; // Ensure Quote model is imported
+using Microsoft.Extensions.Logging;
+using SalesService.DTOs; // Import DTOs namespace
+using System; // Required for DateTime
+
+namespace SalesService.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class QuotesController : ControllerBase
+    {
+        private readonly SalesDbContext _context;
+        private readonly ILogger<QuotesController> _logger;
+
+        public QuotesController(SalesDbContext context, ILogger<QuotesController> logger)
+        {
+            _context = context;
+            _logger = logger;
+        }
+
+        private DateTime GetVietnamNow()
+        {
+            try { return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")); }
+            catch { return DateTime.UtcNow; }
+        }
+
+        /// <summary>
+        /// Get all quotes.
+        /// </summary>
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Quote>>> GetAllQuotes()
+        {
+            try
+            {
+                var quotes = await _context.Quotes.ToListAsync();
+                _logger.LogInformation("Retrieved {Count} quotes.", quotes.Count);
+                return Ok(quotes);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving all quotes.");
+                return StatusCode(500, new { message = "Failed to retrieve quotes", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get a quote by its ID.
+        /// </summary>
+        [HttpGet("{id}")] // Route for getting a single quote by ID
+        public async Task<ActionResult<QuoteDto>> GetQuoteById(int id)
+        {
+            try
+            {
+                var quote = await _context.Quotes.FindAsync(id);
+
+                if (quote == null)
+                {
+                    _logger.LogWarning("Quote with ID {QuoteId} not found.", id);
+                    return NotFound();
+                }
+
+                // Map the Quote entity to a QuoteDto
+                var quoteDto = new QuoteDto
+                {
+                    Id = quote.Id,
+                    CustomerId = quote.CustomerId,
+                    DealerId = quote.DealerId,
+                    SalespersonId = quote.SalespersonId,
+                    VehicleId = quote.VehicleId,
+                    VehicleVariantId = quote.VehicleVariantId, // Assuming this is still needed or maps to ColorId
+                    ColorId = quote.ColorId,
+                    Quantity = quote.Quantity,
+                    BasePrice = quote.BasePrice,
+                    TotalBasePrice = quote.TotalBasePrice,
+                    Status = quote.Status,
+                    Notes = quote.Notes, // Include Notes
+                    CreatedAt = quote.CreatedAt,
+                    UpdatedAt = quote.UpdatedAt
+                };
+
+                _logger.LogInformation("Retrieved quote with ID: {QuoteId}", id);
+                return Ok(quoteDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving quote with ID {QuoteId}.", id);
+                return StatusCode(500, new { message = "Failed to retrieve quote", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Create a new quote.
+        /// </summary>
+        [HttpPost]
+        public async Task<ActionResult<Quote>> CreateQuote([FromBody] CreateQuoteDto createQuoteDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var quote = new Quote
+                {
+                    CustomerId = createQuoteDto.CustomerId,
+                    DealerId = createQuoteDto.DealerId,
+                    SalespersonId = createQuoteDto.SalespersonId,
+                    VehicleId = createQuoteDto.VehicleId,
+                    // Assuming VehicleVariantId maps to ColorId in the current context
+                    VehicleVariantId = createQuoteDto.ColorId, 
+                    ColorId = createQuoteDto.ColorId, // Keep both if needed, or clarify mapping
+                    Quantity = createQuoteDto.Quantity,
+                    BasePrice = createQuoteDto.UnitPrice, // Map UnitPrice from DTO to BasePrice in model
+                    TotalBasePrice = createQuoteDto.TotalPrice, // Map TotalPrice from DTO to TotalBasePrice in model
+                    Status = createQuoteDto.Status,
+                    Notes = createQuoteDto.Notes, // Added mapping for Notes
+                    CreatedAt = GetVietnamNow(), // Use GetVietnamNow()
+                    UpdatedAt = GetVietnamNow() // Use GetVietnamNow()
+                };
+
+                _context.Quotes.Add(quote);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Quote created successfully with ID: {QuoteId}", quote.Id);
+                return CreatedAtAction(nameof(GetAllQuotes), new { id = quote.Id }, quote); // Return 201 Created
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating quote.");
+                return StatusCode(500, new { message = "Failed to create quote", error = ex.Message });
+            }
+        }
+    }
+}

@@ -1,7 +1,1 @@
-namespace SalesService.DTOs
-{
-    public class UpdateQuoteStatusDto
-    {
-        public required string Status { get; set; }
-    }
-}
+// This file is intentionally left blank as its content has been merged into SalesDtos.cs

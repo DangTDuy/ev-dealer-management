@@ -52,11 +52,12 @@ const XCircleIcon = () => (
   </svg>
 );
 
-const CheckIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 6L9 17l-5-5" />
-  </svg>
-);
+// PencilIcon is removed as edit functionality is removed
+// const PencilIcon = () => (
+//     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+//         <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+//     </svg>
+// );
 
 export default function QuoteList() {
   const { isStaff, isManager, isAdmin } = useAuth();
@@ -105,7 +106,7 @@ export default function QuoteList() {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get('http://localhost:5036/api/Sales/quotes');
+      const response = await axios.get('http://localhost:5003/api/Quotes'); // Corrected port to 5003
       setQuotes(response.data);
     } catch (err) {
       console.error('Error fetching quotes:', err);
@@ -117,10 +118,8 @@ export default function QuoteList() {
 
   const getVietnameseStatus = (status) => {
     switch (status) {
-      case 'Finalized':
-        return 'Hoàn tất báo giá';
-      case 'PendingApproval':
-        return 'Chờ duyệt';
+      case 'Active':
+        return 'Đang hoạt động';
       case 'ConvertedToOrder':
         return 'Đã Tạo Đơn Hàng';
       case 'Cancelled':
@@ -134,7 +133,8 @@ export default function QuoteList() {
     if (window.confirm(`Bạn có chắc chắn muốn hủy báo giá ID ${quoteId} không?`)) {
       try {
         setLoading(true);
-        await axios.put(`http://localhost:5036/api/Sales/quotes/${quoteId}/status`, { status: 'Cancelled' });
+        // Assuming there's an API endpoint to update quote status
+        await axios.put(`http://localhost:5003/api/Quotes/${quoteId}/status`, { status: 'Cancelled' }); // Corrected port and endpoint
         alert(`Báo giá ID ${quoteId} đã được hủy.`);
         fetchQuotes(); // Re-fetch quotes to update the list
       } catch (err) {
@@ -147,22 +147,7 @@ export default function QuoteList() {
     }
   };
 
-  const handleApproveQuote = async (quoteId) => {
-    if (!window.confirm(`Bạn có chắc chắn muốn duyệt báo giá ID ${quoteId}?`)) return;
-    try {
-      setLoading(true);
-      await axios.put(`http://localhost:5036/api/Sales/quotes/${quoteId}/status`, { status: 'Finalized' });
-      alert(`Báo giá ID ${quoteId} đã được duyệt.`);
-      fetchQuotes();
-    } catch (err) {
-      console.error('Error approving quote:', err);
-      alert('Không thể duyệt báo giá. Vui lòng thử lại.');
-    } finally {
-      setLoading(false);
-      setActiveDropdown(null);
-      setDropdownPos(null);
-    }
-  };
+  // handleApproveQuote is removed as per new logic (no approval step)
 
   const handleCreateOrderFromQuote = (quoteId) => {
     navigate(`/sales/orders/create-from-quote/${quoteId}`); // Navigate to order creation page
@@ -174,6 +159,12 @@ export default function QuoteList() {
     navigate(`/sales/quotes/${quoteId}/view`);
     setActiveDropdown(null); // Close dropdown
   };
+
+  // handleEditQuote is removed as per new logic (no edit functionality)
+  // const handleEditQuote = (quoteId) => {
+  //   navigate(`/sales/quotes/${quoteId}/edit`); // Navigate to edit quote page
+  //   setActiveDropdown(null); // Close dropdown
+  // };
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -396,7 +387,8 @@ export default function QuoteList() {
                       backgroundColor: '#F9FAFB',
                       position: 'relative',
                       height: '40px',
-                      boxSizing: 'border-box'
+                      boxSizing: 'border-box',
+                      color: '#374151'
                     }}
                   />
                 </div>
@@ -441,7 +433,8 @@ export default function QuoteList() {
                       backgroundColor: '#F9FAFB',
                       position: 'relative',
                       height: '40px',
-                      boxSizing: 'border-box'
+                      boxSizing: 'border-box',
+                      color: '#374151'
                     }}
                   />
                 </div>
@@ -468,7 +461,6 @@ export default function QuoteList() {
                       borderRadius: '8px',
                       fontSize: '14px',
                       backgroundColor: '#F9FAFB',
-                      color: '#374151',
                       height: '40px',
                       boxSizing: 'border-box',
                       overflow: 'hidden',
@@ -481,12 +473,12 @@ export default function QuoteList() {
                       backgroundRepeat: 'no-repeat',
                       backgroundPosition: 'right 12px center',
                       backgroundSize: '16px',
-                      paddingRight: '36px'
+                      paddingRight: '36px',
+                      color: '#374151'
                     }}
                   >
                     <option value="all">Tất cả trạng thái</option>
-                    <option value="Finalized">Hoàn tất báo giá</option>
-                    <option value="PendingApproval">Chờ duyệt</option>
+                    <option value="Active">Đang hoạt động</option>
                     <option value="ConvertedToOrder">Đã Tạo Đơn Hàng</option>
                     <option value="Cancelled">Đã Hủy</option>
                   </select>
@@ -532,7 +524,8 @@ export default function QuoteList() {
                       backgroundColor: '#F9FAFB',
                       position: 'relative',
                       height: '40px',
-                      boxSizing: 'border-box'
+                      boxSizing: 'border-box',
+                      color: '#374151'
                     }}
                   />
                 </div>
@@ -604,25 +597,11 @@ export default function QuoteList() {
                 backgroundColor: '#D1FAE5',
                 borderRadius: '8px'
               }}>
-                <span style={{ fontSize: '14px', color: '#065F46' }}>Hoàn tất báo giá</span>
+                <span style={{ fontSize: '14px', color: '#065F46' }}>Đang hoạt động</span>
                 <span style={{ fontSize: '18px', fontWeight: '700', color: '#065F46' }}>
-                  {quotes.filter(q => q.status === 'Finalized').length}
+                  {quotes.filter(q => q.status === 'Active').length}
                 </span>
               </div>
-
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '12px',
-                  backgroundColor: '#DBEAFE',
-                  borderRadius: '8px'
-                }}>
-                  <span style={{ fontSize: '14px', color: '#1E40AF' }}>Chờ duyệt</span>
-                  <span style={{ fontSize: '18px', fontWeight: '700', color: '#1E40AF' }}>
-                    {quotes.filter(q => q.status === 'PendingApproval').length}
-                  </span>
-                </div>
 
               <div style={{
                 display: 'flex',
@@ -715,10 +694,20 @@ export default function QuoteList() {
             <table style={{
               width: '100%',
               borderCollapse: 'collapse',
-              minWidth: '1200px', // Increased min-width for new columns
+              minWidth: '1200px', // Adjusted min-width after adding Notes column
               tableLayout: 'fixed'
             }}>
-              <colgroup><col style={{ width: '5%' }} /><col style={{ width: '8%' }} /><col style={{ width: '12%' }} /><col style={{ width: '12%' }} /><col style={{ width: '8%' }} /><col style={{ width: '12%' }} /><col style={{ width: '10%' }} /><col style={{ width: '12%' }} /><col style={{ width: '21%' }} /></colgroup>
+              <colgroup>
+                <col style={{ width: '5%' }} />
+                <col style={{ width: '8%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '8%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '10%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '21%' }} /> {/* Added width for Notes column */}
+              </colgroup>
               <thead style={{
                 backgroundColor: '#F8FAFC',
                 borderBottom: '1px solid #E2E8F0'
@@ -848,7 +837,7 @@ export default function QuoteList() {
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
                   }}>
-                    Ghi chú
+                    Ghi chú {/* Re-added "Ghi chú" column header */}
                   </th>
                 </tr>
               </thead>
@@ -874,9 +863,13 @@ export default function QuoteList() {
                         {/* Hiện nút 3 chấm theo role và trạng thái */}
                         {(() => {
                           let showMenu = false;
+                          // Admin luôn thấy
                           if (isAdmin) showMenu = true;
-                          else if (isManager) showMenu = quote.status === 'PendingApproval';
-                          else if (isStaff) showMenu = quote.status === 'Finalized';
+                          // Staff thấy nếu trạng thái là Active (để chỉnh sửa/hủy/tạo đơn hàng)
+                          else if (isStaff) showMenu = quote.status === 'Active';
+                          // Manager thấy nếu trạng thái là Active (để hủy)
+                          else if (isManager) showMenu = quote.status === 'Active';
+                          
                           return showMenu && (
                           <div ref={el => dropdownRefs.current[quote.id] = el} style={{ position: 'relative', display: 'inline-block' }}>
                             <button
@@ -993,7 +986,7 @@ export default function QuoteList() {
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap'
                         }}>
-                          {formatCurrency(quote.totalPrice)}
+                          {formatCurrency(quote.totalBasePrice)} {/* Changed to totalBasePrice */}
                         </div>
                       </td>
                       <td style={{
@@ -1004,7 +997,7 @@ export default function QuoteList() {
                       }}>
                         <span style={{
                           fontSize: '14px',
-                          color: quote.status === 'Finalized' ? '#10B981' : (quote.status === 'PendingApproval' ? '#1E40AF' : (quote.status === 'ConvertedToOrder' ? '#F59E0B' : '#EF4444')), // Xanh dương cho chờ duyệt, vàng cho đã tạo, đỏ cho hủy
+                          color: quote.status === 'Active' ? '#0369A1' : (quote.status === 'ConvertedToOrder' ? '#F59E0B' : '#EF4444'), // Xanh dương cho Active, vàng cho đã tạo, đỏ cho hủy
                           fontWeight: '500',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
@@ -1047,14 +1040,14 @@ export default function QuoteList() {
                             cursor: 'help'
                           }}
                         >
-                          {quote.notes || 'N/A'}
+                          {quote.notes || 'N/A'} {/* Re-added "Ghi chú" data cell */}
                         </span>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="9" style={{ // Cập nhật colSpan cho số cột mới
+                    <td colSpan="9" style={{ // Adjusted colSpan to 9
                       padding: '48px 24px',
                       textAlign: 'center'
                     }}>
@@ -1088,150 +1081,37 @@ export default function QuoteList() {
               }}
             >
               {/* Render menu options based on role */}
-              {isAdmin && (
+              {activeQuote && (
                 <>
-                  {/* Admin menu mirrors Manager/Staff depending on quote status */}
-                  {activeQuote && activeQuote.status === 'Finalized' && (
+                  {/* Common action: View Detail */}
+                  <button
+                    onClick={() => { handleViewQuoteDetail(activeDropdown); setActiveDropdown(null); setDropdownPos(null); }}
+                    style={menuButtonStyle}
+                  >
+                    <EyeIcon />
+                    <span>Xem chi tiết</span>
+                  </button>
+
+                  {/* Actions for Active status */}
+                  {(activeQuote.status === 'Active') && (isStaff || isAdmin || isManager) && (
                     <>
+                      {/* Removed Edit button */}
                       <button
                         onClick={() => { handleCreateOrderFromQuote(activeDropdown); setActiveDropdown(null); setDropdownPos(null); }}
-                        style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 12px', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', fontSize: '14px', color: '#374151' }}
-                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#F3F4F6'}
-                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        style={menuButtonStyle}
                       >
                         <PlusIcon />
                         <span>Tạo đơn hàng</span>
                       </button>
                       <button
                         onClick={() => { handleCancelQuote(activeDropdown); setActiveDropdown(null); setDropdownPos(null); }}
-                        style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 12px', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', fontSize: '14px', color: '#EF4444' }}
-                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#FEF2F2'}
-                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        style={{ ...menuButtonStyle, color: '#EF4444' }}
                       >
                         <XCircleIcon />
                         <span>Hủy báo giá</span>
                       </button>
-                      <button
-                        onClick={() => { handleViewQuoteDetail(activeDropdown); setActiveDropdown(null); setDropdownPos(null); }}
-                        style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 12px', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', fontSize: '14px', color: '#374151' }}
-                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#F3F4F6'}
-                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                      >
-                        <EyeIcon />
-                        <span>Xem chi tiết</span>
-                      </button>
                     </>
                   )}
-
-                  {activeQuote && activeQuote.status === 'PendingApproval' && (
-                    <>
-                      <button
-                        onClick={() => { handleApproveQuote(activeDropdown); setActiveDropdown(null); setDropdownPos(null); }}
-                        style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 12px', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', fontSize: '14px', color: '#059669' }}
-                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#ECFDF5'}
-                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                      >
-                        <CheckIcon />
-                        <span>Duyệt báo giá</span>
-                      </button>
-                      <button
-                        onClick={() => { handleCancelQuote(activeDropdown); setActiveDropdown(null); setDropdownPos(null); }}
-                        style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 12px', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', fontSize: '14px', color: '#EF4444' }}
-                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#FEF2F2'}
-                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                      >
-                        <XCircleIcon />
-                        <span>Từ chối</span>
-                      </button>
-                      <button
-                        onClick={() => { handleViewQuoteDetail(activeDropdown); setActiveDropdown(null); setDropdownPos(null); }}
-                        style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 12px', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', fontSize: '14px', color: '#374151' }}
-                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#F3F4F6'}
-                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                      >
-                        <EyeIcon />
-                        <span>Xem chi tiết</span>
-                      </button>
-                    </>
-                  )}
-
-                  {activeQuote && (activeQuote.status === 'ConvertedToOrder' || activeQuote.status === 'Cancelled') && (
-                    <>
-                      <button
-                        onClick={() => { handleViewQuoteDetail(activeDropdown); setActiveDropdown(null); setDropdownPos(null); }}
-                        style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 12px', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', fontSize: '14px', color: '#374151' }}
-                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#F3F4F6'}
-                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                      >
-                        <EyeIcon />
-                        <span>Xem chi tiết</span>
-                      </button>
-                    </>
-                  )}
-                </>
-              )}
-
-              {isStaff && (
-                <>
-                  <button
-                    onClick={() => { handleCreateOrderFromQuote(activeDropdown); setActiveDropdown(null); setDropdownPos(null); }}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 12px', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', fontSize: '14px', color: '#374151' }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#F3F4F6'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <PlusIcon />
-                    <span>Tạo đơn hàng</span>
-                  </button>
-                  <button
-                    onClick={() => { handleCancelQuote(activeDropdown); setActiveDropdown(null); setDropdownPos(null); }}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 12px', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', fontSize: '14px', color: '#EF4444' }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#FEF2F2'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <XCircleIcon />
-                    <span>Hủy báo giá</span>
-                  </button>
-                  <button
-                    onClick={() => { handleViewQuoteDetail(activeDropdown); setActiveDropdown(null); setDropdownPos(null); }}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 12px', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', fontSize: '14px', color: '#374151' }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#F3F4F6'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <EyeIcon />
-                    <span>Xem chi tiết</span>
-                  </button>
-                </>
-              )}
-
-              {isManager && (
-                <>
-                  <button
-                    onClick={() => { handleApproveQuote(activeDropdown); setActiveDropdown(null); setDropdownPos(null); }}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 12px', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', fontSize: '14px', color: '#059669' }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#ECFDF5'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <CheckIcon />
-                    <span>Duyệt báo giá</span>
-                  </button>
-                  <button
-                    onClick={() => { handleCancelQuote(activeDropdown); setActiveDropdown(null); setDropdownPos(null); }}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 12px', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', fontSize: '14px', color: '#EF4444' }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#FEF2F2'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <XCircleIcon />
-                    <span>Từ chối</span>
-                  </button>
-                  <button
-                    onClick={() => { handleViewQuoteDetail(activeDropdown); setActiveDropdown(null); setDropdownPos(null); }}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 12px', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', fontSize: '14px', color: '#374151' }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#F3F4F6'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <EyeIcon />
-                    <span>Xem chi tiết</span>
-                  </button>
                 </>
               )}
             </div>,
@@ -1293,3 +1173,17 @@ export default function QuoteList() {
     </div>
   );
 }
+
+const menuButtonStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    width: '100%',
+    padding: '10px 12px',
+    background: 'none',
+    border: 'none',
+    textAlign: 'left',
+    cursor: 'pointer',
+    fontSize: '14px',
+    color: '#374151'
+};

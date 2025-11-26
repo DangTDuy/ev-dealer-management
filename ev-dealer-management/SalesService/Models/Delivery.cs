@@ -1,37 +1,38 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System;
+using System.ComponentModel.DataAnnotations; // Required for [Key] if not already present
+using System.ComponentModel.DataAnnotations.Schema; // Required for [Column] if not already present
 
 namespace SalesService.Models
 {
     public class Delivery
     {
-        [Key]
-        public int Id { get; set; }
+        // Helper method to get Vietnam local time
+        private static DateTime GetVietnamNow()
+        {
+            try { return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")); }
+            catch { return DateTime.UtcNow; }
+        }
 
-        [Required]
-        public int OrderId { get; set; } // Reference to the Order
+        public Guid DeliveryId { get; set; }
 
-        [Required]
-        [StringLength(100)]
-        public string TrackingNumber { get; set; } = string.Empty;
+        // FK
+        public Guid OrderId { get; set; }
+        public Order? Order { get; set; }
 
-        [Required]
-        public DateTime EstimatedDeliveryDate { get; set; }
+        public DateTime? DeliveryDate { get; set; }
+        public string? Location { get; set; }
 
-        public DateTime? ActualDeliveryDate { get; set; }
+        public string Status { get; set; } = "Scheduled"; 
+        // Scheduled / Delivered / Cancelled
 
-        [Required]
-        [StringLength(50)]
-        public string Status { get; set; } = "Pending"; // e.g., Pending, Shipped, InTransit, Delivered, Delayed, Cancelled
+        // New fields
+        public string? ReceiverName { get; set; }
+        public string? ReceiverPhone { get; set; }
 
-        [StringLength(1000)]
         public string? Notes { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-
-        // Navigation property
-        [ForeignKey("OrderId")]
-        public Order? Order { get; set; }
+        // Audit
+        public DateTime CreatedAt { get; set; } = GetVietnamNow(); // Use GetVietnamNow()
+        public DateTime UpdatedAt { get; set; } = GetVietnamNow(); // Use GetVietnamNow()
     }
 }

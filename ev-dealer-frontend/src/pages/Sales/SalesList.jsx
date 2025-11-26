@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios'; // Import axios
 import { useAuth } from '../../context/AuthContext'; // Import useAuth
@@ -40,17 +41,70 @@ const CheckIcon = () => (
   </svg>
 );
 
+const MoreVerticalIcon = () => (
+  // Chuyển thành 3 gạch ngang (hamburger-like) để dễ nhìn
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="4" y="6" width="16" height="2" rx="1" fill="currentColor" />
+    <rect x="4" y="11" width="16" height="2" rx="1" fill="currentColor" />
+    <rect x="4" y="16" width="16" height="2" rx="1" fill="currentColor" />
+  </svg>
+);
+
+const PencilIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+    </svg>
+);
+
+const FilePlusIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="12" y1="18" x2="12" y2="12" />
+        <line x1="9" y1="15" x2="15" y2="15" />
+    </svg>
+);
+
+const TruckIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="1" y="3" width="15" height="13" />
+        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+        <circle cx="5.5" cy="18.5" r="2.5" />
+        <circle cx="18.5" cy="18.5" r="2.5" />
+    </svg>
+);
+
+const CheckCircleIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+        <polyline points="22 4 12 14.01 9 11.01" />
+    </svg>
+);
+
+const XCircleIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="15" y1="9" x2="9" y2="15" />
+        <line x1="9" y1="9" x2="15" y2="15" />
+    </svg>
+);
+
+
 // New StatusBadge component
 const StatusBadge = ({ status }) => {
-  const statusStyles = {
-    pending: { text: 'Chờ xử lý', color: '#F59E0B', backgroundColor: '#FFFBEB' },
-    confirmed: { text: 'Đã xác nhận', color: '#10B981', backgroundColor: '#D1FAE5' },
-    indelivery: { text: 'Đang giao', color: '#3B82F6', backgroundColor: '#EFF6FF' },
-    completed: { text: 'Hoàn tất', color: '#065F46', backgroundColor: '#D1FAE5' },
-    cancelled: { text: 'Đã hủy', color: '#EF4444', backgroundColor: '#FEF2F2' },
+  const getVietnameseStatus = (status) => {
+    switch (status?.toLowerCase()) {
+        case 'pending': return { text: 'Chờ xử lý', color: '#D97706', backgroundColor: '#FEF3C7' };
+        case 'pendingapproval': return { text: 'Chờ duyệt hợp đồng', color: '#2563EB', backgroundColor: '#DBEAFE' };
+        case 'readyfordelivery': return { text: 'Sẵn sàng giao', color: '#059669', backgroundColor: '#D1FAE5' };
+        case 'delivering': return { text: 'Đang giao', color: '#3B82F6', backgroundColor: '#EFF6FF' };
+        case 'delivered': return { text: 'Đã giao', color: '#16A34A', backgroundColor: '#DCFCE7' };
+        case 'cancelled': return { text: 'Đã hủy', color: '#DC2626', backgroundColor: '#FEE2E2' };
+        default: return { text: status || 'Không xác định', color: '#64748B', backgroundColor: '#F1F5F9' };
+    }
   };
 
-  const style = statusStyles[status?.toLowerCase()] || { text: status, color: '#64748B', backgroundColor: '#F1F5F9' };
+  const style = getVietnameseStatus(status);
 
   return (
     <span style={{
@@ -91,11 +145,19 @@ export default function SalesDashboard() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  const [activeDropdown, setActiveDropdown] = useState(null); // id of active dropdown
+  const [dropdownPos, setDropdownPos] = useState(null); // { top, left }
+  const dropdownRefs = useRef({}); // Keep for buttons if needed
+  const portalRef = useRef(null);
+  const activeOrder = activeDropdown ? orders.find(o => (pick(o, 'orderID','OrderID','orderId','id')) === activeDropdown) : null;
+
+
   const fetchOrders = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get('http://localhost:5036/api/Sales/orders');
+      // Changed the API endpoint from /api/Sales/orders to /api/Orders
+      const response = await axios.get('http://localhost:5036/api/Orders');
       console.log('Raw API response:', response.data);
       
       // Handle both OData format { value: [...], Count: 3 } and direct array
@@ -116,6 +178,26 @@ export default function SalesDashboard() {
   useEffect(() => {
     fetchOrders();
   }, []);
+
+    // Effect to handle clicks outside dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (activeDropdown) {
+        if (portalRef.current && portalRef.current.contains(event.target)) {
+          return;
+        }
+        if (dropdownRefs.current[activeDropdown] && dropdownRefs.current[activeDropdown].contains(event.target)) {
+          return;
+        }
+        setActiveDropdown(null);
+        setDropdownPos(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [activeDropdown]);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -146,7 +228,7 @@ export default function SalesDashboard() {
       return;
     }
     console.log('Navigating to order:', orderId);
-    navigate(`/sales/${orderId}`);
+    navigate(`/sales/order/${orderId}`);
   };
 
   const handleCreateQuote = () => {
@@ -156,6 +238,46 @@ export default function SalesDashboard() {
   const handleViewQuotes = () => {
     navigate('/sales/quotes'); // New route for quote list
   };
+
+  const handleEditOrder = (orderId) => {
+    navigate(`/sales/orders/${orderId}/edit`);
+    setActiveDropdown(null);
+  };
+
+  const handleCreateContract = (orderId) => {
+      navigate(`/sales/orders/${orderId}/contract/create`);
+      setActiveDropdown(null);
+  };
+
+  const updateOrderStatus = async (orderId, newStatus, successMessage) => {
+      if (!window.confirm(`Bạn có chắc chắn muốn ${successMessage.toLowerCase()} cho đơn hàng ID ${orderId}?`)) return;
+      
+      setLoading(true);
+      try {
+          await axios.put(`http://localhost:5036/api/Sales/orders/${orderId}/status`, { status: newStatus });
+          alert(successMessage);
+          fetchOrders(); // Refresh data
+      } catch (err) {
+          console.error(`Error updating order status to ${newStatus}:`, err);
+          alert(`Không thể cập nhật trạng thái đơn hàng. Lỗi: ${err.response?.data?.message || err.message}`);
+      } finally {
+          setLoading(false);
+          setActiveDropdown(null);
+      }
+  };
+
+  const handleStartDelivery = (orderId) => {
+      updateOrderStatus(orderId, 'Delivering', 'Bắt đầu giao hàng');
+  };
+
+  const handleFinishDelivery = (orderId) => {
+      updateOrderStatus(orderId, 'Delivered', 'Hoàn tất giao hàng');
+  };
+
+  const handleCancelDelivery = (orderId) => {
+      updateOrderStatus(orderId, 'Cancelled', 'Hủy đơn hàng');
+  };
+
 
   if (loading) {
     return (
@@ -411,9 +533,10 @@ export default function SalesDashboard() {
                   >
                     <option value="all">Tất cả trạng thái</option>
                     <option value="pending">Chờ xử lý</option>
-                    <option value="confirmed">Đã xác nhận</option>
-                    <option value="indelivery">Đang giao</option>
-                    <option value="completed">Hoàn tất</option>
+                    <option value="pendingapproval">Chờ duyệt hợp đồng</option>
+                    <option value="readyfordelivery">Sẵn sàng giao</option>
+                    <option value="delivering">Đang giao</option>
+                    <option value="delivered">Đã giao</option>
                     <option value="cancelled">Đã hủy</option>
                   </select>
                 </div>
@@ -460,8 +583,8 @@ export default function SalesDashboard() {
                     <option value="all">Tất cả hình thức</option>
                     <option value="pending">Chờ thanh toán</option>
                     <option value="paid">Đã thanh toán</option>
-                    <option value="partiallypaid">Thanh toán một phần</option>
-                    <option value="refunded">Đã hoàn tiền</option>
+                    <option value="partial">Thanh toán một phần</option>
+                    <option value="failed">Thanh toán thất bại</option>
                   </select>
                 </div>
               </div>
@@ -568,7 +691,7 @@ export default function SalesDashboard() {
           backgroundColor: 'white',
           borderRadius: '12px',
           border: '1px solid #E2E8F0',
-          overflow: 'hidden'
+          overflow: 'visible'
         }}>
           <div style={{ 
             padding: '20px 24px', 
@@ -604,7 +727,8 @@ export default function SalesDashboard() {
               tableLayout: 'fixed'
             }}>
               <colgroup>
-                {['12%','15%','15%','15%','12%','12%','19%'].map((w, i) => (
+                 <col style={{ width: '5%' }} />
+                 {['12%','15%','15%','15%','12%','12%','19%'].map((w, i) => (
                   <col key={i} style={{ width: w }} />
                 ))}
               </colgroup>
@@ -703,6 +827,14 @@ export default function SalesDashboard() {
                     textAlign: 'center',
                     overflow: 'hidden'
                   }}>
+                    Ghi chú
+                  </th>
+                  <th style={{ 
+                    padding: '16px 12px', 
+                    whiteSpace: 'nowrap', 
+                    textAlign: 'center',
+                    overflow: 'hidden'
+                  }}>
                     Thao tác
                   </th>
                 </tr>
@@ -712,9 +844,14 @@ export default function SalesDashboard() {
                   filteredOrders.map((order, index) => {
                     const orderItems = pick(order, 'orderItems', 'OrderItems') || [];
                     const firstItem = orderItems[0] || {};
+                    const orderId = pick(order, 'orderID','OrderID','orderId','id');
+                    const orderStatus = pick(order, 'status', 'Status')?.toLowerCase();
+                    const contractStatus = pick(order, 'contract', 'Contract')?.status?.toLowerCase();
+                    const paymentStatus = pick(order, 'paymentStatus', 'PaymentStatus')?.toLowerCase();
+
                     return (
                     <tr 
-                      key={pick(order, 'orderID','OrderID','orderId','id') ?? Math.random()} 
+                      key={orderId ?? Math.random()} 
                       style={{ 
                         borderBottom: index < filteredOrders.length - 1 ? '1px solid #F1F5F9' : 'none'
                       }}
@@ -730,7 +867,7 @@ export default function SalesDashboard() {
                           fontWeight: '600', 
                           color: '#3B82F6'
                         }}>
-                          {pick(order, 'orderNumber','OrderNumber') ?? pick(order, 'orderID','OrderID','orderId','id')}
+                          {pick(order, 'orderNumber','OrderNumber') ?? orderId}
                         </span>
                       </td>
                       <td style={{ 
@@ -749,15 +886,6 @@ export default function SalesDashboard() {
                             whiteSpace: 'nowrap'
                           }}>
                             {pick(order,'customerId','CustomerId')}
-                          </div>
-                          <div style={{ 
-                            fontSize: '12px', 
-                            color: '#64748B',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                          }}>
-                            {/* order.customerPhone */}
                           </div>
                         </div>
                       </td>
@@ -816,7 +944,7 @@ export default function SalesDashboard() {
                       }}>
                         <span style={{ 
                           fontSize: '14px', 
-                          color: pick(order, 'paymentStatus', 'PaymentStatus')?.toLowerCase() === 'pending' ? '#F59E0B' : (pick(order, 'paymentStatus', 'PaymentStatus')?.toLowerCase() === 'paid' ? '#10B981' : '#EF4444'),
+                          color: paymentStatus === 'pending' ? '#F59E0B' : (paymentStatus === 'paid' ? '#10B981' : '#EF4444'),
                           fontWeight: '500',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
@@ -831,41 +959,35 @@ export default function SalesDashboard() {
                         textAlign: 'center',
                         overflow: 'hidden'
                       }}>
-                        <button 
-                          onClick={() => handleViewOrder(pick(order, 'orderID','OrderID','orderId','id'))}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            color: '#3B82F6',
-                            fontWeight: '500',
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                            padding: '6px 12px',
-                            borderRadius: '6px',
-                            transition: 'all 0.2s'
-                          }}
-                          onMouseOver={(e) => {
-                            e.target.style.color = '#2563EB';
-                            e.target.style.backgroundColor = '#EFF6FF';
-                          }}
-                          onMouseOut={(e) => {
-                            e.target.style.color = '#3B82F6';
-                            e.target.style.backgroundColor = 'transparent';
-                          }}
-                        >
-                          <EyeIcon />
-                          Xem chi tiết
-                        </button>
+                        {pick(order, 'notes', 'Notes') || 'N/A'}
+                      </td>
+                      <td style={{ padding: '16px 12px', position: 'relative' }}>
+                          <div ref={el => dropdownRefs.current[orderId] = el} style={{ position: 'relative', display: 'inline-block' }}>
+                              <button
+                                  onClick={(e) => {
+                                      e.stopPropagation();
+                                      const rect = e.currentTarget.getBoundingClientRect();
+                                      if (activeDropdown === orderId) {
+                                          setActiveDropdown(null);
+                                      } else {
+                                          setActiveDropdown(orderId);
+                                          setDropdownPos({ top: rect.bottom + window.scrollY, left: rect.left + window.scrollX });
+                                      }
+                                  }}
+                                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B' }}
+                                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#F3F4F6'}
+                                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                              >
+                                  <MoreVerticalIcon />
+                              </button>
+                          </div>
                       </td>
                     </tr>
                   );
                   })
                 ) : (
                   <tr>
-                    <td colSpan="7" style={{ // Changed colSpan to 7
+                    <td colSpan="8" style={{ // Changed colSpan to 8
                       padding: '48px 24px', 
                       textAlign: 'center' 
                     }}>
@@ -882,6 +1004,80 @@ export default function SalesDashboard() {
           </div>
         </div>
       </div>
+
+      {activeDropdown && dropdownPos && createPortal(
+          <div
+              ref={portalRef}
+              style={{
+                  position: 'absolute',
+                  top: dropdownPos.top + 8,
+                  left: dropdownPos.left - 150, // Adjust to show on the left
+                  backgroundColor: 'white',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '8px',
+                  boxShadow: '0 6px 12px rgba(0,0,0,0.12)',
+                  zIndex: 9999,
+                  minWidth: '200px',
+                  overflow: 'hidden'
+              }}
+          >
+              {activeOrder && (
+                  <>
+                      {/* --- Actions for Dealer Staff --- */}
+                      {(isStaff || isAdmin) && (
+                          <>
+                              {/* 1. Chỉnh sửa đơn hàng (khi status = Pending) */}
+                              {activeOrder.status?.toLowerCase() === 'pending' && (
+                                  <button onClick={() => handleEditOrder(activeDropdown)} style={menuButtonStyle}>
+                                      <PencilIcon /> Chỉnh sửa đơn hàng
+                                  </button>
+                              )}
+
+                              {/* 2. Tạo hợp đồng (khi status = Pending) */}
+                              {activeOrder.status?.toLowerCase() === 'pending' && !activeOrder.contract && (
+                                  <button onClick={() => handleCreateContract(activeDropdown)} style={menuButtonStyle}>
+                                      <FilePlusIcon /> Tạo hợp đồng
+                                  </button>
+                              )}
+                          </>
+                      )}
+
+                      {/* --- Actions for Dealer Manager --- */}
+                      {(isManager || isAdmin) && (
+                          <>
+                              {/* 5. Bắt đầu giao xe */}
+                              {activeOrder.status?.toLowerCase() === 'readyfordelivery' && (
+                                  <button onClick={() => handleStartDelivery(activeDropdown)} style={menuButtonStyle}>
+                                      <TruckIcon /> Bắt đầu giao xe
+                                  </button>
+                              )}
+
+                              {/* 5. Hoàn tất giao xe */}
+                              {activeOrder.status?.toLowerCase() === 'delivering' && (
+                                  <button onClick={() => handleFinishDelivery(activeDropdown)} style={menuButtonStyle}>
+                                      <CheckCircleIcon /> Hoàn tất giao hàng
+                                  </button>
+                              )}
+
+                              {/* 5. Hủy giao xe (nếu có sự cố) */}
+                              {(activeOrder.status?.toLowerCase() === 'readyfordelivery' || activeOrder.status?.toLowerCase() === 'delivering') && (
+                                  <button onClick={() => handleCancelDelivery(activeDropdown)} style={{...menuButtonStyle, color: '#EF4444'}}>
+                                      <XCircleIcon /> Hủy giao hàng
+                                  </button>
+                              )}
+                          </>
+                      )}
+
+                      {/* --- Common Actions --- */}
+                      <button onClick={() => handleViewOrder(activeDropdown)} style={menuButtonStyle}>
+                          <EyeIcon /> Xem chi tiết
+                      </button>
+                  </>
+              )}
+          </div>,
+          document.body
+      )}
+
 
       {/* CSS để đảm bảo tính ổn định */}
       <style>{`
@@ -911,7 +1107,6 @@ export default function SalesDashboard() {
         
         /* Xử lý text overflow trong bảng */
         td, th {
-          overflow: hidden !important;
           text-overflow: ellipsis !important;
         }
         
@@ -937,3 +1132,17 @@ export default function SalesDashboard() {
     </div>
   );
 }
+
+const menuButtonStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    width: '100%',
+    padding: '10px 12px',
+    background: 'none',
+    border: 'none',
+    textAlign: 'left',
+    cursor: 'pointer',
+    fontSize: '14px',
+    color: '#374151'
+};

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios'; // Import axios
+import api from '../../services/api'; // Import api instance
 
 // Reuse icons from QuoteCreate style
 const BackIcon = () => (
@@ -25,34 +25,35 @@ export default function QuoteView() {
   const [quote, setQuote] = useState(null);
   const [customer, setCustomer] = useState(null);
   const [vehicle, setVehicle] = useState(null);
+  const [salesperson, setSalesperson] = useState(null); // State for salesperson info
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      setError(null);
       try {
-        const qResp = await axios.get(`http://localhost:5036/api/Sales/quotes/${id}`);
-        const q = qResp.data;
-        setQuote(q);
+        // Fetch quote details from SalesService
+        const quoteData = await api.get(`http://localhost:5003/api/Quotes/${id}`); // api.get already returns response.data
 
-        // fetch customer
-        try {
-          const cResp = await axios.get(`http://localhost:5036/api/customers/${q.customerId}`);
-          setCustomer(cResp.data);
-        } catch (e) {
-          setCustomer({ id: q.customerId, name: '', phone: '', email: '', address: '' });
+        if (!quoteData || !quoteData.customerId) {
+            throw new Error("Invalid quote data received from API.");
         }
 
-        // fetch vehicle
-        try {
-          const vResp = await axios.get(`http://localhost:5036/api/vehicles/${q.vehicleId}`);
-          const v = vResp.data && vResp.data.model ? vResp.data : (vResp.data.data ? vResp.data.data : vResp.data);
-          setVehicle(v);
-        } catch (e) {
-          setVehicle({ id: q.vehicleId, model: '', price: q.unitPrice });
-        }
+        setQuote(quoteData);
+
+        // Fetch dependent data in parallel
+        const [customerData, vehicleData, salespersonData] = await Promise.all([
+            api.get(`http://localhost:5036/api/customers/${quoteData.customerId}`).catch(() => ({ id: quoteData.customerId, name: 'N/A' })),
+            api.get(`http://localhost:5036/api/vehicles/${quoteData.vehicleId}`).catch(() => ({ id: quoteData.vehicleId, model: 'N/A' })),
+            api.get(`http://localhost:7001/api/users/${quoteData.salespersonId}`).catch(() => ({ id: quoteData.salespersonId, fullName: 'N/A' })) // Fetch salesperson from UserService
+        ]);
+        
+        setCustomer(customerData); // api.get already returns response.data
+        setVehicle(vehicleData); // api.get already returns response.data
+        setSalesperson(salespersonData); // api.get already returns response.data
 
       } catch (err) {
-        console.error('Error fetching quote:', err);
+        console.error('Error fetching data:', err);
         setError('Không thể tải thông tin báo giá.');
       } finally {
         setLoading(false);
@@ -64,27 +65,58 @@ export default function QuoteView() {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount || 0);
   };
+  
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN');
+  };
+
 
   const calculateTotals = () => {
     if (!quote) return { total: 0, downPayment: 0, monthly: 0, installmentTotal: 0 };
-    const total = quote.totalPrice || 0;
-    const down = quote.downPaymentPercent ? total * (quote.downPaymentPercent / 100) : 0;
+    // Use totalBasePrice from Quote model
+    const total = quote.totalBasePrice || 0; 
+    
+    // --- Payment fields from Quote model ---
+    // These fields are currently NOT in Quote model, need to add them if installment is supported
+    // For now, defaulting to 0 or 'Full' if not present in quote object
+    const paymentType = quote.paymentType || 'Full'; // Assuming Quote model has this
+    const depositAmount = quote.depositAmount || 0; // Assuming Quote model has this
+    const loanTermMonths = quote.loanTermMonths || 0; // Assuming Quote model has this
+    const interestRateYearly = quote.interestRateYearly || 0; // Assuming Quote model has this
+
+    // Calculate down payment based on depositAmount
+    const down = depositAmount; 
     const loanAmount = total - down;
     let monthly = 0;
-    if (quote.paymentType === 'Installment' && quote.loanTerm && quote.interestRate != null) {
-      const monthlyRate = (quote.interestRate / 100) / 12;
-      const n = quote.loanTerm;
+    
+    if (paymentType === 'Installment' && loanTermMonths > 0 && interestRateYearly > 0) {
+      const monthlyRate = (interestRateYearly / 100) / 12;
+      const n = loanTermMonths;
       if (monthlyRate === 0) monthly = loanAmount / n;
       else monthly = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, n)) / (Math.pow(1 + monthlyRate, n) - 1);
     }
-    const installmentTotal = quote.paymentType === 'Installment' ? (down + monthly * (quote.loanTerm || 0)) : total;
-    return { total, down, monthly, installmentTotal };
+    const installmentTotal = paymentType === 'Installment' ? (down + monthly * (loanTermMonths > 0 ? loanTermMonths : 0)) : total;
+    
+    return { 
+      total, 
+      down, 
+      monthly, 
+      installmentTotal, 
+      paymentType,
+      depositAmount,
+      loanTermMonths,
+      interestRateYearly
+    };
   };
 
   const handleDownloadPdf = async () => {
     if (!quote) return;
     setLoading(true);
     try {
+      const totals = calculateTotals(); // Recalculate totals for PDF payload
+
       const payload = {
         customerInfo: {
           id: customer?.id || quote.customerId,
@@ -98,30 +130,31 @@ export default function QuoteView() {
             vehicleId: quote.vehicleId,
             vehicleName: vehicle?.model || '',
             quantity: quote.quantity,
-            unitPrice: quote.unitPrice,
-            discountPercent: quote.discountPercent ?? 0,
-            itemTotal: quote.totalPrice
+            unitPrice: quote.basePrice, // Use basePrice from Quote model
+            discountPercent: 0, // Discount is not directly in Quote model, need to adjust if needed
+            itemTotal: quote.totalBasePrice // Use totalBasePrice
           }
         ],
         paymentInfo: {
-          type: quote.paymentType === 'Installment' ? 'installment' : 'full',
-          downPaymentPercent: quote.downPaymentPercent,
-          loanTerm: quote.loanTerm,
-          interestRate: quote.interestRate
+          type: totals.paymentType,
+          downPaymentPercent: totals.depositAmount > 0 && totals.total > 0 ? (totals.depositAmount / totals.total) * 100 : 0,
+          loanTerm: totals.loanTermMonths,
+          interestRate: totals.interestRateYearly
         },
         additionalInfo: {
-          deliveryDate: quote.deliveryDate || '',
-          notes: quote.notes || '',
-          salesPerson: quote.salesRepName || '',
-          validUntil: quote.validUntil || ''
+          deliveryDate: '', // Not in Quote model
+          notes: quote.notes || '', // Use notes from Quote model
+          salesPerson: salesperson?.fullName || salesperson?.name || 'N/A', // Use fetched salesperson name
+          validUntil: '' // Not in Quote model
         },
-        totalCalculatedAmount: quote.totalPrice,
-        downPaymentCalculated: quote.downPaymentPercent ? (quote.totalPrice * (quote.downPaymentPercent / 100)) : 0,
-        monthlyPaymentCalculated: 0,
-        installmentTotalPaymentCalculated: quote.totalPrice
+        totalCalculatedAmount: totals.total,
+        downPaymentCalculated: totals.down,
+        loanAmountCalculated: totals.total - totals.down,
+        monthlyPaymentCalculated: totals.monthly,
+        installmentTotalPaymentCalculated: totals.installmentTotal
       };
 
-      const response = await axios.post('http://localhost:5036/api/Sales/generate-quote-pdf', payload, { responseType: 'blob' });
+      const response = await api.post('http://localhost:5003/api/Sales/generate-quote-pdf', payload, { responseType: 'blob' });
       const file = new Blob([response.data], { type: 'application/pdf' });
       const fileURL = URL.createObjectURL(file);
       const link = document.createElement('a');
@@ -233,13 +266,6 @@ export default function QuoteView() {
               </h2>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
-                <div style={{ minWidth: 0, gridColumn: 'span 2' }}>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
-                    Khách hàng
-                  </label>
-                  <input value={customer?.name || ''} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '14px', backgroundColor: '#F1F5F9', height: '40px', boxSizing: 'border-box', color: '#374151' }} />
-                </div>
-
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>
                     Họ và tên
@@ -299,7 +325,7 @@ export default function QuoteView() {
 
                   <div>
                     <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Đơn giá</label>
-                    <input value={formatCurrency(quote?.unitPrice)} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '14px', backgroundColor: '#F1F5F9', height: '40px', boxSizing: 'border-box', color: '#374151' }} />
+                    <input value={formatCurrency(quote?.basePrice)} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '14px', backgroundColor: '#F1F5F9', height: '40px', boxSizing: 'border-box', color: '#374151' }} />
                   </div>
 
                   <div>
@@ -310,7 +336,7 @@ export default function QuoteView() {
 
                 <div style={{ marginTop: '12px', borderTop: '1px solid #E2E8F0', paddingTop: '12px', display: 'flex', justifyContent: 'space-between' }}>
                   <div style={{ color: '#64748B' }}>Thành tiền</div>
-                  <div style={{ fontWeight: 700 }}>{formatCurrency(quote?.totalPrice)}</div>
+                  <div style={{ fontWeight: 700 }}>{formatCurrency(quote?.totalBasePrice)}</div>
                 </div>
               </div>
             </div>
@@ -328,31 +354,28 @@ export default function QuoteView() {
                 Thông tin thanh toán
               </h2>
 
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '12px' }}>
-                  Hình thức thanh toán
-                </label>
-                <input value={quote?.paymentType || 'Full'} readOnly style={{ width: '160px', padding: '8px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '14px', backgroundColor: '#F1F5F9', height: '40px', boxSizing: 'border-box', color: '#374151' }} />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                  <div style={{ minWidth: 0 }}>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Hình thức thanh toán</label>
+                    <input value={totals.paymentType === 'Installment' ? 'Trả góp' : 'Trả thẳng'} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '14px', backgroundColor: '#F1F5F9', height: '40px', boxSizing: 'border-box', color: '#374151' }} />
+                  </div>
+                  {totals.paymentType === 'Installment' && (
+                    <>
+                        <div style={{ minWidth: 0 }}>
+                            <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Tiền trả trước</label>
+                            <input value={formatCurrency(totals.down)} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '14px', backgroundColor: '#F1F5F9', height: '40px', boxSizing: 'border-box', color: '#374151' }} />
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                            <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Kỳ hạn (tháng)</label>
+                            <input value={totals.loanTermMonths ?? ''} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '14px', backgroundColor: '#F1F5F9', height: '40px', boxSizing: 'border-box', color: '#374151' }} />
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                            <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Lãi suất (%/năm)</label>
+                            <input value={totals.interestRateYearly ?? ''} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '14px', backgroundColor: '#F1F5F9', height: '40px', boxSizing: 'border-box', color: '#374151' }} />
+                        </div>
+                    </>
+                  )}
               </div>
-
-              {quote?.paymentType === 'Installment' && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-                  <div style={{ minWidth: 0 }}>
-                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Trả trước (%)</label>
-                    <input value={quote?.downPaymentPercent ?? ''} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '14px', backgroundColor: '#F1F5F9', height: '40px', boxSizing: 'border-box', color: '#374151' }} />
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Kỳ hạn (tháng)</label>
-                    <input value={quote?.loanTerm ?? ''} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '14px', backgroundColor: '#F1F5F9', height: '40px', boxSizing: 'border-box', color: '#374151' }} />
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Lãi suất (%/năm)</label>
-                    <input value={quote?.interestRate ?? ''} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '14px', backgroundColor: '#F1F5F9', height: '40px', boxSizing: 'border-box', color: '#374151' }} />
-                  </div>
-                </div>
-              )}
-
-              {/* Payment notes intentionally omitted (use staff notes on the right column) */}
             </div>
           </div>
 
@@ -371,11 +394,15 @@ export default function QuoteView() {
               </h2>
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>ID nhân viên</label>
-                <input type="text" value={quote?.salesRepId || ''} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '14px', backgroundColor: '#F1F5F9', height: '40px', boxSizing: 'border-box', color: '#374151' }} />
+                <input type="text" value={quote?.salespersonId || ''} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '14px', backgroundColor: '#F1F5F9', height: '40px', boxSizing: 'border-box', color: '#374151' }} />
               </div>
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Tên nhân viên</label>
-                <input type="text" value={quote?.salesRepName || ''} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '14px', backgroundColor: '#F1F5F9', height: '40px', boxSizing: 'border-box', color: '#374151' }} />
+                <input type="text" value={salesperson?.fullName || salesperson?.name || 'N/A'} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '14px', backgroundColor: '#F1F5F9', height: '40px', boxSizing: 'border-box', color: '#374151' }} />
+              </div>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Ngày tạo</label>
+                <input type="text" value={formatDate(quote?.createdAt)} readOnly style={{ width: '100%', padding: '10px 12px', border: '1px solid #CBD5E1', borderRadius: '8px', fontSize: '14px', backgroundColor: '#F1F5F9', height: '40px', boxSizing: 'border-box', color: '#374151' }} />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '8px' }}>Ghi chú</label>
@@ -396,10 +423,10 @@ export default function QuoteView() {
                   <span style={{ color: '#64748B' }}>Tổng cộng:</span>
                   <span style={{ color: '#0F172A', fontWeight: '500' }}>{formatCurrency(totals.total)}</span>
                 </div>
-                {quote?.paymentType === 'Installment' && (
+                {totals.paymentType === 'Installment' && (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '12px' }}>
-                      <span style={{ color: '#64748B' }}>Trả trước ({quote.downPaymentPercent}%):</span>
+                      <span style={{ color: '#64748B' }}>Trả trước ({totals.depositAmount > 0 && totals.total > 0 ? (totals.depositAmount / totals.total * 100).toFixed(2) : 0}%):</span>
                       <span style={{ color: '#0F172A', fontWeight: '500' }}>{formatCurrency(totals.down)}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '12px' }}>

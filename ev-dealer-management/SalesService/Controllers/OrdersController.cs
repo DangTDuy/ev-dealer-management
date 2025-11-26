@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
-// Removed: using SalesService.Services; // No longer needed as IMessageProducer is removed
-using SalesService.DTOs; // Assuming CreateOrderRequest and SaleCompletedEvent are defined here or in a shared DTOs file
-using Microsoft.Extensions.Logging; // Keep this for logging
+using SalesService.DTOs;
+using Microsoft.Extensions.Logging;
+using SalesService.Data; // Import SalesDbContext
+using Microsoft.EntityFrameworkCore; // Import for ToListAsync()
+using SalesService.Models; // Import Order model
+using System.Collections.Generic; // Required for List<Order>
 
 namespace SalesService.Controllers
 {
@@ -9,13 +12,13 @@ namespace SalesService.Controllers
     [Route("api/[controller]")]
     public class OrdersController : ControllerBase
     {
-        // Removed: private readonly IMessageProducer _messageProducer;
         private readonly ILogger<OrdersController> _logger;
+        private readonly SalesDbContext _context; // Inject SalesDbContext
 
-        public OrdersController(/* Removed: IMessageProducer messageProducer, */ ILogger<OrdersController> logger)
+        public OrdersController(ILogger<OrdersController> logger, SalesDbContext context)
         {
-            // Removed: _messageProducer = messageProducer;
             _logger = logger;
+            _context = context; // Initialize SalesDbContext
         }
 
         /// <summary>
@@ -45,20 +48,6 @@ namespace SalesService.Controllers
                 // Generate order ID
                 var orderId = $"ORD-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
 
-                // Removed: Create event and publish to RabbitMQ
-                // var saleCompletedEvent = new SaleCompletedEvent
-                // {
-                //     OrderId = orderId,
-                //     CustomerName = request.CustomerName,
-                //     CustomerEmail = request.CustomerEmail,
-                //     VehicleModel = request.VehicleModel,
-                //     TotalAmount = request.TotalAmount,
-                //     OrderDate = DateTime.UtcNow,
-                //     PaymentMethod = request.PaymentMethod,
-                //     Quantity = request.Quantity
-                // };
-                // _messageProducer.PublishMessage(saleCompletedEvent, "sales.completed");
-
                 _logger.LogInformation("Order {OrderId} completed for customer {CustomerEmail}. Message queueing is disabled.", orderId, request.CustomerEmail);
 
                 return Ok(new
@@ -73,6 +62,25 @@ namespace SalesService.Controllers
             {
                 _logger.LogError(ex, "Error completing order");
                 return StatusCode(500, new { message = "Failed to complete order", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get all orders.
+        /// </summary>
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Order>>> GetAllOrders()
+        {
+            try
+            {
+                var orders = await _context.Orders.ToListAsync(); // Reverted to query database
+                _logger.LogInformation("Retrieved {Count} orders.", orders.Count);
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving all orders from database."); // Updated log message
+                return StatusCode(500, new { message = "Failed to retrieve orders from database", error = ex.Message });
             }
         }
 

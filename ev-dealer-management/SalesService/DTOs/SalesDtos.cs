@@ -1,223 +1,212 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace SalesService.DTOs
 {
-    // DTOs for Quotes
+    // --- DTOs for QUOTE (Refactored) ---
     public class CreateQuoteDto
     {
-        [Required]
-        public int CustomerId { get; set; }
-        [Required]
-        public int VehicleId { get; set; }
-        public int? ColorVariantId { get; set; }
-        [Range(1, int.MaxValue)]
-        public int Quantity { get; set; } = 1;
-        public string? Notes { get; set; }
+        [Required] public int CustomerId { get; set; }
+        [Required] public int DealerId { get; set; }
+        [Required] public int SalespersonId { get; set; }
+        [Required] public int VehicleId { get; set; }
+        // Frontend sends colorVariantId, which maps to ColorId in Quote model
+        [Required] public int ColorId { get; set; } 
+        [Range(1, 100)] public int Quantity { get; set; } = 1;
+        
+        // Add pricing and status fields from frontend payload that map to Quote model
+        [Required] public decimal UnitPrice { get; set; } // Maps to BasePrice in Quote model
+        [Required] public decimal TotalPrice { get; set; } // Maps to TotalBasePrice in Quote model
+        [Required, MaxLength(50)] public string Status { get; set; } = "Active"; // Match Quote model status
+        
+        // Added Notes field
+        [MaxLength(1000)] public string? Notes { get; set; }
 
-        [Required] // Added SalesRepId
-        public int SalesRepId { get; set; }
-
-        // Status field for quote (Finalized, PendingApproval)
-        [StringLength(50)]
-        public string Status { get; set; } = "Finalized"; // e.g., Finalized, PendingApproval
-
-        // New payment-related fields
-        [Required]
-        [StringLength(50)]
-        public string PaymentType { get; set; } = "Full"; // e.g., Full, Installment
-
-        [Range(0, 100)] // Percentage
-        public decimal? DownPaymentPercent { get; set; } // Only for Installment
-
-        [Range(1, 60)] // Months
-        public int? LoanTerm { get; set; } // In months, only for Installment
-
-        [Range(0, 100)] // Percentage
-        public decimal? InterestRate { get; set; } // Only for Installment
+        // Frontend also sends salespersonName, paymentType, downPaymentPercent, loanTerm, interestRate, quoteItems.
+        // These are not directly in the current flat Quote model.
+        // For now, we'll only include what maps directly to the Quote model.
     }
 
     public class QuoteDto
     {
         public int Id { get; set; }
         public int CustomerId { get; set; }
+        public int DealerId { get; set; }
+        public int SalespersonId { get; set; }
         public int VehicleId { get; set; }
-        public int? ColorVariantId { get; set; }
+        public int VehicleVariantId { get; set; } // This should probably be ColorId to match Quote model
+        public int ColorId { get; set; }
         public int Quantity { get; set; }
-        public decimal UnitPrice { get; set; }
-        public decimal TotalPrice { get; set; }
-        public string Status { get; set; } = "Pending"; // e.g., Pending, Accepted, Rejected
-        public string? Notes { get; set; }
-
-        public int SalesRepId { get; set; } // Added SalesRepId
-
-        // New payment-related fields
-        public string PaymentType { get; set; } = "Full";
-        public decimal? DownPaymentPercent { get; set; }
-        public int? LoanTerm { get; set; }
-        public decimal? InterestRate { get; set; }
-
+        public decimal BasePrice { get; set; }
+        public decimal TotalBasePrice { get; set; }
+        public string Status { get; set; } = "Active";
+        public string? Notes { get; set; } // Added Notes to QuoteDto for retrieval
         public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 
-    // DTOs for Orders
+    // --- DTOs for ORDER (Refactored) ---
     public class CreateOrderDto
     {
-        [Required]
-        public int QuoteId { get; set; }
-        [Required]
-        public int SalespersonId { get; set; } // New: who handles the sale
-
-        public int? DealerId { get; set; } // New: DealerID
-
-        [Required]
-        [StringLength(50)]
-        public string PaymentMethod { get; set; } = string.Empty; // New: e.g., Cash, Bank transfer, Financing via bank
-
-        [Required]
-        [StringLength(50)]
-        public string PaymentType { get; set; } = string.Empty; // New: Cash / BankTransfer (semantic)
-
-        [Required]
-        public DateTime DeliveryDate { get; set; } // New: Preferred Delivery Date
-
+        [Required] public int QuoteId { get; set; }
+        [Required] public int CustomerId { get; set; }
+        [Required] public int DealerId { get; set; }
+        [Required] public int SalespersonId { get; set; }
+        [Required] public int VehicleId { get; set; }
+        [Required] public int VariantId { get; set; }
+        [Required] public int ColorId { get; set; }
+        [Range(1, 100)] public int Quantity { get; set; } = 1;
+        [Required] public decimal UnitPrice { get; set; }
+        public decimal? DiscountPercent { get; set; }
+        public decimal? DiscountAmount { get; set; }
+        [Required] public string PaymentMethod { get; set; } = string.Empty;
+        [Required] public string PaymentForm { get; set; } = string.Empty;
+        [Required] public DateTime DeliveryPreferredDate { get; set; }
+        [Required] public DateTime DeliveryExpectedDate { get; set; }
+        public string? DeliveryAddress { get; set; } // Added DeliveryAddress
+        public decimal? DepositAmount { get; set; }
+        public int? LoanTermMonths { get; set; }
+        public decimal? InterestRateYearly { get; set; }
         public string? Notes { get; set; }
-
-        public required List<CreateOrderItemDto> OrderItems { get; set; } // New: List of order items
-    }
-
-    public class CreateOrderItemDto
-    {
-        [Required]
-        public int VehicleId { get; set; }
-        public int? VehicleModelId { get; set; }
-        public int? VehicleVariantId { get; set; }
-        public int? ColorId { get; set; }
-        public int? ColorVariantId { get; set; }
-        [Required]
-        [Range(1, int.MaxValue)]
-        public int Quantity { get; set; }
-        [Required]
-        public decimal UnitPrice { get; set; }
-        public decimal? Discount { get; set; }
-        public string? PromotionApplied { get; set; }
     }
 
     public class OrderDto
     {
-        public int OrderID { get; set; }
-        public string? OrderNumber { get; set; }
+        public int OrderId { get; set; }
         public int QuoteId { get; set; }
         public int CustomerId { get; set; }
-        public int? DealerId { get; set; } // New: DealerID
-        // Removed VehicleId and Quantity
+        public int DealerId { get; set; }
+        public int SalespersonId { get; set; }
+        public string OrderNumber { get; set; } = string.Empty;
+        public int VehicleId { get; set; }
+        public int VariantId { get; set; }
+        public int ColorId { get; set; }
+        public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
+        public decimal? DiscountPercent { get; set; }
+        public decimal? DiscountAmount { get; set; }
+        public decimal SubTotal { get; set; }
+        public decimal TotalDiscount { get; set; }
         public decimal TotalPrice { get; set; }
-        public string Status { get; set; } = "Pending"; // e.g., Pending, Confirmed, Shipped, Delivered, Cancelled
-        public string PaymentStatus { get; set; } = "Pending"; // e.g., Pending, Paid, PartiallyPaid, Refunded
-        public string PaymentMethod { get; set; } = string.Empty; // New
-        public string PaymentType { get; set; } = string.Empty; // New
-        public DateTime DeliveryDate { get; set; } // New
+        public string PaymentMethod { get; set; } = string.Empty;
+        public string PaymentForm { get; set; } = string.Empty;
+        public DateTime DeliveryPreferredDate { get; set; }
+        public DateTime DeliveryExpectedDate { get; set; }
+        public string? DeliveryAddress { get; set; } // Added DeliveryAddress
+        public decimal? DepositAmount { get; set; }
+        public int? LoanTermMonths { get; set; }
+        public decimal? InterestRateYearly { get; set; }
+        public string Status { get; set; } = string.Empty;
         public string? Notes { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-
-        public required List<OrderItemDto> OrderItems { get; set; } // New: List of order items
     }
 
-    public class OrderItemDto
-    {
-        public int OrderItemID { get; set; }
-        public int OrderId { get; set; }
-        public int VehicleId { get; set; }
-        public int? VehicleModelId { get; set; }
-        public int? VehicleVariantId { get; set; }
-        public int? ColorId { get; set; }
-        public int? ColorVariantId { get; set; }
-        public int Quantity { get; set; }
-        public decimal UnitPrice { get; set; }
-        public decimal? Discount { get; set; }
-        public string? PromotionApplied { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-    }
-
-    // DTOs for Sales Contracts
+    // --- DTOs for CONTRACT (Refactored) ---
     public class CreateContractDto
     {
-        [Required]
-        public int OrderId { get; set; }
-        public string? ContractDetails { get; set; } // e.g., URL to document, or JSON string
+        [Required] public int OrderId { get; set; }
+        [Required] public int CustomerId { get; set; }
+        [Required] public int DealerId { get; set; }
+        [Required] public int SalespersonId { get; set; }
+        [Required] public decimal TotalAmount { get; set; }
+        public string? Notes { get; set; }
     }
 
     public class ContractDto
     {
-        public int Id { get; set; }
+        public int ContractId { get; set; }
         public int OrderId { get; set; }
+        public int CustomerId { get; set; }
+        public int DealerId { get; set; }
+        public int SalespersonId { get; set; }
         public string ContractNumber { get; set; } = string.Empty;
-        public string ContractDetails { get; set; } = string.Empty;
-        public DateTime SignDate { get; set; }
+        public DateOnly SignedDate { get; set; }
+        public decimal TotalAmount { get; set; }
+        public string PaymentStatus { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public string? Notes { get; set; }
         public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; } // Added UpdatedAt
+        public DateTime UpdatedAt { get; set; }
     }
 
-    // DTOs for Promotions
-    public class CreatePromotionDto
-    {
-        [Required]
-        [StringLength(200)]
-        public string Name { get; set; } = string.Empty;
-
-        [StringLength(1000)]
-        public string? Description { get; set; }
-
-        [Required]
-        public DateTime StartDate { get; set; }
-
-        [Required]
-        public DateTime EndDate { get; set; }
-
-        [Required]
-        [Range(0.01, 1000000000.00)] // Assuming discount value can be up to 1 billion
-        public decimal DiscountValue { get; set; }
-
-        [Required]
-        [StringLength(50)]
-        public string DiscountType { get; set; } = "Percentage"; // e.g., Percentage, FixedAmount
-
-        [StringLength(50)]
-        public string? ApplicableTo { get; set; } // e.g., "All", "Vehicles", "SpecificVehicleId:X"
-
-        public int? VehicleId { get; set; } // If ApplicableTo is SpecificVehicleId
+    // --- DTOs for OTHER SERVICES (Restored & Corrected) ---
+    public class CreateDeliveryDto {
+        [Required] public Guid OrderId { get; set; }
+        [Required, StringLength(100)] public string TrackingNumber { get; set; } = string.Empty;
+        [Required] public DateTime EstimatedDeliveryDate { get; set; }
+        public DateTime? ActualDeliveryDate { get; set; }
+        [Required, StringLength(50)] public string Status { get; set; } = "Pending";
+        [StringLength(1000)] public string? Notes { get; set; }
     }
-
-    public class UpdatePromotionDto
-    {
-        [StringLength(200)]
-        public string? Name { get; set; }
-
-        [StringLength(1000)]
-        public string? Description { get; set; }
-
-        public DateTime? StartDate { get; set; }
-
-        public DateTime? EndDate { get; set; }
-
-        [Range(0.01, 1000000000.00)]
-        public decimal? DiscountValue { get; set; }
-
-        [StringLength(50)]
-        public string? DiscountType { get; set; }
-
-        [StringLength(50)]
-        public string? ApplicableTo { get; set; }
-
+    public class UpdateDeliveryStatusDto {
+        [Required, StringLength(50)] public string Status { get; set; } = string.Empty;
+        public DateTime? ActualDeliveryDate { get; set; }
+        [StringLength(1000)] public string? Notes { get; set; }
+    }
+    public class DeliveryDto {
+        public Guid Id { get; set; }
+        public Guid OrderId { get; set; }
+        public string TrackingNumber { get; set; } = string.Empty;
+        public DateTime EstimatedDeliveryDate { get; set; }
+        public DateTime? ActualDeliveryDate { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string? Notes { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+    }
+    public class CreatePaymentDto {
+        [Required] public Guid OrderId { get; set; }
+        [Required, Range(0.01, 10000000000.00)] public decimal Amount { get; set; }
+        [Required] public DateTime PaymentDate { get; set; } = DateTime.UtcNow;
+        [Required, StringLength(50)] public string PaymentMethod { get; set; } = "Cash";
+        [Required, StringLength(50)] public string Status { get; set; } = "Completed";
+        [StringLength(200)] public string? TransactionId { get; set; }
+        [StringLength(1000)] public string? Notes { get; set; }
+    }
+    public class UpdatePaymentDto {
+        [Range(0.01, 10000000000.00)] public decimal? Amount { get; set; }
+        [StringLength(50)] public string? PaymentMethod { get; set; }
+        [StringLength(50)] public string? Status { get; set; }
+        [StringLength(200)] public string? TransactionId { get; set; }
+        [StringLength(1000)] public string? Notes { get; set; }
+    }
+    public class PaymentDto {
+        public Guid Id { get; set; }
+        public Guid OrderId { get; set; }
+        public decimal Amount { get; set; }
+        public DateTime PaymentDate { get; set; }
+        public string PaymentMethod { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public string? TransactionId { get; set; }
+        public string? Notes { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+    }
+    public class CreatePromotionDto {
+        [Required, StringLength(200)] public string Name { get; set; } = string.Empty;
+        [StringLength(1000)] public string? Description { get; set; }
+        [Required] public DateTime StartDate { get; set; }
+        [Required] public DateTime EndDate { get; set; }
+        [Required, Range(0.01, 1000000000.00)] public decimal DiscountValue { get; set; }
+        [Required, StringLength(50)] public string DiscountType { get; set; } = "Percentage";
+        [StringLength(50)] public string? ApplicableTo { get; set; }
         public int? VehicleId { get; set; }
-
+    }
+    public class UpdatePromotionDto {
+        [StringLength(200)] public string? Name { get; set; }
+        [StringLength(1000)] public string? Description { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        [Range(0.01, 1000000000.00)] public decimal? DiscountValue { get; set; }
+        [StringLength(50)] public string? DiscountType { get; set; }
+        [StringLength(50)] public string? ApplicableTo { get; set; }
+        public int? VehicleId { get; set; }
         public bool? IsActive { get; set; }
     }
-
-    public class PromotionDto
-    {
-        public int Id { get; set; }
+    public class PromotionDto {
+        public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
         public DateTime StartDate { get; set; }
@@ -230,125 +219,15 @@ namespace SalesService.DTOs
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
-
-    // DTOs for Deliveries
-    public class CreateDeliveryDto
+    public class GenerateQuotePdfRequestDto
     {
-        [Required]
-        public int OrderId { get; set; }
-        
-        [Required]
-        [StringLength(100)]
-        public string TrackingNumber { get; set; } = string.Empty;
-
-        [Required]
-        public DateTime EstimatedDeliveryDate { get; set; }
-
-        public DateTime? ActualDeliveryDate { get; set; } // Added
-        
-        [Required] // Added
-        [StringLength(50)] // Added
-        public string Status { get; set; } = "Pending"; // Added
-
-        [StringLength(1000)]
-        public string? Notes { get; set; }
-    }
-
-    public class UpdateDeliveryStatusDto
-    {
-        [Required]
-        [StringLength(50)]
-        public string Status { get; set; } = string.Empty;
-
-        public DateTime? ActualDeliveryDate { get; set; }
-
-        [StringLength(1000)]
-        public string? Notes { get; set; }
-    }
-
-    public class DeliveryDto
-    {
-        public int Id { get; set; }
-        public int OrderId { get; set; }
-        public string TrackingNumber { get; set; } = string.Empty;
-        public DateTime EstimatedDeliveryDate { get; set; }
-        public DateTime? ActualDeliveryDate { get; set; }
-        public string Status { get; set; } = string.Empty;
-        public string? Notes { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-    }
-
-    // DTOs for Payments
-    public class CreatePaymentDto
-    {
-        [Required]
-        public int OrderId { get; set; }
-
-        [Required]
-        [Range(0.01, 10000000000.00)] // Assuming payment amount can be up to 10 billion
-        public decimal Amount { get; set; }
-
-        [Required]
-        public DateTime PaymentDate { get; set; } = DateTime.UtcNow; // Added
-
-        [Required]
-        [StringLength(50)]
-        public string PaymentMethod { get; set; } = "Cash"; // e.g., Cash, BankTransfer, Installment
-
-        [Required] // Added
-        [StringLength(50)] // Added
-        public string Status { get; set; } = "Completed"; // Added
-
-        [StringLength(200)]
-        public string? TransactionId { get; set; }
-
-        [StringLength(1000)]
-        public string? Notes { get; set; }
-    }
-
-    public class UpdatePaymentDto
-    {
-        [Range(0.01, 10000000000.00)]
-        public decimal? Amount { get; set; }
-
-        [StringLength(50)]
-        public string? PaymentMethod { get; set; }
-
-        [StringLength(50)]
-        public string? Status { get; set; } // e.g., Completed, Pending, Failed, Refunded
-
-        [StringLength(200)]
-        public string? TransactionId { get; set; }
-
-        [StringLength(1000)]
-        public string? Notes { get; set; }
-    }
-
-    public class PaymentDto
-    {
-        public int Id { get; set; }
-        public int OrderId { get; set; }
-        public decimal Amount { get; set; }
-        public DateTime PaymentDate { get; set; }
-        public string PaymentMethod { get; set; } = string.Empty;
-        public string Status { get; set; } = string.Empty;
-        public string? TransactionId { get; set; }
-        public string? Notes { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-    }
-
-    // DTO for ordering vehicles from manufacturer
-    public class CreateManufacturerOrderDto
-    {
-        [Required]
-        public int DealerId { get; set; }
-        [Required]
-        public int VehicleId { get; set; }
-        [Required]
-        [Range(1, int.MaxValue)]
-        public int Quantity { get; set; }
-        public string? Notes { get; set; }
+        public Dictionary<string, string> CustomerInfo { get; set; } = new();
+        public List<Dictionary<string, string>> QuoteItems { get; set; } = new();
+        public Dictionary<string, string> PaymentInfo { get; set; } = new();
+        public Dictionary<string, string> AdditionalInfo { get; set; } = new();
+        public string TotalCalculatedAmount { get; set; } = string.Empty;
+        public string DownPaymentCalculated { get; set; } = string.Empty;
+        public string MonthlyPaymentCalculated { get; set; } = string.Empty;
+        public string InstallmentTotalPaymentCalculated { get; set; } = string.Empty;
     }
 }

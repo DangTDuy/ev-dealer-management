@@ -1,67 +1,92 @@
+using System;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Collections.Generic; // Required for ICollection
 
 namespace SalesService.Models
 {
     public class Order
     {
+        // Helper method to get Vietnam local time
+        private static DateTime GetVietnamNow()
+        {
+            try { return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")); }
+            catch { return DateTime.UtcNow; }
+        }
+
         [Key]
-        public int OrderID { get; set; }
+        public int OrderId { get; set; }
 
         [Required]
-        public int QuoteId { get; set; } // Reference to Quote
+        public int QuoteId { get; set; }
 
         [Required]
         public int CustomerId { get; set; }
 
-        public int? DealerId { get; set; } // New: DealerID
-        
-        // Salesperson handling the order (foreign key to users/staff service)
-        // Kept as int so it can reference an external Users/Staff ID.
+        [Required]
+        public int DealerId { get; set; }
+
+        [Required]
         public int SalespersonId { get; set; }
 
-        // PaymentType: e.g., "Cash", "BankTransfer"
+        [Required]
         [StringLength(50)]
-        public string PaymentType { get; set; } = string.Empty;
+        public string OrderNumber { get; set; }
 
-        // Removed VehicleId and Quantity as they will be in OrderItem
+        // --- Vehicle Info (Merged from OrderItem) ---
+        [Required]
+        public int VehicleId { get; set; }
+        [Required]
+        public int VariantId { get; set; }
+        [Required]
+        public int ColorId { get; set; }
+        [Required]
+        public int Quantity { get; set; }
+        [Required]
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal UnitPrice { get; set; }
 
+        // --- Discount ---
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal? DiscountPercent { get; set; }
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal? DiscountAmount { get; set; }
+
+        // --- Calculated Pricing ---
+        [Required]
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal SubTotal { get; set; }
+        [Required]
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal TotalDiscount { get; set; }
         [Required]
         [Column(TypeName = "decimal(18, 2)")]
         public decimal TotalPrice { get; set; }
 
+        // --- Payment & Delivery ---
         [Required]
         [StringLength(50)]
-        public string Status { get; set; } = "Pending"; // e.g., Pending, Confirmed, Shipped, Delivered, Cancelled
-
+        public string PaymentMethod { get; set; } // Trả thẳng / Trả góp
         [Required]
         [StringLength(50)]
-        public string PaymentStatus { get; set; } = "Pending"; // e.g., Pending, Paid, PartiallyPaid, Refunded
+        public string PaymentForm { get; set; } // Tiền mặt / Chuyển khoản
+        [Required]
+        public DateTime DeliveryPreferredDate { get; set; }
+        [Required]
+        public DateTime DeliveryExpectedDate { get; set; }
 
-        [Required] // Changed to Required as per new requirement
+        // --- Installment Info (Nullable) ---
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal? DepositAmount { get; set; }
+        public int? LoanTermMonths { get; set; }
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal? InterestRateYearly { get; set; }
+
+        // --- Status & Timestamps ---
+        [Required]
         [StringLength(50)]
-        public string PaymentMethod { get; set; } = string.Empty; // New: e.g., Cash, Bank transfer, Financing via bank
-
-        [Required] // New: Preferred Delivery Date
-        public DateTime DeliveryDate { get; set; }
-
-        [StringLength(1000)]
+        public string Status { get; set; }
         public string? Notes { get; set; }
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-
-        // OrderNumber: human-facing order code shown to user (unique)
-        [StringLength(50)]
-        public string? OrderNumber { get; set; }
-
-        // Navigation property
-        [ForeignKey("QuoteId")]
-        public Quote? Quote { get; set; }
-
-        // New: Navigation property for OrderItems
-        public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+        public DateTime CreatedAt { get; set; } = GetVietnamNow(); // Use GetVietnamNow()
+        public DateTime UpdatedAt { get; set; } = GetVietnamNow(); // Use GetVietnamNow()
     }
 }

@@ -1,56 +1,55 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace SalesService.Models
+public class Quote
 {
-    public class Quote
-    {
-        [Key]
-        public int Id { get; set; }
+    [Key]
+    [Column("QuoteId")]
+    public int Id { get; set; }
 
-        [Required]
-        public int CustomerId { get; set; }
+    // --- Foreign Keys ---
+    [Required]
+    public int CustomerId { get; set; }
 
-        [Required]
-        public int VehicleId { get; set; }
+    [Required]
+    public int DealerId { get; set; }
 
-        public int? ColorVariantId { get; set; }
+    [Required]
+    public int SalespersonId { get; set; }
 
-        [Required]
-        [Range(1, int.MaxValue)]
-        public int Quantity { get; set; }
+    [Required]
+    public int VehicleId { get; set; }
 
-        [Required]
-        [Column(TypeName = "decimal(18, 2)")]
-        public decimal UnitPrice { get; set; }
+    [Required]
+    public int VehicleVariantId { get; set; }
 
-        [Required]
-        [Column(TypeName = "decimal(18, 2)")]
-        public decimal TotalPrice { get; set; }
+    [Required]
+    public int ColorId { get; set; }
+    
+    // --- Vehicle Quantity ---
+    [Required]
+    public int Quantity { get; set; }
 
-        [Required]
-        [StringLength(50)]
-        public string Status { get; set; } = "Finalized"; // Changed default status to Finalized
+    // --- Pricing ---
+    [Required]
+    [Column(TypeName = "decimal(18, 2)")]
+    public decimal BasePrice { get; set; }
 
-        [Required]
-        public int SalesRepId { get; set; }
+    [Required]
+    [Column(TypeName = "decimal(18, 2)")]
+    public decimal TotalBasePrice { get; set; }
 
-        [StringLength(1000)]
-        public string? Notes { get; set; }
+    // --- Quote Status ---
+    [Required]
+    [MaxLength(50)]
+    public string Status { get; set; } = "Active";
+    // Active | ConvertedToOrder | Cancelled
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        // Removed UpdatedAt as per user request
+    // --- Additional Notes (Added for frontend display) ---
+    [MaxLength(1000)] // Optional: Add a max length for notes
+    public string? Notes { get; set; }
 
-        // New payment fields as expected by SalesController
-        [StringLength(50)]
-        public string? PaymentType { get; set; }
-        
-        [Column(TypeName = "decimal(5, 2)")]
-        public decimal? DownPaymentPercent { get; set; }
-
-        public int? LoanTerm { get; set; }
-        
-        [Column(TypeName = "decimal(5, 2)")]
-        public decimal? InterestRate { get; set; }
-    }
+    // --- Timestamps ---
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

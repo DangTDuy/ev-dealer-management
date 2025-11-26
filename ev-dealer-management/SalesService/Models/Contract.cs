@@ -1,30 +1,56 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace SalesService.Models
 {
+    [Table("Contracts")]
+    [Index(nameof(ContractNumber), IsUnique = true)]
     public class Contract
     {
+        // Helper method to get Vietnam local time
+        private static DateTime GetVietnamNow()
+        {
+            try { return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")); }
+            catch { return DateTime.UtcNow; }
+        }
+
         [Key]
-        public int Id { get; set; }
+        public int ContractId { get; set; }
 
         [Required]
-        public int OrderId { get; set; } // Reference to Order
+        public int OrderId { get; set; }
 
         [Required]
-        [StringLength(100)]
-        public string ContractNumber { get; set; } = Guid.NewGuid().ToString(); // Auto-generated or provided
+        public int CustomerId { get; set; }
 
-        [StringLength(2000)]
-        public string? ContractDetails { get; set; } // e.g., URL to document, or JSON string
+        [Required]
+        public int DealerId { get; set; }
 
-        public DateTime SignDate { get; set; } = DateTime.UtcNow;
+        [Required]
+        public int SalespersonId { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow; // Added UpdatedAt
+        [Required]
+        [StringLength(50)]
+        public string ContractNumber { get; set; }
 
-        // Navigation property
-        [ForeignKey("OrderId")]
-        public Order? Order { get; set; }
+        public DateOnly SignedDate { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal TotalAmount { get; set; }
+
+        [Required]
+        [StringLength(30)]
+        public string PaymentStatus { get; set; } // Unpaid / Partial / Paid
+
+        [Required]
+        [StringLength(30)]
+        public string Status { get; set; } // PendingApproval / Approved...
+
+        public string? Notes { get; set; }
+
+        public DateTime CreatedAt { get; set; } = GetVietnamNow(); // Use GetVietnamNow()
+        public DateTime UpdatedAt { get; set; } = GetVietnamNow(); // Use GetVietnamNow()
     }
 }

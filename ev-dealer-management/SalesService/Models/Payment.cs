@@ -1,42 +1,37 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System;
+using System.ComponentModel.DataAnnotations; // Required for [Key] if not already present
+using System.ComponentModel.DataAnnotations.Schema; // Required for [Column] if not already present
 
 namespace SalesService.Models
 {
     public class Payment
     {
-        [Key]
-        public int Id { get; set; }
+        // Helper method to get Vietnam local time
+        private static DateTime GetVietnamNow()
+        {
+            try { return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")); }
+            catch { return DateTime.UtcNow; }
+        }
 
-        [Required]
-        public int OrderId { get; set; } // Reference to the Order
+        public Guid PaymentId { get; set; }
 
-        [Required]
-        [Column(TypeName = "decimal(18, 2)")]
+        // FK
+        public Guid OrderId { get; set; }
+        public Order? Order { get; set; }
+
         public decimal Amount { get; set; }
+        public string Method { get; set; } = string.Empty; // Cash, BankTransfer, Card
+        public string Status { get; set; } = "Pending";    // Pending, Paid, Failed
 
-        [Required]
-        public DateTime PaymentDate { get; set; } = DateTime.UtcNow;
+        // New field
+        public string? TransactionCode { get; set; }
 
-        [Required]
-        [StringLength(50)]
-        public string PaymentMethod { get; set; } = "Cash"; // e.g., Cash, BankTransfer, Installment
+        public DateTime? PaidDate { get; set; }
 
-        [Required]
-        [StringLength(50)]
-        public string Status { get; set; } = "Completed"; // e.g., Completed, Pending, Failed, Refunded
-
-        [StringLength(200)]
-        public string? TransactionId { get; set; } // e.g., from payment gateway
-
-        [StringLength(1000)]
         public string? Notes { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-
-        // Navigation property
-        [ForeignKey("OrderId")]
-        public Order? Order { get; set; }
+        // Audit
+        public DateTime CreatedAt { get; set; } = GetVietnamNow(); // Use GetVietnamNow()
+        public DateTime UpdatedAt { get; set; } = GetVietnamNow(); // Use GetVietnamNow()
     }
 }

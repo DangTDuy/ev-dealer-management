@@ -560,3 +560,5 @@ C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\CustomerServ
 >>>>>>> f17bc6a ( add: Drivertest)
 D:\gitclone\ev-dealer-management\ev-dealer-management\CustomerService\bin\Debug\net8.0\AutoMapper.dll
 D:\gitclone\ev-dealer-management\ev-dealer-management\CustomerService\bin\Debug\net8.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
+C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\CustomerService\bin\Debug\net8.0\AutoMapper.dll
+C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\CustomerService\bin\Debug\net8.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
