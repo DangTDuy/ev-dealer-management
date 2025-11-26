@@ -52,5 +52,9 @@ namespace SalesService.Models
 
         public DateTime CreatedAt { get; set; } = GetVietnamNow(); // Use GetVietnamNow()
         public DateTime UpdatedAt { get; set; } = GetVietnamNow(); // Use GetVietnamNow()
+
+        // --- Navigation Property ---
+        [ForeignKey("OrderId")]
+        public virtual Order Order { get; set; }
     }
 }

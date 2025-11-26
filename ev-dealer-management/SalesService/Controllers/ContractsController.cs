@@ -104,5 +104,56 @@ namespace SalesService.Controllers
 
             return Ok(contract);
         }
+
+        /// <summary>
+        /// Updates the status of a contract.
+        /// </summary>
+        [HttpPut("{id}/status")]
+        public async Task<IActionResult> UpdateContractStatus(int id, [FromBody] UpdateStatusRequest request)
+        {
+            _logger.LogInformation("Attempting to update status for Contract ID: {ContractId} to {Status}", id, request.Status);
+
+            var contract = await _context.Contracts.Include(c => c.Order).FirstOrDefaultAsync(c => c.ContractId == id);
+            if (contract == null)
+            {
+                _logger.LogWarning("Contract with ID {ContractId} not found.", id);
+                return NotFound(new { message = $"Contract with ID {id} not found." });
+            }
+
+            var order = contract.Order;
+            if (order == null)
+            {
+                _logger.LogWarning("Order associated with Contract ID {ContractId} not found.", id);
+                return NotFound(new { message = "Associated order not found." });
+            }
+
+            // Update contract status
+            contract.Status = request.Status;
+            contract.UpdatedAt = DateTime.UtcNow;
+
+            // Update order status based on contract approval
+            if (request.Status == "Approved")
+            {
+                order.Status = "ReadyForDelivery";
+            }
+            else if (request.Status == "Rejected")
+            {
+                order.Status = "Pending"; // Revert order status to pending
+            }
+            order.UpdatedAt = DateTime.UtcNow;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Successfully updated status for Contract ID {ContractId} and its Order.", id);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database update failed when updating status for Contract ID {ContractId}.", id);
+                return StatusCode(500, new { message = "An error occurred while updating the status.", error = ex.InnerException?.Message ?? ex.Message });
+            }
+
+            return Ok(new { message = "Contract status updated successfully." });
+        }
     }
 }

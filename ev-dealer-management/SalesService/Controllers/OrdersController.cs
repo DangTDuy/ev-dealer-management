@@ -145,8 +145,11 @@ namespace SalesService.Controllers
         {
             try
             {
-                var orders = await _context.Orders.ToListAsync();
-                _logger.LogInformation("Retrieved {Count} orders.", orders.Count);
+                // Include the related Contract entity
+                var orders = await _context.Orders
+                                           .Include(o => o.Contract)
+                                           .ToListAsync();
+                _logger.LogInformation("Retrieved {Count} orders with their contracts.", orders.Count);
                 return Ok(orders);
             }
             catch (Exception ex)
@@ -164,7 +167,10 @@ namespace SalesService.Controllers
         {
             try
             {
-                var order = await _context.Orders.FindAsync(id);
+                // Also include the contract for the single order view
+                var order = await _context.Orders
+                                          .Include(o => o.Contract)
+                                          .FirstOrDefaultAsync(o => o.OrderId == id);
 
                 if (order == null)
                 {

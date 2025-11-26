@@ -156,14 +156,11 @@ export default function SalesDashboard() {
     setLoading(true);
     setError(null);
     try {
-      // Changed the API endpoint from /api/Sales/orders to /api/Orders
       const response = await axios.get('http://localhost:5036/api/Orders');
       console.log('Raw API response:', response.data);
-      
-      // Handle both OData format { value: [...], Count: 3 } and direct array
-      const ordersData = Array.isArray(response.data) 
-        ? response.data 
-        : (response.data?.value || response.data?.data || []);
+
+      // Handle new JSON format with $id and $values for cycle preservation
+      const ordersData = response.data.$values || response.data.value || response.data.data || response.data || [];
       
       console.log('Parsed orders:', ordersData);
       setOrders(ordersData);

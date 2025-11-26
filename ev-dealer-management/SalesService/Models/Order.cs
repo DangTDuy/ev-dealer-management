@@ -88,5 +88,8 @@ namespace SalesService.Models
         public string? Notes { get; set; }
         public DateTime CreatedAt { get; set; } = GetVietnamNow(); // Use GetVietnamNow()
         public DateTime UpdatedAt { get; set; } = GetVietnamNow(); // Use GetVietnamNow()
+
+        // --- Navigation Property ---
+        public virtual Contract? Contract { get; set; }
     }
 }

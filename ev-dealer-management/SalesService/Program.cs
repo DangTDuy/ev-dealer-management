@@ -1,23 +1,15 @@
 using SalesService.Data;
-// Removed: using SalesService.BackgroundServices; // No longer needed
-// Removed: using SalesService.Services; // No longer needed as IMessageProducer and RabbitMQProducerService are removed
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using QuestPDF.Infrastructure; // Required for LicenseType
+using System.Text.Json.Serialization; // Required for ReferenceHandler
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure QuestPDF license
 QuestPDF.Settings.License = LicenseType.Community;
-
-// NOTE: older QuestPDF font registration APIs changed in newer versions.
-// The explicit `FontManager.RegisterTag(...)` and `Font.FromFile(...)`
-// calls were removed because they reference APIs not present in the
-// project QuestPDF version. If you need custom fonts, register them
-// using the QuestPDF recommended approach for your package version.
-
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -31,7 +23,12 @@ builder.Services.AddCors(options =>
 });
 
 // Add services to the container.
-builder.Services.AddControllers();
+// Configure JSON serialization to handle object cycles
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -40,12 +37,6 @@ builder.Services.AddDbContext<SalesDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
            .LogTo(Console.WriteLine, LogLevel.Information)
            .EnableSensitiveDataLogging());
-
-// Removed: Register IMessageProducer for RabbitMQ
-// Removed: builder.Services.AddSingleton<SalesService.Services.IMessageProducer, RabbitMQProducerService>();
-
-// Removed: Register Background Consumer
-// Removed: builder.Services.AddHostedService<SalesEventConsumer>();
 
 var app = builder.Build();
 

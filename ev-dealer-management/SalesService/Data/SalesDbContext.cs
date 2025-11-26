@@ -34,6 +34,11 @@ namespace SalesService.Data
                 entity.HasKey(e => e.OrderId);
                 entity.HasIndex(e => e.OrderNumber).IsUnique();
                 entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
+
+                // Define the one-to-one relationship with Contract
+                entity.HasOne(o => o.Contract)
+                      .WithOne(c => c.Order)
+                      .HasForeignKey<Contract>(c => c.OrderId);
             });
 
             modelBuilder.Entity<Contract>(entity =>
