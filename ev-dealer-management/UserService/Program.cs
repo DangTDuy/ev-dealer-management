@@ -138,6 +138,13 @@ app.MapGet("/api/users", [Microsoft.AspNetCore.Authorization.Authorize(Roles = "
     return result.Success ? Results.Ok(result) : Results.BadRequest(result);
 });
 
+// New endpoint for Admin to create approved users
+app.MapPost("/api/admin/users", [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")] async (RegisterRequest req, IUserService userService) =>
+{
+    var result = await userService.CreateApprovedUserAsync(req);
+    return result.Success ? Results.Created($"/api/users/{result.UserId}", result) : Results.BadRequest(result);
+});
+
 app.MapGet("/api/users/{id:int}", [Microsoft.AspNetCore.Authorization.Authorize] async (int id, System.Security.Claims.ClaimsPrincipal user, IUserService userService) =>
 {
     var currentUserRole = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
@@ -275,6 +282,7 @@ public class PasswordResetToken
 public interface IUserService
 {
     Task<AuthResult> RegisterAsync(RegisterRequest request);
+    Task<AuthResult> CreateApprovedUserAsync(RegisterRequest request); // New method for admin
     Task<AuthResult> LoginAsync(LoginRequest request);
     Task<UserListResult> GetUsersAsync();
     Task<UserResult> GetUserByIdAsync(int id);
@@ -336,6 +344,45 @@ public class UserServiceImpl : IUserService
         await _db.SaveChangesAsync();
 
         return new AuthResult(true, "User created successfully. Your account is pending approval.", UserId: user.Id);
+    }
+
+    public async Task<AuthResult> CreateApprovedUserAsync(RegisterRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password) ||
+            string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.FullName) || string.IsNullOrWhiteSpace(request.Role))
+            return new AuthResult(false, "All fields are required");
+
+        var validRoles = new[] { "DealerStaff", "DealerManager", "EVMStaff", "Admin" }; // Admin can create other Admins
+        if (!validRoles.Contains(request.Role, StringComparer.OrdinalIgnoreCase))
+        {
+            return new AuthResult(false, "Invalid role selected.");
+        }
+
+        if (await _db.Users.AnyAsync(u => u.Username == request.Username))
+            return new AuthResult(false, "Username already exists");
+
+        if (await _db.Users.AnyAsync(u => u.Email == request.Email))
+            return new AuthResult(false, "Email already exists");
+
+        if (request.DealerId.HasValue && !await _db.Dealers.AnyAsync(d => d.Id == request.DealerId.Value))
+            return new AuthResult(false, "Invalid Dealer ID");
+
+        var user = new User
+        {
+            Username = request.Username,
+            Email = request.Email,
+            FullName = request.FullName,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            Role = request.Role,
+            DealerId = request.DealerId,
+            IsActive = true, // Admin created users are active by default
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync();
+
+        return new AuthResult(true, "User created and approved successfully.", UserId: user.Id);
     }
 
     public async Task<AuthResult> LoginAsync(LoginRequest request)

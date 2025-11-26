@@ -31,6 +31,28 @@ const adminService = {
       throw error.response?.data?.message || 'An error occurred while rejecting the user.';
     }
   },
+
+  // New method to create an approved user
+  createApprovedUser: async (userData) => {
+    try {
+      const response = await api.post('/admin/users', userData);
+      return response;
+    } catch (error) {
+      console.error('Error creating approved user:', error);
+      throw error; // Throw the full error object for more detailed handling in UI
+    }
+  },
+
+  // New method to get dealers
+  getDealers: async () => {
+    try {
+      const response = await api.get('/dealers');
+      return response.data; // Assuming the API returns an array of dealers directly
+    } catch (error) {
+      console.error('Error fetching dealers:', error);
+      throw error.response?.data?.message || 'An error occurred while fetching dealers.';
+    }
+  },
 };
 
 export default adminService;

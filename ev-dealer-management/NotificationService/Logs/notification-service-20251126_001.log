@@ -258,3 +258,11 @@ System.Text.Json.JsonException: JSON deserialization for type 'NotificationServi
 2025-11-26 21:05:26.456 +07:00 [INF] Started consuming from queue: vehicle.reserved
 2025-11-26 21:05:26.459 +07:00 [INF] Started consuming from queue: testdrive.scheduled
 2025-11-26 21:05:26.459 +07:00 [INF] Started consuming messages from all queues.
+2025-11-26 23:56:29.197 +07:00 [INF] Starting NotificationService...
+2025-11-26 23:56:29.858 +07:00 [INF] NotificationService started successfully on http://localhost:5051
+2025-11-26 23:56:30.600 +07:00 [INF] RabbitMQ consumer connection and channels initialized successfully.
+2025-11-26 23:56:30.689 +07:00 [INF] RabbitMQ Consumer Hosted Service running.
+2025-11-26 23:56:30.859 +07:00 [INF] Started consuming from queue: sales.completed
+2025-11-26 23:56:30.926 +07:00 [INF] Started consuming from queue: vehicle.reserved
+2025-11-26 23:56:30.975 +07:00 [INF] Started consuming from queue: testdrive.scheduled
+2025-11-26 23:56:31.022 +07:00 [INF] Started consuming messages from all queues.

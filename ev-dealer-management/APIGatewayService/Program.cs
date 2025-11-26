@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Create an in-memory configuration for Ocelot
 var ocelotConfiguration = new ConfigurationBuilder()
-    .AddInMemoryCollection(new Dictionary<string, string>
+    .AddInMemoryCollection(new Dictionary<string, string?>
     {
         { "Routes:0:UpstreamPathTemplate", "/api/users/{everything}" },
         { "Routes:0:UpstreamHttpMethod:0", "GET" },
@@ -155,6 +155,24 @@ var ocelotConfiguration = new ConfigurationBuilder()
         { "Routes:16:DownstreamScheme", "http" },
         { "Routes:16:DownstreamHostAndPorts:0:Host", "localhost" },
         { "Routes:16:DownstreamHostAndPorts:0:Port", "5068" }, // Assuming VehicleService serves images
+
+        // NEW ROUTE FOR ADMIN USERS (specific POST /api/admin/users) - Placed first for priority
+        { "Routes:17:UpstreamPathTemplate", "/api/admin/users" },
+        { "Routes:17:UpstreamHttpMethod:0", "POST" },
+        { "Routes:17:DownstreamPathTemplate", "/api/admin/users" },
+        { "Routes:17:DownstreamScheme", "http" },
+        { "Routes:17:DownstreamHostAndPorts:0:Host", "localhost" },
+        { "Routes:17:DownstreamHostAndPorts:0:Port", "7001" }, // Assuming User Service handles admin users
+
+        // NEW ROUTE FOR ADMIN USERS (general, e.g., GET /api/admin/users/{id}, PUT, DELETE)
+        { "Routes:18:UpstreamPathTemplate", "/api/admin/users/{everything}" },
+        { "Routes:18:UpstreamHttpMethod:0", "GET" },
+        { "Routes:18:UpstreamHttpMethod:1", "PUT" },
+        { "Routes:18:UpstreamHttpMethod:2", "DELETE" },
+        { "Routes:18:DownstreamPathTemplate", "/api/admin/users/{everything}" },
+        { "Routes:18:DownstreamScheme", "http" },
+        { "Routes:18:DownstreamHostAndPorts:0:Host", "localhost" },
+        { "Routes:18:DownstreamHostAndPorts:0:Port", "7001" }, // Assuming User Service handles admin users
 
         { "GlobalConfiguration:BaseUrl", "http://localhost:5036" }
     })
