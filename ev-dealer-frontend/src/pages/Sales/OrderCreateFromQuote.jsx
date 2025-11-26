@@ -172,6 +172,7 @@ export default function OrderCreateFromQuote() {
 
   const handleSelectPromotion = (promotion) => {
     setSelectedPromotion(promotion);
+    console.log("Selected Promotion object:", promotion); // Log the entire promotion object
   };
 
   const handleApplyPromotion = () => {
@@ -185,14 +186,36 @@ export default function OrderCreateFromQuote() {
   const baseTotal = quote?.totalBasePrice ?? ((quote?.basePrice || 0) * (quote?.quantity || 1)); // Use totalBasePrice
   let promoAmount = 0;
   if (selectedPromotion) {
-    const promoValue = parseFloat(selectedPromotion.value); // Ensure value is parsed to float here
-    if (selectedPromotion.type === 'percent') {
-      promoAmount = baseTotal * (promoValue / 100);
-    } else if (selectedPromotion.type === 'amount') {
-      promoAmount = promoValue;
+    console.log("Selected Promotion:", selectedPromotion);
+    console.log("baseTotal:", baseTotal);
+    
+    const promoValue = parseFloat(selectedPromotion.discountValue); 
+    const discountType = selectedPromotion.discountType;
+
+    console.log("Debug: selectedPromotion.discountType =", discountType);
+    console.log("Debug: promoValue =", promoValue);
+
+    if (isNaN(promoValue)) {
+      console.error("promoValue is NaN. Check selectedPromotion object for correct value property:", selectedPromotion);
     }
+    if (isNaN(baseTotal)) {
+      console.error("baseTotal is NaN. Check quote data:", quote);
+    }
+
+    if (discountType === 'Percent') { 
+      promoAmount = baseTotal * (promoValue / 100);
+      console.log("Debug: Calculated Percent promoAmount =", promoAmount);
+    } else if (discountType === 'Amount') { 
+      promoAmount = promoValue;
+      console.log("Debug: Calculated Amount promoAmount =", promoAmount);
+    } else {
+      console.log("Debug: Unrecognized discountType =", discountType);
+    }
+    console.log("Final promoAmount before computedTotal:", promoAmount);
   }
   const computedTotal = Math.max(0, Math.round(baseTotal - promoAmount));
+  console.log("computedTotal:", computedTotal);
+
 
   const handleCreateOrder = async () => {
     // --- Validation ---
@@ -220,8 +243,8 @@ export default function OrderCreateFromQuote() {
         return parsed;
     };
 
-    const discountAmountValue = selectedPromotion?.type === 'amount' ? parseFloat(selectedPromotion.value) : null;
-    const discountPercentValue = selectedPromotion?.type === 'percent' ? parseFloat(selectedPromotion.value) : null;
+    const discountAmountValue = selectedPromotion?.discountType === 'Amount' ? parseFloat(selectedPromotion.discountValue) : null;
+    const discountPercentValue = selectedPromotion?.discountType === 'Percent' ? parseFloat(selectedPromotion.discountValue) : null;
 
     const orderPayload = {
       quoteId: parseInt(quoteId),
@@ -370,7 +393,7 @@ export default function OrderCreateFromQuote() {
                     <div>
                       <p style={{ margin: '0', fontWeight: '500', color: '#3B82F6' }}>{selectedPromotion.name}</p>
                       <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748B' }}>
-                        Giảm giá: {selectedPromotion.type === 'percent' ? `${parseFloat(selectedPromotion.value)}%` : formatCurrency(parseFloat(selectedPromotion.value))}
+                        Giảm giá: {selectedPromotion.discountType === 'Percent' ? `${parseFloat(selectedPromotion.discountValue)}%` : formatCurrency(parseFloat(selectedPromotion.discountValue))}
                       </p>
                     </div>
                     <button onClick={handleRemovePromotion} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', padding: '4px' }} title="Xóa khuyến mãi">
@@ -467,10 +490,11 @@ export default function OrderCreateFromQuote() {
             
             <div style={{ maxHeight: '400px', overflowY: 'auto', marginBottom: '20px' }}>
               {promotions.map((promo) => {
-                const promoValue = parseFloat(promo.value); // Ensure promo.value is a number here
-                const equivalentAmount = promo.type === 'percent' ? (baseTotal * (promoValue / 100)) : promoValue;
+                // Use discountValue and discountType from the promo object
+                const promoValue = parseFloat(promo.discountValue); 
+                const equivalentAmount = promo.discountType === 'Percent' ? (baseTotal * (promoValue / 100)) : promoValue;
                 return (
-                <div key={promo.promotionId} style={{
+                <div key={promo.promotionId} style={{ // Added key prop here
                   display: 'flex', alignItems: 'center', padding: '12px',
                   border: selectedPromotion?.promotionId === promo.promotionId ? '2px solid #3B82F6' : '1px solid #E2E8F0', // Thicker blue border for selected
                   borderRadius: '8px', marginBottom: '12px',
@@ -488,7 +512,7 @@ export default function OrderCreateFromQuote() {
                   <div>
                     <p style={{ margin: '0', fontWeight: '600', color: '#0F172A' }}>{promo.name}</p>
                     <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#475569' }}>
-                      Giảm giá: {promo.type === 'percent' ? `${promoValue}% (tương đương ${formatCurrency(equivalentAmount)})` : formatCurrency(promoValue)}
+                      Giảm giá: {promo.discountType === 'Percent' ? `${promoValue}% (tương đương ${formatCurrency(equivalentAmount)})` : formatCurrency(promoValue)}
                     </p>
                     <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#64748B' }}>
                       Áp dụng từ {new Date(promo.startDate).toLocaleDateString()} đến {new Date(promo.endDate).toLocaleDateString()}
