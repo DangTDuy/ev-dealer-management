@@ -377,3 +377,4 @@ D:\gitclone\ev-dealer-management\ev-dealer-management\NotificationService\obj\De
 D:\gitclone\ev-dealer-management\ev-dealer-management\NotificationService\obj\Debug\net8.0\NotificationService.pdb
 D:\gitclone\ev-dealer-management\ev-dealer-management\NotificationService\obj\Debug\net8.0\NotificationService.genruntimeconfig.cache
 D:\gitclone\ev-dealer-management\ev-dealer-management\NotificationService\obj\Debug\net8.0\ref\NotificationService.dll
+C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\NotificationService\bin\Debug\net8.0\firebase-credentials.json

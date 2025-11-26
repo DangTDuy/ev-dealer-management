@@ -1,12 +1,11 @@
 {
   "Version": 1,
-  "Hash": "5+MHfBja6kFsmV3UQUe1+43sRIfwrueyEa5rLrlPugQ=",
+  "Hash": "60oJJJ+bDeRsn/AXU0jat2aBQx3uhLC9C99lKuhmzaQ=",
   "Source": "CustomerService",
   "BasePath": "_content/CustomerService",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
   "DiscoveryPatterns": [],
-  "Assets": [],
-  "Endpoints": []
+  "Assets": []
 }
