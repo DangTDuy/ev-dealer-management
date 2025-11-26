@@ -86,9 +86,9 @@ namespace SalesService.Controllers
                     Quantity = request.Quantity,
                     UnitPrice = request.UnitPrice,
                     
-                    // Payment & Delivery
-                    PaymentMethod = request.PaymentType ?? "Unknown", // Default value if null
-                    PaymentForm = request.PaymentMethod ?? "Unknown", // Default value if null
+                    // Payment & Delivery - Đã sửa lỗi ánh xạ ở đây
+                    PaymentMethod = request.PaymentMethod ?? "Unknown", // Sửa: Lấy từ request.PaymentMethod
+                    PaymentForm = request.PaymentType ?? "Unknown",    // Sửa: Lấy từ request.PaymentType
                     DeliveryPreferredDate = request.DeliveryDate,
                     DeliveryExpectedDate = request.EstimatedDeliveryDate,
                     Notes = request.Notes,

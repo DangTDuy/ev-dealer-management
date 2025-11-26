@@ -46,6 +46,12 @@ namespace SalesService.DTOs
         public DateTime UpdatedAt { get; set; }
     }
 
+    public class UpdateQuoteStatusDto
+    {
+        [Required, MaxLength(50)]
+        public string Status { get; set; } = string.Empty;
+    }
+
     // --- DTOs for ORDER (Refactored) ---
     public class CreateOrderDto
     {

@@ -134,5 +134,42 @@ namespace SalesService.Controllers
                 return StatusCode(500, new { message = "Failed to create quote", error = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Update the status of a quote.
+        /// </summary>
+        [HttpPut("{id}/status")]
+        public async Task<IActionResult> UpdateQuoteStatus(int id, [FromBody] UpdateQuoteStatusDto updateQuoteStatusDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var quote = await _context.Quotes.FindAsync(id);
+
+                if (quote == null)
+                {
+                    _logger.LogWarning("Quote with ID {QuoteId} not found for status update.", id);
+                    return NotFound();
+                }
+
+                quote.Status = updateQuoteStatusDto.Status;
+                quote.UpdatedAt = GetVietnamNow();
+
+                _context.Entry(quote).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Quote ID {QuoteId} status updated to {NewStatus}.", id, updateQuoteStatusDto.Status);
+                return NoContent(); // 204 No Content is typical for successful PUT/PATCH updates
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating status for quote with ID {QuoteId}.", id);
+                return StatusCode(500, new { message = "Failed to update quote status", error = ex.Message });
+            }
+        }
     }
 }
