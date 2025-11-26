@@ -102,7 +102,13 @@ const Login = () => {
       // Redirect to dashboard
       navigate("/dashboard");
     } catch (err) {
-      setError(err || "Đăng nhập thất bại. Vui lòng thử lại.");
+      // Extract a meaningful error message
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data ||
+        err.message ||
+        "Đăng nhập thất bại. Vui lòng thử lại.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

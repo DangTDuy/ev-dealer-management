@@ -46,6 +46,17 @@ var ocelotConfiguration = new ConfigurationBuilder()
         { "Routes:3:DownstreamHostAndPorts:0:Host", "localhost" },
         { "Routes:3:DownstreamHostAndPorts:0:Port", "5039" }, // Updated port for CustomerService
 
+        // New route for authentication service
+        { "Routes:4:UpstreamPathTemplate", "/api/auth/{everything}" },
+        { "Routes:4:UpstreamHttpMethod:0", "GET" },
+        { "Routes:4:UpstreamHttpMethod:1", "POST" },
+        { "Routes:4:UpstreamHttpMethod:2", "PUT" },
+        { "Routes:4:UpstreamHttpMethod:3", "DELETE" },
+        { "Routes:4:DownstreamPathTemplate", "/api/auth/{everything}" },
+        { "Routes:4:DownstreamScheme", "http" },
+        { "Routes:4:DownstreamHostAndPorts:0:Host", "localhost" },
+        { "Routes:4:DownstreamHostAndPorts:0:Port", "7001" }, // Assuming auth service runs on port 7001 (User Service)
+
         { "GlobalConfiguration:BaseUrl", "http://localhost:5036" }
     })
     .Build();
