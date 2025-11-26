@@ -106,10 +106,10 @@ public class ReportService : IReportService
         var dealer = dealers.FirstOrDefault(d => d.Id == dealerId);
         
         // Get all orders for this dealer
-        var orders = await _salesDataService.GetOrdersAsync(null, null, dealerId);
+        var orders = await _salesDataService.GetOrdersAsync(null, null, null);
         
         // Get all payments
-        var allPayments = await _salesDataService.GetPaymentsAsync();
+        var allPayments = await _salesDataService.GetPaymentsAsync(null, null, null);
         
         // Calculate debt to manufacturer (orders where dealer bought from manufacturer)
         // For now, we'll assume all orders are dealer purchases from manufacturer
@@ -329,4 +329,3 @@ public class ReportService : IReportService
         return "critical";
     }
 }
-
