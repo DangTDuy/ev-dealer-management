@@ -100,8 +100,11 @@ export default function OrderCreateFromQuote() {
     try {
       const response = await axios.get('http://localhost:5003/api/Promotions');
       const now = new Date();
+      // FIX: Handle cases where API returns an object with array in $values
+      const promotionData = Array.isArray(response.data) ? response.data : response.data?.$values || [];
+      
       // Filter promotions that are currently active
-      const activePromotions = response.data.filter(promo => {
+      const activePromotions = promotionData.filter(promo => {
         const startDate = new Date(promo.startDate);
         const endDate = new Date(promo.endDate);
         return now >= startDate && now <= endDate;
@@ -192,18 +195,6 @@ export default function OrderCreateFromQuote() {
   const computedTotal = Math.max(0, Math.round(baseTotal - promoAmount));
 
   const handleCreateOrder = async () => {
-    // --- Debugging Logs (Moved to the top) ---
-    console.log('--- Debugging Total Amount Calculation ---');
-    console.log('Quote object:', quote);
-    console.log('quote.totalBasePrice:', quote?.totalBasePrice);
-    console.log('quote.basePrice:', quote?.basePrice);
-    console.log('quote.quantity:', quote?.quantity);
-    console.log('baseTotal (calculated):', baseTotal);
-    console.log('selectedPromotion:', selectedPromotion);
-    console.log('promoAmount (calculated):', promoAmount);
-    console.log('computedTotal (final):', computedTotal);
-    console.log('------------------------------------------');
-
     // --- Validation ---
     if (!paymentMethod || !deliveryDate || !estimatedDeliveryDate) {
       alert('Vui lòng điền đầy đủ các trường bắt buộc (*).');
@@ -218,6 +209,8 @@ export default function OrderCreateFromQuote() {
         return;
     }
 
+    setLoading(true);
+
     // --- Payload Preparation ---
     const getNumericValue = (value, isCurrency = false, allowZero = false) => {
         if (value === null || value === undefined || value === '') return null;
@@ -230,70 +223,68 @@ export default function OrderCreateFromQuote() {
     const discountAmountValue = selectedPromotion?.type === 'amount' ? parseFloat(selectedPromotion.value) : null;
     const discountPercentValue = selectedPromotion?.type === 'percent' ? parseFloat(selectedPromotion.value) : null;
 
-    const payload = {
+    const orderPayload = {
       quoteId: parseInt(quoteId),
       customerId: quote.customerId,
-      customerEmail: customerInfo?.email, // Added customer email
-      customerName: customerInfo?.name,   // Added customer name
-      dealerId: quote.dealerId, // Get dealerId from quote
-      salespersonId: salespersonId, // Use logged-in user's ID
+      customerEmail: customerInfo?.email,
+      customerName: customerInfo?.name,
+      dealerId: quote.dealerId,
+      salespersonId: salespersonId,
       paymentMethod: paymentMethod,
       deliveryDate: deliveryDate,
       estimatedDeliveryDate: estimatedDeliveryDate,
       notes: notes,
       paymentType: paymentType,
-      depositAmount: paymentType === 'Installment' ? getNumericValue(downPaymentAmount, true) : null, // Map to DepositAmount
-      interestRateYearly: paymentType === 'Installment' ? getNumericValue(interestRate, false, true) : null, // Map to InterestRateYearly
-      loanTermMonths: paymentType === 'Installment' ? parseInt(loanTerm) : null, // Map to LoanTermMonths
+      depositAmount: paymentType === 'Installment' ? getNumericValue(downPaymentAmount, true) : null,
+      interestRateYearly: paymentType === 'Installment' ? getNumericValue(interestRate, false, true) : null,
+      loanTermMonths: paymentType === 'Installment' ? parseInt(loanTerm) : null,
       vehicleId: quote.vehicleId,
-      vehicleVariantId: quote.vehicleVariantId, // Changed from variantId to vehicleVariantId
+      vehicleVariantId: quote.vehicleVariantId,
       colorId: quote.colorId,
       quantity: quote.quantity,
-      unitPrice: quote.basePrice, // Use basePrice from quote
-      totalAmount: computedTotal, // *** Đã thay đổi từ totalPrice sang totalAmount ***
-      
-      // Promotion fields
+      unitPrice: quote.basePrice,
+      totalAmount: computedTotal,
       promotionId: selectedPromotion?.promotionId || null,
-      discountAmount: !isNaN(discountAmountValue) ? discountAmountValue : null, // Ensure value is parsed to float and is a valid number
-      discountPercent: !isNaN(discountPercentValue) ? discountPercentValue : null, // Ensure value is parsed to float and is a valid number
-      discountNote: selectedPromotion?.description || null, // Using description as discountNote
+      discountAmount: !isNaN(discountAmountValue) ? discountAmountValue : null,
+      discountPercent: !isNaN(discountPercentValue) ? discountPercentValue : null,
+      discountNote: selectedPromotion?.description || null,
     };
 
     // --- API Call ---
-    console.log("Sending payload to backend:", payload); // Log payload for debugging
-
+    // The backend endpoint /api/Orders/complete is responsible for BOTH creating the order
+    // AND updating the quote status. We only need to make this one call.
     try {
-      setLoading(true);
-      await axios.post('http://localhost:5003/api/Orders/complete', payload); // Corrected port and endpoint
+      console.log("Sending order payload to backend:", orderPayload);
+      await axios.post('http://localhost:5003/api/Orders/complete', orderPayload);
       
-      // *** DEBUGGING STEP ***
-      console.log("Order created successfully. Preparing to navigate...");
-      alert("Đơn hàng đã được tạo thành công! Sẽ điều hướng ngay bây giờ.");
+      // If the call succeeds, we assume the backend has done its job.
+      alert("Đơn hàng đã được tạo thành công!");
+      navigate('/sales/quotes'); // Navigate to quote list to see the result.
 
-      navigate('/sales'); // Navigate to sales list
     } catch (err) {
+      // If this fails, it's a backend issue.
       let errorMessage = 'Tạo đơn hàng thất bại. Vui lòng thử lại.';
       if (err.response) {
-        if (err.response.data?.message) {
-          errorMessage = err.response.data.message;
-        } else if (err.response.data?.title) {
-          errorMessage = err.response.data.title;
-        } else if (err.response.data?.errors) {
-          // Handle validation errors object
-          const validationErrors = Object.entries(err.response.data.errors)
+        const serverError = err.response.data;
+        if (serverError?.message) {
+          errorMessage = serverError.message;
+        } else if (serverError?.title) {
+          errorMessage = serverError.title;
+        } else if (serverError?.errors) {
+          const validationErrors = Object.entries(serverError.errors)
             .map(([key, value]) => `${key}: ${value.join(', ')}`)
             .join('\n');
           errorMessage = `Lỗi xác thực:\n${validationErrors}`;
-        } else if (typeof err.response.data === 'string') {
-          errorMessage = err.response.data;
+        } else if (typeof serverError === 'string') {
+          errorMessage = serverError;
         } else {
-          errorMessage = JSON.stringify(err.response.data); // Fallback to stringify if it's an object without specific message
+          errorMessage = JSON.stringify(serverError);
         }
       } else if (err.message) {
         errorMessage = err.message;
       }
       
-      console.error('Error creating order:', err, 'Payload:', payload); // Log full error object for debugging
+      console.error('Error creating order:', err, 'Payload:', orderPayload);
       alert(`Tạo đơn hàng thất bại. Lỗi: ${errorMessage}`);
     } finally {
       setLoading(false);

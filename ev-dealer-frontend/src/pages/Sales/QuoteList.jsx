@@ -107,10 +107,13 @@ export default function QuoteList() {
     setError(null);
     try {
       const response = await axios.get('http://localhost:5003/api/Quotes'); // Corrected port to 5003
-      setQuotes(response.data);
+      const data = response.data;
+      // Handle cases where the API returns an object with the array inside a property (e.g., from .NET backend with $values)
+      setQuotes(Array.isArray(data) ? data : data?.$values || []);
     } catch (err) {
       console.error('Error fetching quotes:', err);
       setError('Failed to load quote data.');
+      setQuotes([]); // On error, ensure quotes is an empty array
     } finally {
       setLoading(false);
     }

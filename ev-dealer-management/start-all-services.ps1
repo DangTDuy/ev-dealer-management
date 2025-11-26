@@ -8,7 +8,7 @@ $services = @(
     "NotificationService"
 )
 
-$basePath = "C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management"
+$basePath = "C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management"
 
 # Khởi tạo chuỗi lệnh cho Windows Terminal
 $wtArgs = ""
