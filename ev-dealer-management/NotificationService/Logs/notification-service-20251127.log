@@ -69,3 +69,124 @@ RabbitMQ.Client.Exceptions.BrokerUnreachableException: None of the specified end
    at RabbitMQ.Client.ConnectionFactory.CreateConnection()
    at NotificationService.Services.RabbitMQConsumerService.InitializeRabbitMQ() in C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\NotificationService\Services\RabbitMQConsumerService.cs:line 39
 2025-11-27 04:00:30.715 +07:00 [ERR] Failed to start consuming: RabbitMQ connection is still not open.
+2025-11-27 13:31:08.523 +07:00 [INF] Starting NotificationService...
+2025-11-27 13:31:09.754 +07:00 [INF] NotificationService started successfully on http://localhost:5051
+2025-11-27 13:31:14.240 +07:00 [ERR] Could not connect to RabbitMQ for consuming. Check connection settings.
+RabbitMQ.Client.Exceptions.BrokerUnreachableException: None of the specified endpoints were reachable
+ ---> System.AggregateException: One or more errors occurred. (Connection failed)
+ ---> RabbitMQ.Client.Exceptions.ConnectFailureException: Connection failed
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource.GetResult(Int16 token)
+   at System.Threading.Tasks.ValueTask.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
+--- End of stack trace from previous location ---
+   at RabbitMQ.Client.TcpClientAdapter.ConnectAsync(String host, Int32 port)
+   at RabbitMQ.Client.Impl.TaskExtensions.TimeoutAfter(Task task, TimeSpan timeout)
+   at RabbitMQ.Client.Impl.SocketFrameHandler.ConnectOrFail(ITcpClient socket, AmqpTcpEndpoint endpoint, TimeSpan timeout)
+   --- End of inner exception stack trace ---
+   at RabbitMQ.Client.Impl.SocketFrameHandler.ConnectOrFail(ITcpClient socket, AmqpTcpEndpoint endpoint, TimeSpan timeout)
+   at RabbitMQ.Client.Impl.SocketFrameHandler.ConnectUsingAddressFamily(AmqpTcpEndpoint endpoint, Func`2 socketFactory, TimeSpan timeout, AddressFamily family)
+   at RabbitMQ.Client.Impl.SocketFrameHandler.ConnectUsingIPv4(AmqpTcpEndpoint endpoint, Func`2 socketFactory, TimeSpan timeout)
+   at RabbitMQ.Client.Impl.SocketFrameHandler..ctor(AmqpTcpEndpoint endpoint, Func`2 socketFactory, TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
+   at RabbitMQ.Client.Framing.Impl.IProtocolExtensions.CreateFrameHandler(IProtocol protocol, AmqpTcpEndpoint endpoint, ArrayPool`1 pool, Func`2 socketFactory, TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
+   at RabbitMQ.Client.ConnectionFactory.CreateFrameHandler(AmqpTcpEndpoint endpoint)
+   at RabbitMQ.Client.EndpointResolverExtensions.SelectOne[T](IEndpointResolver resolver, Func`2 selector)
+   --- End of inner exception stack trace ---
+   at RabbitMQ.Client.EndpointResolverExtensions.SelectOne[T](IEndpointResolver resolver, Func`2 selector)
+   at RabbitMQ.Client.Framing.Impl.AutorecoveringConnection.Init(IEndpointResolver endpoints)
+   at RabbitMQ.Client.ConnectionFactory.CreateConnection(IEndpointResolver endpointResolver, String clientProvidedName)
+   --- End of inner exception stack trace ---
+   at RabbitMQ.Client.ConnectionFactory.CreateConnection(IEndpointResolver endpointResolver, String clientProvidedName)
+   at RabbitMQ.Client.ConnectionFactory.CreateConnection(String clientProvidedName)
+   at RabbitMQ.Client.ConnectionFactory.CreateConnection()
+   at NotificationService.Services.RabbitMQConsumerService.InitializeRabbitMQ() in D:\Nam_3\ev-dealer-management\ev-dealer-management\NotificationService\Services\RabbitMQConsumerService.cs:line 39
+2025-11-27 13:31:14.269 +07:00 [INF] RabbitMQ Consumer Hosted Service running.
+2025-11-27 13:31:14.271 +07:00 [WRN] RabbitMQ connection is not open. Attempting to re-initialize.
+2025-11-27 13:31:18.328 +07:00 [ERR] Could not connect to RabbitMQ for consuming. Check connection settings.
+RabbitMQ.Client.Exceptions.BrokerUnreachableException: None of the specified endpoints were reachable
+ ---> System.AggregateException: One or more errors occurred. (Connection failed)
+ ---> RabbitMQ.Client.Exceptions.ConnectFailureException: Connection failed
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource.GetResult(Int16 token)
+   at System.Threading.Tasks.ValueTask.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
+--- End of stack trace from previous location ---
+   at RabbitMQ.Client.TcpClientAdapter.ConnectAsync(String host, Int32 port)
+   at RabbitMQ.Client.Impl.TaskExtensions.TimeoutAfter(Task task, TimeSpan timeout)
+   at RabbitMQ.Client.Impl.SocketFrameHandler.ConnectOrFail(ITcpClient socket, AmqpTcpEndpoint endpoint, TimeSpan timeout)
+   --- End of inner exception stack trace ---
+   at RabbitMQ.Client.Impl.SocketFrameHandler.ConnectOrFail(ITcpClient socket, AmqpTcpEndpoint endpoint, TimeSpan timeout)
+   at RabbitMQ.Client.Impl.SocketFrameHandler.ConnectUsingAddressFamily(AmqpTcpEndpoint endpoint, Func`2 socketFactory, TimeSpan timeout, AddressFamily family)
+   at RabbitMQ.Client.Impl.SocketFrameHandler.ConnectUsingIPv4(AmqpTcpEndpoint endpoint, Func`2 socketFactory, TimeSpan timeout)
+   at RabbitMQ.Client.Impl.SocketFrameHandler..ctor(AmqpTcpEndpoint endpoint, Func`2 socketFactory, TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
+   at RabbitMQ.Client.Framing.Impl.IProtocolExtensions.CreateFrameHandler(IProtocol protocol, AmqpTcpEndpoint endpoint, ArrayPool`1 pool, Func`2 socketFactory, TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
+   at RabbitMQ.Client.ConnectionFactory.CreateFrameHandler(AmqpTcpEndpoint endpoint)
+   at RabbitMQ.Client.EndpointResolverExtensions.SelectOne[T](IEndpointResolver resolver, Func`2 selector)
+   --- End of inner exception stack trace ---
+   at RabbitMQ.Client.EndpointResolverExtensions.SelectOne[T](IEndpointResolver resolver, Func`2 selector)
+   at RabbitMQ.Client.Framing.Impl.AutorecoveringConnection.Init(IEndpointResolver endpoints)
+   at RabbitMQ.Client.ConnectionFactory.CreateConnection(IEndpointResolver endpointResolver, String clientProvidedName)
+   --- End of inner exception stack trace ---
+   at RabbitMQ.Client.ConnectionFactory.CreateConnection(IEndpointResolver endpointResolver, String clientProvidedName)
+   at RabbitMQ.Client.ConnectionFactory.CreateConnection(String clientProvidedName)
+   at RabbitMQ.Client.ConnectionFactory.CreateConnection()
+   at NotificationService.Services.RabbitMQConsumerService.InitializeRabbitMQ() in D:\Nam_3\ev-dealer-management\ev-dealer-management\NotificationService\Services\RabbitMQConsumerService.cs:line 39
+2025-11-27 13:31:18.334 +07:00 [ERR] Failed to start consuming: RabbitMQ connection is still not open.
+2025-11-27 13:34:56.250 +07:00 [INF] RabbitMQ Consumer Hosted Service is stopping.
+2025-11-27 13:34:56.250 +07:00 [INF] Stopping RabbitMQ consumer.
+2025-11-27 13:34:56.251 +07:00 [INF] RabbitMQ consumer connection closed.
+2025-11-27 13:34:56.253 +07:00 [INF] RabbitMQ consumer connection closed.
+2025-11-27 13:34:58.107 +07:00 [INF] Starting NotificationService...
+2025-11-27 13:34:58.372 +07:00 [INF] NotificationService started successfully on http://localhost:5051
+2025-11-27 13:35:02.470 +07:00 [ERR] Could not connect to RabbitMQ for consuming. Check connection settings.
+RabbitMQ.Client.Exceptions.BrokerUnreachableException: None of the specified endpoints were reachable
+ ---> System.AggregateException: One or more errors occurred. (Connection failed)
+ ---> RabbitMQ.Client.Exceptions.ConnectFailureException: Connection failed
+ ---> System.Net.Sockets.SocketException (10061): No connection could be made because the target machine actively refused it.
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource.GetResult(Int16 token)
+   at System.Threading.Tasks.ValueTask.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
+--- End of stack trace from previous location ---
+   at RabbitMQ.Client.TcpClientAdapter.ConnectAsync(String host, Int32 port)
+   at RabbitMQ.Client.Impl.TaskExtensions.TimeoutAfter(Task task, TimeSpan timeout)
+   at RabbitMQ.Client.Impl.SocketFrameHandler.ConnectOrFail(ITcpClient socket, AmqpTcpEndpoint endpoint, TimeSpan timeout)
+   --- End of inner exception stack trace ---
+   at RabbitMQ.Client.Impl.SocketFrameHandler.ConnectOrFail(ITcpClient socket, AmqpTcpEndpoint endpoint, TimeSpan timeout)
+   at RabbitMQ.Client.Impl.SocketFrameHandler.ConnectUsingAddressFamily(AmqpTcpEndpoint endpoint, Func`2 socketFactory, TimeSpan timeout, AddressFamily family)
+   at RabbitMQ.Client.Impl.SocketFrameHandler.ConnectUsingIPv4(AmqpTcpEndpoint endpoint, Func`2 socketFactory, TimeSpan timeout)
+   at RabbitMQ.Client.Impl.SocketFrameHandler..ctor(AmqpTcpEndpoint endpoint, Func`2 socketFactory, TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
+   at RabbitMQ.Client.Framing.Impl.IProtocolExtensions.CreateFrameHandler(IProtocol protocol, AmqpTcpEndpoint endpoint, ArrayPool`1 pool, Func`2 socketFactory, TimeSpan connectionTimeout, TimeSpan readTimeout, TimeSpan writeTimeout)
+   at RabbitMQ.Client.ConnectionFactory.CreateFrameHandler(AmqpTcpEndpoint endpoint)
+   at RabbitMQ.Client.EndpointResolverExtensions.SelectOne[T](IEndpointResolver resolver, Func`2 selector)
+   --- End of inner exception stack trace ---
+   at RabbitMQ.Client.EndpointResolverExtensions.SelectOne[T](IEndpointResolver resolver, Func`2 selector)
+   at RabbitMQ.Client.Framing.Impl.AutorecoveringConnection.Init(IEndpointResolver endpoints)
+   at RabbitMQ.Client.ConnectionFactory.CreateConnection(IEndpointResolver endpointResolver, String clientProvidedName)
+   --- End of inner exception stack trace ---
+   at RabbitMQ.Client.ConnectionFactory.CreateConnection(IEndpointResolver endpointResolver, String clientProvidedName)
+   at RabbitMQ.Client.ConnectionFactory.CreateConnection(String clientProvidedName)
+   at RabbitMQ.Client.ConnectionFactory.CreateConnection()
+   at NotificationService.Services.RabbitMQConsumerService.InitializeRabbitMQ() in D:\Nam_3\ev-dealer-management\ev-dealer-management\NotificationService\Services\RabbitMQConsumerService.cs:line 39
+2025-11-27 13:35:02.492 +07:00 [INF] RabbitMQ Consumer Hosted Service running.
+2025-11-27 13:35:02.493 +07:00 [WRN] RabbitMQ connection is not open. Attempting to re-initialize.
+2025-11-27 13:50:53.732 +07:00 [INF] Starting NotificationService...
+2025-11-27 13:50:54.104 +07:00 [INF] NotificationService started successfully on http://localhost:5051
+2025-11-27 13:50:54.511 +07:00 [INF] RabbitMQ consumer connection and channels initialized successfully.
+2025-11-27 13:50:54.523 +07:00 [INF] RabbitMQ Consumer Hosted Service running.
+2025-11-27 13:50:54.532 +07:00 [INF] Started consuming from queue: sales.completed
+2025-11-27 13:50:54.536 +07:00 [INF] Started consuming from queue: vehicle.reserved
+2025-11-27 13:50:54.547 +07:00 [INF] Started consuming from queue: testdrive.scheduled
+2025-11-27 13:50:54.549 +07:00 [INF] Started consuming messages from all queues.
+2025-11-27 13:50:55.528 +07:00 [INF] Firebase App initialized successfully for project: ev-dealer-management-6c620
+2025-11-27 13:50:55.848 +07:00 [INF] Processing VehicleReservedEvent for Vehicle: 40, Customer: Huynh Dang
+2025-11-27 13:50:56.007 +07:00 [INF] Processing VehicleReservedEvent for Vehicle: 40, Customer: Huynh Dang
+2025-11-27 13:50:56.016 +07:00 [INF] Processing VehicleReservedEvent for Vehicle: 40, Customer: Huynh Dang
+2025-11-27 13:50:57.165 +07:00 [INF] FCM notification sent successfully. MessageId: projects/ev-dealer-management-6c620/messages/5a8358d5-2390-43ab-b514-24a1a1c13a4f, Token: dK0sI0cE...JH3uaK9s
+2025-11-27 13:50:57.165 +07:00 [INF] FCM notification sent successfully. MessageId: projects/ev-dealer-management-6c620/messages/739033db-bc02-4540-b591-2bed107f7102, Token: dK0sI0cE...JH3uaK9s
+2025-11-27 13:50:57.166 +07:00 [INF] Reservation confirmation push notification sent for Vehicle: 40, Customer: Huynh Dang
+2025-11-27 13:50:57.167 +07:00 [INF] Reservation confirmation push notification sent for Vehicle: 40, Customer: Huynh Dang
+2025-11-27 13:50:57.191 +07:00 [INF] FCM notification sent successfully. MessageId: projects/ev-dealer-management-6c620/messages/687124bc-f2d9-452b-91f0-2a5f6fbff4a3, Token: dK0sI0cE...JH3uaK9s
+2025-11-27 13:50:57.200 +07:00 [INF] Reservation confirmation push notification sent for Vehicle: 40, Customer: Huynh Dang
+2025-11-27 13:51:18.675 +07:00 [INF] Processing VehicleReservedEvent for Vehicle: 40, Customer: Huynh Dang
+2025-11-27 13:51:19.033 +07:00 [INF] FCM notification sent successfully. MessageId: projects/ev-dealer-management-6c620/messages/1539266d-dfa4-4dd8-8a4a-015a33880154, Token: dK0sI0cE...JH3uaK9s
+2025-11-27 13:51:19.176 +07:00 [INF] Reservation confirmation push notification sent for Vehicle: 40, Customer: Huynh Dang
