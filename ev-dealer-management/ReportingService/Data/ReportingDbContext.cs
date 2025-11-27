@@ -11,6 +11,7 @@ namespace ev_dealer_reporting.Data
         public DbSet<ReportExport> ReportExports => Set<ReportExport>();
         public DbSet<SalesSummary> SalesSummaries => Set<SalesSummary>();
         public DbSet<InventorySummary> InventorySummaries => Set<InventorySummary>();
+        public DbSet<DebtSummary> DebtSummaries => Set<DebtSummary>(); // Add DebtSummary
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -57,6 +58,23 @@ namespace ev_dealer_reporting.Data
                 eb.Property(i => i.StockCount).IsRequired();
                 eb.Property(i => i.LastUpdatedAt).IsRequired();
                 eb.HasIndex(i => new { i.DealerId, i.VehicleId });
+            });
+
+            // Cấu hình cho DebtSummary
+            modelBuilder.Entity<DebtSummary>(eb =>
+            {
+                eb.HasKey(d => d.Id);
+                eb.Property(d => d.DebtType).IsRequired().HasMaxLength(50);
+                eb.Property(d => d.ReferenceType).IsRequired().HasMaxLength(50);
+                eb.Property(d => d.ReferenceId).IsRequired().HasMaxLength(100);
+                eb.Property(d => d.TotalAmount).IsRequired().HasColumnType("decimal(18, 2)");
+                eb.Property(d => d.OutstandingAmount).IsRequired().HasColumnType("decimal(18, 2)");
+                eb.Property(d => d.Status).IsRequired().HasMaxLength(50);
+                eb.Property(d => d.CreatedAt).IsRequired();
+                eb.Property(d => d.LastUpdatedAt).IsRequired();
+                eb.HasIndex(d => new { d.DebtType, d.ReferenceType, d.ReferenceId }).IsUnique(); // Đảm bảo duy nhất
+                eb.HasIndex(d => d.DealerId);
+                eb.HasIndex(d => d.CustomerId);
             });
         }
     }

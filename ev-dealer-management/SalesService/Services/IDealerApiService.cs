@@ -8,3 +8,4 @@ public interface IDealerApiService
     Task<DealerReservationDto?> GetDealerReservationByReservationIdAsync(int reservationId);
 }
 
+

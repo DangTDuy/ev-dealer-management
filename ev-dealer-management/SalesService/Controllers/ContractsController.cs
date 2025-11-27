@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
+using System.Collections.Generic; // Added for IEnumerable
 
 namespace SalesService.Controllers
 {
@@ -20,6 +21,25 @@ namespace SalesService.Controllers
         {
             _context = context;
             _logger = logger;
+        }
+
+        /// <summary>
+        /// Gets all contracts.
+        /// </summary>
+        [HttpGet] // Added this HttpGet endpoint
+        public async Task<ActionResult<IEnumerable<Contract>>> GetAllContracts()
+        {
+            try
+            {
+                var contracts = await _context.Contracts.ToListAsync();
+                _logger.LogInformation("Retrieved {Count} contracts.", contracts.Count);
+                return Ok(contracts);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving all contracts from database.");
+                return StatusCode(500, new { message = "Failed to retrieve contracts from database", error = ex.Message });
+            }
         }
 
         /// <summary>

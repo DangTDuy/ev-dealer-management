@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ev_dealer_reporting.Data;
 
 #nullable disable
@@ -12,51 +11,112 @@ using ev_dealer_reporting.Data;
 namespace ReportingService.Migrations
 {
     [DbContext(typeof(ReportingDbContext))]
-    [Migration("20251119084311_AddRegionFields")]
-    partial class AddRegionFields
+    [Migration("20251127045549_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.0")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
 
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+            modelBuilder.Entity("ev_dealer_reporting.Models.DebtSummary", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("CustomerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("CustomerName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("DealerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("DealerName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DebtType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DueDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("LastUpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("OutstandingAmount")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("ReferenceId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ReferenceType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("DealerId");
+
+                    b.HasIndex("DebtType", "ReferenceType", "ReferenceId")
+                        .IsUnique();
+
+                    b.ToTable("DebtSummaries");
+                });
 
             modelBuilder.Entity("ev_dealer_reporting.Models.InventorySummary", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("TEXT");
 
-                    b.Property<Guid>("DealerId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("DealerId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("DealerName")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("LastUpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Region")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("StockCount")
-                        .HasColumnType("integer");
+                        .HasColumnType("INTEGER");
 
-                    b.Property<Guid>("VehicleId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("VehicleId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("VehicleName")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -69,27 +129,25 @@ namespace ReportingService.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("ContentType")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("FileName")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("TEXT");
 
                     b.Property<int?>("ReportRequestId")
-                        .HasColumnType("integer");
+                        .HasColumnType("INTEGER");
 
                     b.Property<long>("SizeBytes")
-                        .HasColumnType("bigint");
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -102,34 +160,32 @@ namespace ReportingService.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("From")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("RequestedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("To")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -140,37 +196,37 @@ namespace ReportingService.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TEXT");
 
-                    b.Property<Guid>("DealerId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("DealerId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("DealerName")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("LastUpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Region")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("TEXT");
 
-                    b.Property<Guid>("SalespersonId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("SalespersonId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("SalespersonName")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("TotalOrders")
-                        .HasColumnType("integer");
+                        .HasColumnType("INTEGER");
 
                     b.Property<decimal>("TotalRevenue")
                         .HasColumnType("decimal(18, 2)");

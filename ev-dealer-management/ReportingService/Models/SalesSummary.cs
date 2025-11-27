@@ -14,13 +14,13 @@ public class SalesSummary
 
     public DateTime Date { get; set; }
 
-    public Guid DealerId { get; set; }
+    public int DealerId { get; set; } // Changed from Guid to int
     
     public required string DealerName { get; set; } // Denormalized data
 
     public required string Region { get; set; } // Miền Bắc, Miền Trung, Miền Nam
 
-    public Guid SalespersonId { get; set; }
+    public int SalespersonId { get; set; } // Changed from Guid to int
     
     public required string SalespersonName { get; set; } // Denormalized data
 

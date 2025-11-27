@@ -207,7 +207,7 @@ export const reportService = {
       if (params.to) queryParams.append("to", params.to);
 
       const url = `/inventory-trends${
-        queryParams.toString() ? "?" + queryParams_toString() : ""
+        queryParams.toString() ? "?" + queryParams.toString() : ""
       }`;
       const response = await reportingApi.get(url);
       return Array.isArray(response) ? response : response.data || [];

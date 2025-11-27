@@ -470,3 +470,4 @@ C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\SalesService
 C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\SalesService\bin\Debug\net8.0\publish\appsettings.json
 C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\SalesService\bin\Debug\net8.0\publish\SalesService.deps.json
 C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\SalesService\bin\Debug\net8.0\publish\SalesService.runtimeconfig.json
+C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\SalesService\bin\Debug\net8.0\publish\web.config

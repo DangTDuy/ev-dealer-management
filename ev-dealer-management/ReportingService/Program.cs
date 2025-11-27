@@ -13,6 +13,7 @@ using System.IO;
 using ev_dealer_reporting.Models;
 using ev_dealer_reporting.Services;
 using ev_dealer_reporting.DTOs;
+using Microsoft.Extensions.Logging; // Add this for ILogger
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,17 @@ builder.Services.AddSwaggerGen();
 
 // Add custom services
 builder.Services.AddScoped<IForecastingService, ForecastingService>();
+builder.Services.AddScoped<IReportService, ReportService>(); // Register ReportService
+
+// Register HttpClient for typed clients
+builder.Services.AddHttpClient<ISalesDataService, SalesDataService>();
+builder.Services.AddHttpClient<IVehicleDataService, VehicleDataService>();
+builder.Services.AddHttpClient<ICustomerDataService, CustomerDataService>(); // Register CustomerDataService
+builder.Services.AddHttpClient<IUserDataService, UserDataService>(); // Register UserDataService
+
+// Register the new data synchronization service
+builder.Services.AddScoped<IDataSynchronizationService, DataSynchronizationService>();
+
 
 // CORS - allow local frontend during development
 builder.Services.AddCors(options =>
@@ -101,11 +113,15 @@ using (var scope = app.Services.CreateScope())
         var db = scope.ServiceProvider.GetRequiredService<ReportingDbContext>();
         db.Database.Migrate();
         await EnsureRegionDataAsync(db);
+
+        // Trigger initial data synchronization after migrations
+        var dataSyncService = scope.ServiceProvider.GetRequiredService<IDataSynchronizationService>();
+        await dataSyncService.SynchronizeAllDataAsync();
     }
     catch (Exception ex)
     {
         // Log or ignore for now
-        Console.Error.WriteLine($"Warning: could not apply database migrations: {ex.Message}");
+        Console.Error.WriteLine($"Warning: could not apply database migrations or synchronize data: {ex.Message}");
     }
 }
 
@@ -141,6 +157,189 @@ app.MapGet("/api/reports/demand-forecast", async (IForecastingService forecastin
 // ============================================================================
 // REPORT ENDPOINTS - Using Real Data from Database
 // ============================================================================
+
+// New endpoint to trigger data synchronization manually
+app.MapPost("/api/reports/synchronize-data", async (IDataSynchronizationService dataSyncService) =>
+{
+    try
+    {
+        await dataSyncService.SynchronizeAllDataAsync();
+        return Results.Ok(new { success = true, message = "Data synchronization initiated successfully." });
+    }
+    catch (Exception ex)
+    {
+    Console.Error.WriteLine($"Error in POST /api/reports/synchronize-data: {ex.Message}");
+        return Results.Json(new { success = false, error = "An error occurred during data synchronization.", details = ex.Message }, statusCode: 500);
+    }
+})
+.WithName("SynchronizeData")
+.WithOpenApi()
+.Produces(200)
+.Produces(500);
+
+// New endpoint for Debt Summary Report
+app.MapGet("/api/reports/debt-summary", async (ReportingDbContext db, int? dealerId, int? customerId, string? debtType, string? status, string? from, string? to) =>
+{
+    try
+    {
+        var query = db.DebtSummaries.AsQueryable();
+
+        if (dealerId.HasValue)
+            query = query.Where(d => d.DealerId == dealerId.Value);
+        
+        if (customerId.HasValue)
+            query = query.Where(d => d.CustomerId == customerId.Value);
+
+        if (!string.IsNullOrWhiteSpace(debtType))
+            query = query.Where(d => d.DebtType == debtType);
+
+        if (!string.IsNullOrWhiteSpace(status))
+            query = query.Where(d => d.Status == status);
+
+        DateTime? fromDate = null;
+        DateTime? toDate = null;
+        
+        if (!string.IsNullOrEmpty(from) && DateTime.TryParse(from, out var fd))
+            fromDate = fd;
+        if (!string.IsNullOrEmpty(to) && DateTime.TryParse(to, out var td))
+            toDate = td;
+
+        if (fromDate.HasValue)
+            query = query.Where(d => d.CreatedAt >= fromDate.Value);
+        if (toDate.HasValue)
+            query = query.Where(d => d.CreatedAt <= toDate.Value);
+        
+        var results = await query.OrderByDescending(d => d.CreatedAt).ToListAsync();
+        
+        return Results.Json(new
+        {
+            success = true,
+            count = results.Count,
+            data = results
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"Error in GET /api/reports/debt-summary: {ex.Message}");
+        return Results.Json(new { success = false, error = ex.Message }, statusCode: 500);
+    }
+})
+.WithName("GetDebtSummary")
+.WithOpenApi()
+.Produces(200)
+.Produces(500);
+
+// New endpoint for Dealer Debt Report (using ReportService)
+app.MapGet("/api/reports/debt-report", async (IReportService reportService, int? dealerId, string? from, string? to) =>
+{
+    try
+    {
+        // Nếu không có dealerId, lấy dữ liệu cho tất cả đại lý (tổng hợp)
+        var report = await reportService.GetDealerDebtReportAsync(dealerId);
+        return Results.Json(new { success = true, data = report });
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"Error in GET /api/reports/debt-report: {ex.Message}");
+        return Results.Json(new { success = false, error = "An error occurred while fetching the debt report.", details = ex.Message }, statusCode: 500);
+    }
+})
+.WithName("GetDealerDebtReport")
+.WithOpenApi()
+.Produces<DealerDebtReportDto>(200)
+.Produces(500);
+
+// New endpoint for Sales by Dealer (using ReportService)
+app.MapGet("/api/reports/sales-by-dealer", async (IReportService reportService, IVehicleDataService vehicleDataService, int? dealerId, string? period, DateTime? fromDate, DateTime? toDate) =>
+{
+    try
+    {
+        // Mặc định period là "month" nếu không được cung cấp
+        var periodValue = period ?? "month";
+        
+        if (dealerId.HasValue)
+        {
+            var report = await reportService.GetDealerSalesReportAsync(dealerId.Value, periodValue, fromDate, toDate);
+            return Results.Json(new { success = true, data = report });
+        }
+        else
+        {
+            // Lấy tất cả dealers và tổng hợp
+            var dealers = await vehicleDataService.GetDealersAsync();
+            
+            var allReports = new List<object>();
+            foreach (var dealer in dealers.Take(10)) // Giới hạn 10 dealers để tránh quá tải
+            {
+                try
+                {
+                    var report = await reportService.GetDealerSalesReportAsync(dealer.Id, periodValue, fromDate, toDate);
+                    allReports.Add(report);
+                }
+                catch
+                {
+                    // Bỏ qua lỗi cho từng dealer
+                }
+            }
+            
+            return Results.Json(new { success = true, data = allReports });
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"Error in GET /api/reports/sales-by-dealer: {ex.Message}");
+        return Results.Json(new { success = false, error = "An error occurred while fetching sales by dealer report.", details = ex.Message }, statusCode: 500);
+    }
+})
+.WithName("GetSalesByDealer")
+.WithOpenApi()
+.Produces<DealerSalesReportDto>(200)
+.Produces(500);
+
+// New endpoint for Inventory Trends (using ReportService)
+app.MapGet("/api/reports/inventory-trends", async (IReportService reportService) =>
+{
+    try
+    {
+        var report = await reportService.GetInventoryAnalysisAsync();
+        return Results.Json(new { success = true, data = report });
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"Error in GET /api/reports/inventory-trends: {ex.Message}");
+        return Results.Json(new { success = false, error = "An error occurred while fetching inventory trends.", details = ex.Message }, statusCode: 500);
+    }
+})
+.WithName("GetInventoryTrends")
+.WithOpenApi()
+.Produces<InventoryAnalysisDto>(200)
+.Produces(500);
+
+// Endpoint for Sales by Staff (using ReportService)
+app.MapGet("/api/reports/sales-by-staff", async (IReportService reportService, string? from, string? to) =>
+{
+    try
+    {
+        DateTime? fromDate = null;
+        DateTime? toDate = null;
+        
+        if (!string.IsNullOrEmpty(from) && DateTime.TryParse(from, out var fd))
+            fromDate = fd;
+        if (!string.IsNullOrEmpty(to) && DateTime.TryParse(to, out var td))
+            toDate = td;
+        
+        var report = await reportService.GetSalesByStaffAsync(fromDate, toDate);
+        return Results.Json(new { success = true, data = report });
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"Error in GET /api/reports/sales-by-staff: {ex.Message}");
+        return Results.Json(new { success = false, error = "An error occurred while fetching sales by staff report.", details = ex.Message }, statusCode: 500);
+    }
+})
+.WithName("GetSalesByStaff")
+.WithOpenApi()
+.Produces(501);
+
 
 // Summary endpoint - Tính toán từ dữ liệu thật trong database
 app.MapGet("/api/reports/summary", async (ReportingDbContext db, string? type, string? from, string? to) =>
@@ -445,7 +644,7 @@ app.MapPost("/api/reports/export", async (HttpRequest req, ReportingDbContext db
             csvBuilder.AppendLine("VehicleName,DealerName,StockCount,LastUpdatedAt");
             foreach (var i in inventoryData)
             {
-                csvBuilder.AppendLine($"{i.VehicleName},\"{i.DealerName}\",{i.StockCount},{i.LastUpdatedAt:yyyy-MM-dd HH:mm:ss}");
+                csvBuilder.AppendLine($"{i.VehicleId},\"{i.DealerName}\",{i.StockCount},{i.LastUpdatedAt:yyyy-MM-dd HH:mm:ss}");
             }
 
             filename = $"inventory_report_{DateTime.UtcNow:yyyyMMddHHmmss}.csv";
@@ -525,20 +724,20 @@ app.MapPost("/api/reports/export", async (HttpRequest req, ReportingDbContext db
 // ============================================================================
 
 // GET /api/reports/sales-summary - Lấy tất cả dữ liệu tổng hợp doanh số
-app.MapGet("/api/reports/sales-summary", async (ReportingDbContext db, DateTime? fromDate, DateTime? toDate, Guid? dealerId) =>
+app.MapGet("/api/reports/sales-summary", async (ReportingDbContext db, DateTime? fromDate, DateTime? toDate, int? dealerId) => // Changed Guid? to int?
 {
     try
     {
         var query = db.SalesSummaries.AsQueryable();
+        
+        if (dealerId.HasValue)
+            query = query.Where(s => s.DealerId == dealerId.Value);
         
         if (fromDate.HasValue)
             query = query.Where(s => s.Date >= fromDate.Value);
         
         if (toDate.HasValue)
             query = query.Where(s => s.Date <= toDate.Value);
-        
-        if (dealerId.HasValue)
-            query = query.Where(s => s.DealerId == dealerId.Value);
         
         var results = await query.OrderByDescending(s => s.Date).ToListAsync();
         
@@ -585,7 +784,7 @@ app.MapGet("/api/reports/sales-summary/{id}", async (Guid id, ReportingDbContext
 .Produces(500);
 
 // GET /api/reports/inventory-summary - Lấy tất cả dữ liệu tồn kho tổng hợp
-app.MapGet("/api/reports/inventory-summary", async (ReportingDbContext db, Guid? dealerId, Guid? vehicleId) =>
+app.MapGet("/api/reports/inventory-summary", async (ReportingDbContext db, int? dealerId, int? vehicleId) => // Changed Guid? to int? for both
 {
     try
     {

@@ -197,6 +197,15 @@ app.MapGet("/api/dealers", async (UserDbContext db) =>
     return Results.Ok(dealers);
 });
 
+// Internal endpoint for ReportingService to get users (no auth required for internal service calls)
+app.MapGet("/api/internal/users", async (UserDbContext db) =>
+{
+    var users = await db.Users
+        .Select(u => new UserDto(u.Id, u.Username, u.Email, u.FullName, u.Role, u.IsActive, u.DealerId, u.CreatedAt, u.UpdatedAt))
+        .ToListAsync();
+    return Results.Ok(users);
+});
+
 
 app.Run();
 

@@ -567,4 +567,11 @@ D:\gitclone\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\n
 D:\gitclone\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\net8.0\wwwroot\images\b2b6d6f5-b1d5-416b-831d-d837d7fc156e_1400-Model-Images (1).png
 D:\gitclone\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\net8.0\wwwroot\images\c73b3dee-ed88-452c-bdfe-ab114f122816_bg.jpg
 D:\gitclone\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\net8.0\wwwroot\images\e6007cfa-b27a-4e05-a09c-73d0e308b88f_car2.png
-C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\net8.0\wwwroot\images\e6007cfa-b27a-4e05-a09c-73d0e308b88f_car2.png
+C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\net8.0\wwwroot\images\08c9c8f7-4253-45e2-b4be-1eb2998c540e_2024-Porsche-Macan-EV-Hero-Image.webp
+C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\net8.0\wwwroot\images\71ee3d00-b714-4dcf-9588-1f431eaa1925_vinfast-vf5-white.png
+C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\net8.0\wwwroot\images\7e328d04-9d12-4b2f-8b31-152c1432a223_vinfast-vf6-trang.png
+C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\net8.0\wwwroot\images\980afa1a-04ca-4e90-b1cb-884274f3104c_images (1).jpg
+C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\net8.0\wwwroot\images\984194d0-3e74-4c04-9dca-4bb011dc4e8f_bmw_i4_edrive_40_onepager_mc_exterior_highlights_02.png
+C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\net8.0\wwwroot\images\98a0c543-e749-4c8d-bd20-ea5d73b5ae0b_images-original-5118-EtronGT00000024-2.webp
+C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\net8.0\wwwroot\images\abaffe30-7e68-46bd-85c4-61f23e0d6b69_bmw_i4_edrive_40_onepager_mc_exterior_highlights_02.png
+C:\Code\XD\project_XD\ev-dealer-management\ev-dealer-management\VehicleService\bin\Debug\net8.0\wwwroot\images\b5023735-aff8-4210-b51e-782a1be55332_vinfast-vf3-do.png

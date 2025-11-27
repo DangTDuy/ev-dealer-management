@@ -12,11 +12,11 @@ public class InventorySummary
     [Key]
     public Guid Id { get; set; }
 
-    public Guid VehicleId { get; set; }
+    public int VehicleId { get; set; } // Changed from Guid to int
     
     public required string VehicleName { get; set; } // Denormalized data
 
-    public Guid DealerId { get; set; }
+    public int DealerId { get; set; } // Changed from Guid to int
     
     public required string DealerName { get; set; } // Denormalized data
 

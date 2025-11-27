@@ -238,17 +238,110 @@ const Reports = () => {
         setTopVehicles(topRes);
       }
       if (staffRes && Array.isArray(staffRes)) {
-        setStaffPerformance(staffRes);
+        const mappedStaff = staffRes.map((staff) => {
+          const totalQuotes = staff.totalQuotes ?? 0;
+          const totalOrders = staff.totalOrders ?? 0;
+          const totalContracts = staff.totalContracts ?? 0;
+          const totalDeals =
+            staff.totalDeals ??
+            totalQuotes + totalOrders + totalContracts;
+
+          return {
+            id: staff.salespersonId || staff.id,
+            name:
+              staff.salespersonName ||
+              staff.name ||
+              `Nhân viên ${staff.salespersonId || "N/A"}`,
+            totalQuotes,
+            totalOrders,
+            totalContracts,
+            totalDeals,
+            totalSales: staff.totalVehiclesSold || staff.totalSales || 0,
+            revenue: staff.totalRevenue || staff.revenue || 0,
+            conversionRate: staff.conversionRate ?? 0,
+          };
+        });
+        setStaffPerformance(mappedStaff);
       }
       if (debtRes) {
-        setCustomerDebt(debtRes.customers || []);
-        setManufacturerDebt(debtRes.manufacturers || []);
+        // Map từ backend format DealerDebtReportDto
+        // sang frontend format {customers: [], manufacturers: []}
+        if (debtRes.data) {
+          // Format từ ReportService: {success: true, data: DealerDebtReportDto}
+          const debtData = debtRes.data;
+          
+          // Map customer debt từ DebtFromCustomerDto sang format frontend
+          const customerDebtList = (debtData.debtFromCustomerDetails || []).map((item) => ({
+            id: item.orderId || item.customerId,
+            name: item.customerName || `Khách hàng ${item.customerId}`,
+            outstanding: item.remainingDebt || item.totalAmount - (item.paidAmount || 0),
+            dueInDays: item.loanTermMonths ? Math.max(0, item.loanTermMonths * 30 - Math.floor((Date.now() - new Date(item.orderDate).getTime()) / (1000 * 60 * 60 * 24))) : null,
+            lastPaymentDate: item.orderDate || null,
+            status: item.status,
+          }));
+          
+          // Map manufacturer debt từ DebtToManufacturerDto sang format frontend
+          const manufacturerDebtList = (debtData.debtToManufacturerDetails || []).map((item) => ({
+            id: item.orderId,
+            name: item.orderNumber || `Đơn hàng ${item.orderId}`,
+            outstanding: item.remainingDebt || item.orderAmount - (item.paidAmount || 0),
+            dueInDays: item.orderDate ? Math.max(0, 30 - Math.floor((Date.now() - new Date(item.orderDate).getTime()) / (1000 * 60 * 60 * 24))) : null,
+            lastPaymentDate: item.orderDate || null,
+            status: item.status,
+          }));
+          
+          setCustomerDebt(customerDebtList);
+          setManufacturerDebt(manufacturerDebtList);
+        } else {
+          // Format trực tiếp (fallback)
+          setCustomerDebt(debtRes.customers || []);
+          setManufacturerDebt(debtRes.manufacturers || []);
+        }
       }
-      if (dealerSalesRes && Array.isArray(dealerSalesRes)) {
-        setDealerSales(dealerSalesRes);
+      if (dealerSalesRes) {
+        // Map từ backend format {success: true, data: DealerSalesReportDto}
+        // hoặc array trực tiếp
+        if (dealerSalesRes.data) {
+          const salesData = dealerSalesRes.data;
+          // Nếu là DealerSalesReportDto, chuyển đổi sang format array
+          if (salesData.dealerName) {
+            // Single dealer report - tạo một entry
+            setDealerSales([{
+              dealerId: salesData.dealerId,
+              dealerName: salesData.dealerName,
+              region: "N/A", // Backend chưa có region trong DTO này
+              totalSales: salesData.totalVehiclesSold || 0,
+              revenue: salesData.totalRevenue || 0,
+              target: 0, // Backend chưa có target
+            }]);
+          } else {
+            // Array format
+            setDealerSales(Array.isArray(salesData) ? salesData : []);
+          }
+        } else {
+          setDealerSales(Array.isArray(dealerSalesRes) ? dealerSalesRes : []);
+        }
       }
-      if (inventoryTrendRes && Array.isArray(inventoryTrendRes)) {
-        setInventoryTrends(inventoryTrendRes);
+      if (inventoryTrendRes) {
+        // Map từ backend format {success: true, data: InventoryAnalysisDto}
+        if (inventoryTrendRes.data) {
+          const inventoryData = inventoryTrendRes.data;
+          // Backend trả về InventoryAnalysisDto với inventoryTurnover và slowMovingInventory
+          // Frontend expect format cho LineChart: [{month, inventory, sold}]
+          // Hiện tại backend chưa có format này, nên ta sẽ map từ inventoryTurnover
+          const turnoverData = inventoryData.inventoryTurnover || [];
+          // Tạo dữ liệu giả lập cho chart (backend cần cải thiện để trả về format này)
+          const chartData = turnoverData.length > 0 
+            ? turnoverData.map((item, index) => ({
+                month: `Tháng ${index + 1}`,
+                inventory: item.currentStock || 0,
+                sold: item.averageMonthlySales || 0,
+              }))
+            : [];
+          setInventoryTrends(chartData);
+        } else {
+          setInventoryTrends(Array.isArray(inventoryTrendRes) ? inventoryTrendRes : []);
+        }
       }
       if (forecastRes) {
         setDemandForecast(forecastRes);
@@ -1001,7 +1094,6 @@ const Reports = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Nhân viên</TableCell>
-                    <TableCell>Vai trò</TableCell>
                     <TableCell align="right">Giao dịch</TableCell>
                     <TableCell align="right">Xe bán</TableCell>
                     <TableCell align="right">Doanh thu</TableCell>
@@ -1018,16 +1110,12 @@ const Reports = () => {
                     >
                       <TableCell>
                         <Typography sx={{ fontWeight: 600 }}>{staff.name}</Typography>
+                        <Typography variant="body2" sx={{ color: "#64748B", mt: 0.5 }}>
+                          {`${staff.totalQuotes ?? 0} báo giá • ${staff.totalOrders ?? 0} đơn hàng • ${staff.totalContracts ?? 0} hợp đồng`}
+                        </Typography>
                       </TableCell>
-                      <TableCell>
-                        <Chip
-                          size="small"
-                          label={staff.role || "N/A"}
-                          sx={{ fontWeight: 600, textTransform: "capitalize" }}
-                        />
-                      </TableCell>
-                      <TableCell align="right">{staff.totalDeals ?? 0}</TableCell>
-                      <TableCell align="right">{staff.totalSales ?? 0}</TableCell>
+                      <TableCell align="right">{staff.totalDeals ?? (staff.totalQuotes ?? 0) + (staff.totalOrders ?? 0) + (staff.totalContracts ?? 0)}</TableCell>
+                      <TableCell align="right">{staff.totalSales ?? staff.totalVehiclesSold ?? 0}</TableCell>
                       <TableCell align="right">{formatCurrency(staff.revenue)}</TableCell>
                       <TableCell align="right">{formatPercent((staff.conversionRate || 0) * 100)}</TableCell>
                     </TableRow>

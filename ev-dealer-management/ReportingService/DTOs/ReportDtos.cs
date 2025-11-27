@@ -5,7 +5,7 @@ namespace ev_dealer_reporting.DTOs;
 /// </summary>
 public class DealerSalesReportDto
 {
-    public Guid DealerId { get; set; }
+    public int DealerId { get; set; } // Changed from Guid to int
     public string DealerName { get; set; } = string.Empty;
     public string Period { get; set; } = string.Empty; // "day", "month", "year"
     public DateTime? FromDate { get; set; }
@@ -28,7 +28,7 @@ public class SalesByPeriodDto
 /// </summary>
 public class DealerDebtReportDto
 {
-    public Guid DealerId { get; set; }
+    public int DealerId { get; set; } // Changed from Guid to int
     public string DealerName { get; set; } = string.Empty;
     public DateTime ReportDate { get; set; }
     
@@ -45,7 +45,7 @@ public class DealerDebtReportDto
 
 public class DebtToManufacturerDto
 {
-    public Guid OrderId { get; set; }
+    public int OrderId { get; set; } // Changed from Guid to int
     public string OrderNumber { get; set; } = string.Empty;
     public DateTime OrderDate { get; set; }
     public decimal OrderAmount { get; set; }
@@ -56,7 +56,7 @@ public class DebtToManufacturerDto
 
 public class DebtFromCustomerDto
 {
-    public Guid OrderId { get; set; }
+    public int OrderId { get; set; } // Changed from Guid to int
     public string OrderNumber { get; set; } = string.Empty;
     public int CustomerId { get; set; }
     public string CustomerName { get; set; } = string.Empty;
@@ -96,7 +96,7 @@ public class SalesHeatmapDataDto
 {
     public string Region { get; set; } = string.Empty;
     public string DealerName { get; set; } = string.Empty;
-    public Guid DealerId { get; set; }
+    public int DealerId { get; set; } // Changed from Guid to int
     public int VehiclesSold { get; set; }
     public decimal Revenue { get; set; }
     public string HeatLevel { get; set; } = string.Empty; // "high", "medium", "low"
@@ -114,9 +114,9 @@ public class InventoryAnalysisDto
 
 public class InventoryTurnoverDto
 {
-    public Guid VehicleId { get; set; }
+    public int VehicleId { get; set; } // Changed from Guid to int
     public string VehicleName { get; set; } = string.Empty;
-    public Guid DealerId { get; set; }
+    public int DealerId { get; set; } // Changed from Guid to int
     public string DealerName { get; set; } = string.Empty;
     public string Region { get; set; } = string.Empty;
     public int CurrentStock { get; set; }
@@ -128,9 +128,9 @@ public class InventoryTurnoverDto
 
 public class SlowMovingInventoryDto
 {
-    public Guid VehicleId { get; set; }
+    public int VehicleId { get; set; } // Changed from Guid to int
     public string VehicleName { get; set; } = string.Empty;
-    public Guid DealerId { get; set; }
+    public int DealerId { get; set; } // Changed from Guid to int
     public string DealerName { get; set; } = string.Empty;
     public string Region { get; set; } = string.Empty;
     public int StockCount { get; set; }
@@ -140,4 +140,35 @@ public class SlowMovingInventoryDto
     public string Recommendation { get; set; } = string.Empty;
 }
 
+public class ContractDataDto
+{
+    public int ContractId { get; set; }
+    public int OrderId { get; set; }
+    public int CustomerId { get; set; }
+    public int DealerId { get; set; }
+    public int SalespersonId { get; set; }
+    public string ContractNumber { get; set; } = string.Empty;
+    public DateOnly SignedDate { get; set; }
+    public decimal TotalAmount { get; set; }
+    public string PaymentStatus { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
 
+/// <summary>
+/// DTO cho báo cáo Sales by Staff
+/// </summary>
+public class SalesByStaffDto
+{
+    public int SalespersonId { get; set; }
+    public string SalespersonName { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
+    public int TotalQuotes { get; set; }
+    public int TotalOrders { get; set; }
+    public int TotalContracts { get; set; }
+    public int TotalDeals { get; set; }
+    public int TotalVehiclesSold { get; set; }
+    public decimal TotalRevenue { get; set; }
+    public decimal ConversionRate { get; set; }
+}
