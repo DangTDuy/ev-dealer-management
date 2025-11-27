@@ -1,3 +1,0 @@
-2025-11-23 00:02:29.248 +07:00 [INF] Received TestDriveScheduled message: {"CustomerEmail":"test@example.com","CustomerName":"Test Customer","VehicleModel":"Vehicle #1","ScheduledDate":"2025-11-12T03:00:00Z"}
-2025-11-23 00:03:25.966 +07:00 [INF] Received TestDriveScheduled message: {"CustomerEmail":"huynhdang1872005@gmail.com","CustomerName":"Hu\u1EF3nh Nguy\u1EC5n \u0110\u0103ng","VehicleModel":"Vehicle #2","ScheduledDate":"2025-11-07T03:00:00Z"}
-2025-11-23 00:09:06.170 +07:00 [INF] Received TestDriveScheduled message: {"CustomerEmail":"huynhdang1872005@gmail.com","CustomerName":"Hu\u1EF3nh Nguy\u1EC5n \u0110\u0103ng","VehicleModel":"Vehicle #4","ScheduledDate":"2025-11-28T02:00:00Z"}

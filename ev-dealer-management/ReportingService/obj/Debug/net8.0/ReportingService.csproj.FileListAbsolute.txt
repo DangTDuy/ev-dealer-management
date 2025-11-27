@@ -525,4 +525,3 @@ C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\ReportingSer
 C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\ReportingService\obj\Debug\net8.0\ReportingService.pdb
 C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\ReportingService\obj\Debug\net8.0\ReportingService.genruntimeconfig.cache
 C:\Users\Lenovo\Downloads\ev-dealer-management\ev-dealer-management\ReportingService\obj\Debug\net8.0\ref\ReportingService.dll
-D:\gitclone\ev-dealer-management\ev-dealer-management\ReportingService\bin\Debug\net8.0\nifi-flow.json
