@@ -1,8 +1,8 @@
-# 🚗 EV DEALER MANAGEMENT SYSTEM
+# (WEB) EV DEALER MANAGEMENT SYSTEM
 
 A comprehensive microservices-based dealer management system for electric vehicles, featuring real-time notifications via SMS and Email.
 
-## 📋 Table of Contents
+## Table of Contents
 - [Overview](#overview)
 - [Architecture](#architecture)
 - [Features](#features)
@@ -12,21 +12,21 @@ A comprehensive microservices-based dealer management system for electric vehicl
 
 ---
 
-## 🎯 Overview
+## Overview
 
 EV Dealer Management System is a full-stack application designed to manage electric vehicle dealerships with automated customer notifications. The system uses event-driven architecture with RabbitMQ for reliable message delivery.
 
 ### Key Capabilities:
-- ✅ **Vehicle Reservation with SMS Notification**
-- ✅ **Order Completion with Email Confirmation**
-- 🔄 **Real-time Event Processing**
-- 📊 **Dealer Analytics & Reporting**
-- 👥 **Customer Management**
-- 🔐 **Role-based Access Control**
+- **Vehicle Reservation with SMS Notification**
+- **Order Completion with Email Confirmation**
+- **Real-time Event Processing**
+- **Dealer Analytics & Reporting**
+- **Customer Management**
+- **Role-based Access Control**
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### Microservices Architecture
 ```
@@ -81,9 +81,9 @@ User → SalesService → RabbitMQ → NotificationService → Email
 
 ---
 
-## ✨ Features
+## Features
 
-### ✅ Implemented:
+###  Implemented:
 
 #### 1. Vehicle Reservation with SMS
 - Reserve vehicles through web interface
@@ -108,14 +108,14 @@ User → SalesService → RabbitMQ → NotificationService → Email
 - Service discovery
 - Load balancing ready
 
-### 🔄 In Progress:
+### In Progress:
 - Test Drive Scheduling notifications
 - Customer complaint management
 - Dealer analytics dashboard
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites:
 - .NET 8.0 SDK
@@ -181,7 +181,7 @@ Expected output:
 
 ---
 
-## 📚 Documentation
+##  Documentation
 
 | Document | Description |
 |----------|-------------|
@@ -193,7 +193,7 @@ Expected output:
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Backend:
 - **Framework**: .NET 8.0
@@ -217,22 +217,22 @@ Expected output:
 
 ---
 
-## 📊 Services Overview
+##  Services Overview
 
 | Service | Port | Status | Description |
 |---------|------|--------|-------------|
-| **APIGatewayService** | 5036 | 🔄 Active | Central API gateway with Ocelot routing |
-| **UserService** | 7001 | ✅ Ready | Authentication, authorization, user management |
-| **CustomerService** | 5039 | ✅ Ready | Customer CRUD, test drives, complaints |
-| **VehicleService** | 5002 | ✅ Complete | Vehicle management, reservations, SMS notifications |
-| **SalesService** | 5003 | ✅ Complete | Order management, email notifications |
-| **NotificationService** | 5051 | ✅ Complete | Multi-channel notifications (Email/SMS) |
-| **DealerManagementService** | TBD | 🔄 Planned | Dealer management and analytics |
-| **ReportingService** | 5004 | ✅ Ready | Sales analytics and reporting |
+| **APIGatewayService** | 5036 |  Active | Central API gateway with Ocelot routing |
+| **UserService** | 7001 |  Ready | Authentication, authorization, user management |
+| **CustomerService** | 5039 |  Ready | Customer CRUD, test drives, complaints |
+| **VehicleService** | 5002 |  Complete | Vehicle management, reservations, SMS notifications |
+| **SalesService** | 5003 |  Complete | Order management, email notifications |
+| **NotificationService** | 5051 |  Complete | Multi-channel notifications (Email/SMS) |
+| **DealerManagementService** | TBD |  Planned | Dealer management and analytics |
+| **ReportingService** | 5004 |  Ready | Sales analytics and reporting |
 
 ---
 
-## 🧪 Testing
+##  Testing
 
 ### Run All Tests:
 ```powershell
@@ -271,7 +271,7 @@ Invoke-RestMethod -Uri "http://localhost:5003/api/orders/complete" `
 
 ---
 
-## 🔧 Configuration
+##  Configuration
 
 ### Environment Variables:
 
@@ -317,7 +317,7 @@ Password: guest
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
@@ -327,13 +327,13 @@ Password: guest
 
 ---
 
-## 📝 License
+##  License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ---
 
-## 👥 Team
+##  Team
 
 - **Development Team**: DangTDuy
 - **Project Type**: Educational / Portfolio Project
@@ -341,7 +341,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-## 🆘 Support
+##  Support
 
 ### Quick Help:
 ```powershell
@@ -363,22 +363,22 @@ See [TESTING_GUIDE.md](./TESTING_GUIDE.md#common-issues--solutions)
 
 ---
 
-## 🗺️ Roadmap
+##  Roadmap
 
-### Phase 1: ✅ Complete (Current)
+### Phase 1:  Complete (Current)
 - [x] Vehicle Reservation with SMS
 - [x] Order Completion with Email
 - [x] RabbitMQ Integration
 - [x] Frontend Integration
 - [x] API Gateway Routing
 
-### Phase 2: 🔄 In Progress
+### Phase 2: In Progress
 - [ ] Test Drive Scheduling
 - [ ] CustomerService Notifications
 - [ ] Docker Compose Deployment
 - [ ] API Gateway Authentication
 
-### Phase 3: 📋 Planned
+### Phase 3:  Planned
 - [ ] Real-time Dashboard
 - [ ] Admin Panel
 - [ ] Analytics & Reporting
@@ -388,4 +388,4 @@ See [TESTING_GUIDE.md](./TESTING_GUIDE.md#common-issues--solutions)
 
 **Version**: 1.0.0  
 **Last Updated**: November 22, 2025  
-**Status**: ✅ Production Ready (Core Features)
+**Status**:  Production Ready (Core Features)
